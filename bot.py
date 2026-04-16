@@ -23,6 +23,7 @@ def run():
     print(f"Bot running at {now.strftime('%H:%M:%S ET')}")
 
     if not is_market_open():
+        send_telegram(f"🤖 Core Trading Bot is live\n⏰ {now.strftime('%I:%M %p ET')}\n📊 Market closed — will trade at 9:30 AM ET")
         print("Market is closed. Exiting.")
         return
 

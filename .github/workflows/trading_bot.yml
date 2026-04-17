@@ -2,12 +2,13 @@ name: Trading Bot
 
 on:
   schedule:
-    - cron: '*/15 14-21 * * 1-5'
+    - cron: "*/15 13-20 * * 1-5"   # Every 15 min, market hours only
   workflow_dispatch:
 
 jobs:
   run-bot:
     runs-on: ubuntu-latest
+
     steps:
       - uses: actions/checkout@v3
 
@@ -16,7 +17,7 @@ jobs:
           python-version: '3.11'
 
       - name: Install dependencies
-        run: pip install alpaca-trade-api pandas numpy ta python-dotenv pytz matplotlib
+        run: pip install alpaca-trade-api pandas numpy ta python-dotenv pytz matplotlib requests
 
       - name: Run bot
         env:
@@ -26,3 +27,4 @@ jobs:
           TELEGRAM_TOKEN: ${{ secrets.TELEGRAM_TOKEN }}
           TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
         run: python bot.py
+

@@ -2,7 +2,8 @@ name: Trading Bot
 
 on:
   schedule:
-    - cron: "*/15 13-20 * * 1-5"   # Every 15 min, market hours only
+  - cron: "*/15 13-20 * * 1-5"
+   # Every 15 min, market hours only
   workflow_dispatch:
 
 jobs:

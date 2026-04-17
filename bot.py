@@ -28,7 +28,6 @@ except Exception:
 try:
     from alpaca_client import get_client, get_bars, get_account, get_fills
 except Exception:
-    # If your alpaca_client isn't present, we'll still try to use alpaca_trade_api above
     get_client = None
     get_bars = None
     get_account = None
@@ -48,9 +47,7 @@ VOLATILITY_THRESHOLD = 0.02
 TELEGRAM_TOKEN_KEY = "TELEGRAM_TOKEN"
 TELEGRAM_CHAT_KEY = "TELEGRAM_CHAT_ID"
 
-# -------------------------
 # Messaging helpers
-# -------------------------
 def send_telegram(text: str):
     token = os.getenv(TELEGRAM_TOKEN_KEY)
     chat_id = os.getenv(TELEGRAM_CHAT_KEY)
@@ -85,9 +82,7 @@ def send_telegram_photo(photo_path: str, caption: Optional[str] = None):
     except Exception as e:
         print(f"Telegram photo error: {e}")
 
-# -------------------------
 # Market & volatility
-# -------------------------
 def is_market_open() -> bool:
     try:
         if get_client:
@@ -112,7 +107,6 @@ def compute_volatility(symbol: str, lookback: int = VOLATILITY_WINDOW) -> Option
             secret = os.getenv("ALPACA_SECRET_KEY")
             base = os.getenv("ALPACA_BASE_URL", "https://api.alpaca.markets")
             api = tradeapi.REST(key, secret, base_url=base)
-            # Alpaca returns bars in a different structure; adapt to pandas
             barset = api.get_bars(symbol, tradeapi.TimeFrame(5, tradeapi.TimeFrameUnit.Minute), limit=lookback + 1)
             closes = [b.c for b in barset]
             import pandas as _pd
@@ -129,9 +123,7 @@ def compute_volatility(symbol: str, lookback: int = VOLATILITY_WINDOW) -> Option
         print(f"Volatility calc failed for {symbol}: {e}")
         return None
 
-# -------------------------
 # Trade logging & PnL
-# -------------------------
 def log_trades(trades: List[Dict[str, Any]], timestamp_str: str):
     if not trades:
         return
@@ -145,12 +137,7 @@ def log_trades(trades: List[Dict[str, Any]], timestamp_str: str):
             writer.writerow([timestamp_str, t["symbol"], t["side"], f"{t['price']:.2f}"])
 
 def estimate_pnl_from_account() -> float:
-    """
-    Try to estimate PnL using Alpaca account positions and unrealized PL.
-    Uses alpaca_trade_api if available, otherwise tries get_account() from your alpaca_client.
-    """
     try:
-        # Preferred: alpaca_trade_api
         if ALPACA_REST_AVAILABLE:
             key = os.getenv("ALPACA_API_KEY")
             secret = os.getenv("ALPACA_SECRET_KEY")
@@ -159,11 +146,9 @@ def estimate_pnl_from_account() -> float:
             positions = api.list_positions()
             total_unrealized = 0.0
             for p in positions:
-                # alpaca_trade_api Position has unrealized_pl attribute
                 unreal = float(getattr(p, "unrealized_pl", 0.0))
                 total_unrealized += unreal
             return total_unrealized
-        # Fallback: your alpaca_client.get_account() or get_account()
         if get_account:
             acct = get_account()
             positions = getattr(acct, "positions", None)
@@ -179,9 +164,7 @@ def estimate_pnl_from_account() -> float:
         print("PnL estimate failed:", e)
     return 0.0
 
-# -------------------------
 # Daily summary
-# -------------------------
 def daily_summary_for_date(date: datetime) -> str:
     if not os.path.isfile(TRADE_LOG_FILE):
         return "No trade log found."
@@ -211,9 +194,7 @@ def daily_summary_for_date(date: datetime) -> str:
     ]
     return "\n".join(lines)
 
-# -------------------------
 # Optional charting
-# -------------------------
 def make_price_chart(symbol: str, timeframe: str = "5Min", limit: int = 120) -> Optional[str]:
     if not CHARTING_AVAILABLE:
         return None
@@ -244,9 +225,7 @@ def make_price_chart(symbol: str, timeframe: str = "5Min", limit: int = 120) -> 
         print("Chart generation failed:", e)
         return None
 
-# -------------------------
 # Main run logic
-# -------------------------
 def run():
     now = datetime.now(ET)
     timestamp_str = now.strftime("%Y-%m-%d %H:%M:%S")
@@ -266,7 +245,6 @@ def run():
         send_telegram("⚠️ *Volatility Alerts*\n\n" + "\n".join(volatility_alerts) + f"\n\n⏰ {pretty_time}")
     for symbol in SYMBOLS:
         try:
-            # Prefer your get_bars if present
             if get_bars:
                 bars = get_bars(symbol, timeframe="5Min", limit=80)
             elif ALPACA_REST_AVAILABLE:
@@ -309,9 +287,7 @@ def run():
         send_telegram("⚠️ *Bot Errors Detected*\n\n" + "\n".join([f"`{e}`" for e in errors]) + f"\n\n⏰ {pretty_time}")
     send_telegram(f"🔵 *Core Trading Bot Finished*\n⏰ {pretty_time}")
 
-# -------------------------
 # Entrypoint with failure reporting
-# -------------------------
 if __name__ == "__main__":
     try:
         run()

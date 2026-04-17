@@ -16,7 +16,7 @@ jobs:
           python-version: '3.11'
 
       - name: Install dependencies
-        run: pip install alpaca-trade-api pandas numpy ta python-dotenv pytz
+        run: pip install alpaca-trade-api pandas numpy ta python-dotenv pytz matplotlib
 
       - name: Run bot
         env:

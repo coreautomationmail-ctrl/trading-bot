@@ -1,5 +1,0 @@
-requests
-pytz
-pandas
-matplotlib
-# plus whatever your alpaca_client, strategy, executor need

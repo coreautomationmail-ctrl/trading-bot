@@ -1,14 +1,26 @@
-# daily_summary.py
-from datetime import datetime
-import pytz
-from bot import daily_summary_for_date, send_telegram
+name: Daily Summary
 
-ET = pytz.timezone("America/New_York")
+on:
+  schedule:
+    - cron: "5 20 * * 1-5"   # 4:05 PM ET, after market close
+  workflow_dispatch:
 
-def run_daily_summary():
-    today_et = datetime.now(ET)
-    summary = daily_summary_for_date(today_et)
-    send_telegram(summary)
+jobs:
+  run-summary:
+    runs-on: ubuntu-latest
 
-if __name__ == "__main__":
-    run_daily_summary()
+    steps:
+      - uses: actions/checkout@v3
+
+      - uses: actions/setup-python@v4
+        with:
+          python-version: '3.11'
+
+      - name: Install dependencies
+        run: pip install alpaca-trade-api pandas numpy ta python-dotenv pytz matplotlib requests
+
+      - name: Run daily summary
+        env:
+          TELEGRAM_TOKEN: ${{ secrets.TELEGRAM_TOKEN }}
+          TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
+        run: python daily_summary.py

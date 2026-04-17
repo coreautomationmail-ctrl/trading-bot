@@ -16,7 +16,24 @@ try:
 except Exception:
     CHARTING_AVAILABLE = False
 
-from alpaca_client import get_client, get_bars, get_account, get_fills  # adapt to your client API
+# Try to import alpaca_trade_api (common package). If not present, we'll fall back to your alpaca_client.
+ALPACA_REST_AVAILABLE = False
+try:
+    import alpaca_trade_api as tradeapi
+    ALPACA_REST_AVAILABLE = True
+except Exception:
+    ALPACA_REST_AVAILABLE = False
+
+# Your local client functions (keep these as-is if you already have them)
+try:
+    from alpaca_client import get_client, get_bars, get_account, get_fills
+except Exception:
+    # If your alpaca_client isn't present, we'll still try to use alpaca_trade_api above
+    get_client = None
+    get_bars = None
+    get_account = None
+    get_fills = None
+
 from strategy import generate_signal
 from executor import submit_order
 
@@ -73,15 +90,36 @@ def send_telegram_photo(photo_path: str, caption: Optional[str] = None):
 # -------------------------
 def is_market_open() -> bool:
     try:
-        return get_client().get_clock().is_open
+        if get_client:
+            return get_client().get_clock().is_open
+        if ALPACA_REST_AVAILABLE:
+            key = os.getenv("ALPACA_API_KEY")
+            secret = os.getenv("ALPACA_SECRET_KEY")
+            base = os.getenv("ALPACA_BASE_URL", "https://api.alpaca.markets")
+            api = tradeapi.REST(key, secret, base_url=base)
+            return api.get_clock().is_open
     except Exception as e:
         print("Market status check failed:", e)
-        return False
+    return False
 
 def compute_volatility(symbol: str, lookback: int = VOLATILITY_WINDOW) -> Optional[float]:
     try:
-        bars = get_bars(symbol, timeframe="5Min", limit=lookback + 1)
-        closes = bars["close"].astype(float)
+        if get_bars:
+            bars = get_bars(symbol, timeframe="5Min", limit=lookback + 1)
+            closes = bars["close"].astype(float)
+        elif ALPACA_REST_AVAILABLE:
+            key = os.getenv("ALPACA_API_KEY")
+            secret = os.getenv("ALPACA_SECRET_KEY")
+            base = os.getenv("ALPACA_BASE_URL", "https://api.alpaca.markets")
+            api = tradeapi.REST(key, secret, base_url=base)
+            # Alpaca returns bars in a different structure; adapt to pandas
+            barset = api.get_bars(symbol, tradeapi.TimeFrame(5, tradeapi.TimeFrameUnit.Minute), limit=lookback + 1)
+            closes = [b.c for b in barset]
+            import pandas as _pd
+            closes = _pd.Series(closes)
+        else:
+            return None
+
         returns = [ (closes.iloc[i] / closes.iloc[i-1]) - 1 for i in range(1, len(closes)) ]
         if len(returns) < 2:
             return None
@@ -107,23 +145,39 @@ def log_trades(trades: List[Dict[str, Any]], timestamp_str: str):
             writer.writerow([timestamp_str, t["symbol"], t["side"], f"{t['price']:.2f}"])
 
 def estimate_pnl_from_account() -> float:
+    """
+    Try to estimate PnL using Alpaca account positions and unrealized PL.
+    Uses alpaca_trade_api if available, otherwise tries get_account() from your alpaca_client.
+    """
     try:
-        account = get_account()
-        positions = getattr(account, "positions", None)
-        if positions:
+        # Preferred: alpaca_trade_api
+        if ALPACA_REST_AVAILABLE:
+            key = os.getenv("ALPACA_API_KEY")
+            secret = os.getenv("ALPACA_SECRET_KEY")
+            base = os.getenv("ALPACA_BASE_URL", "https://api.alpaca.markets")
+            api = tradeapi.REST(key, secret, base_url=base)
+            positions = api.list_positions()
             total_unrealized = 0.0
             for p in positions:
-                unreal = 0.0
-                if hasattr(p, "unrealized_pl"):
-                    unreal = float(p.unrealized_pl)
-                elif isinstance(p, dict) and "unrealized_pl" in p:
-                    unreal = float(p["unrealized_pl"])
+                # alpaca_trade_api Position has unrealized_pl attribute
+                unreal = float(getattr(p, "unrealized_pl", 0.0))
                 total_unrealized += unreal
             return total_unrealized
-        return 0.0
+        # Fallback: your alpaca_client.get_account() or get_account()
+        if get_account:
+            acct = get_account()
+            positions = getattr(acct, "positions", None)
+            if positions:
+                total_unrealized = 0.0
+                for p in positions:
+                    if hasattr(p, "unrealized_pl"):
+                        total_unrealized += float(p.unrealized_pl)
+                    elif isinstance(p, dict) and "unrealized_pl" in p:
+                        total_unrealized += float(p["unrealized_pl"])
+                return total_unrealized
     except Exception as e:
         print("PnL estimate failed:", e)
-        return 0.0
+    return 0.0
 
 # -------------------------
 # Daily summary
@@ -164,8 +218,19 @@ def make_price_chart(symbol: str, timeframe: str = "5Min", limit: int = 120) -> 
     if not CHARTING_AVAILABLE:
         return None
     try:
-        bars = get_bars(symbol, timeframe=timeframe, limit=limit)
-        df = pd.DataFrame({"t": pd.to_datetime(bars["t"]), "close": bars["close"].astype(float)})
+        if get_bars:
+            bars = get_bars(symbol, timeframe=timeframe, limit=limit)
+            df = pd.DataFrame({"t": pd.to_datetime(bars["t"]), "close": bars["close"].astype(float)})
+        elif ALPACA_REST_AVAILABLE:
+            key = os.getenv("ALPACA_API_KEY")
+            secret = os.getenv("ALPACA_SECRET_KEY")
+            base = os.getenv("ALPACA_BASE_URL", "https://api.alpaca.markets")
+            api = tradeapi.REST(key, secret, base_url=base)
+            barset = api.get_bars(symbol, tradeapi.TimeFrame(5, tradeapi.TimeFrameUnit.Minute), limit=limit)
+            df = pd.DataFrame({"t": [b.t for b in barset], "close": [b.c for b in barset]})
+            df["t"] = pd.to_datetime(df["t"])
+        else:
+            return None
         df.set_index("t", inplace=True)
         path = f"{symbol}_chart.png"
         plt.figure(figsize=(6,3))
@@ -201,7 +266,19 @@ def run():
         send_telegram("⚠️ *Volatility Alerts*\n\n" + "\n".join(volatility_alerts) + f"\n\n⏰ {pretty_time}")
     for symbol in SYMBOLS:
         try:
-            bars = get_bars(symbol, timeframe="5Min", limit=80)
+            # Prefer your get_bars if present
+            if get_bars:
+                bars = get_bars(symbol, timeframe="5Min", limit=80)
+            elif ALPACA_REST_AVAILABLE:
+                key = os.getenv("ALPACA_API_KEY")
+                secret = os.getenv("ALPACA_SECRET_KEY")
+                base = os.getenv("ALPACA_BASE_URL", "https://api.alpaca.markets")
+                api = tradeapi.REST(key, secret, base_url=base)
+                barset = api.get_bars(symbol, tradeapi.TimeFrame(5, tradeapi.TimeFrameUnit.Minute), limit=80)
+                import pandas as _pd
+                bars = _pd.DataFrame({"t":[b.t for b in barset],"close":[b.c for b in barset]})
+            else:
+                raise RuntimeError("No bars provider available")
             signal = generate_signal(bars, now=now)
             price = float(bars["close"].iloc[-1])
             print(f"{symbol} | Signal: {signal} | Price: ${price:.2f}")

@@ -1,7 +1,6 @@
 # daily_summary.py
 from datetime import datetime
 import pytz
-import os
 from bot import daily_summary_for_date, send_telegram
 
 ET = pytz.timezone("America/New_York")

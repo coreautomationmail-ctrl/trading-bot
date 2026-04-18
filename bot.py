@@ -6,288 +6,234 @@ import os
 import csv
 import traceback
 import statistics
+import subprocess
 from typing import List, Dict, Any, Optional
 
-# Optional imports for charting and data handling
-try:
-    import matplotlib.pyplot as plt
-    import pandas as pd
-    CHARTING_AVAILABLE = True
-except Exception:
-    CHARTING_AVAILABLE = False
+import pandas as pd
+import matplotlib
+matplotlib.use("Agg")  # headless — no display needed in CI
+import matplotlib.pyplot as plt
+import alpaca_trade_api as tradeapi
 
-# Try to import alpaca_trade_api (common package). If not present, we'll fall back to your alpaca_client.
-ALPACA_REST_AVAILABLE = False
-try:
-    import alpaca_trade_api as tradeapi
-    ALPACA_REST_AVAILABLE = True
-except Exception:
-    ALPACA_REST_AVAILABLE = False
-
-# Your local client functions (keep these as-is if you already have them)
-try:
-    from alpaca_client import get_client, get_bars, get_account, get_fills
-except Exception:
-    get_client = None
-    get_bars = None
-    get_account = None
-    get_fills = None
-
+from alpaca_client import get_client, get_bars, get_account
 from strategy import generate_signal
 from executor import submit_order
 
-# Config
+# ── Config ────────────────────────────────────────────────────────────────────
+
 SYMBOLS = ["AAPL", "TSLA", "SPY"]
 ET = pytz.timezone("America/New_York")
 TRADE_LOG_FILE = "trade_log.csv"
 VOLATILITY_WINDOW = 20
 VOLATILITY_THRESHOLD = 0.02
 
-# Env keys
-TELEGRAM_TOKEN_KEY = "TELEGRAM_TOKEN"
-TELEGRAM_CHAT_KEY = "TELEGRAM_CHAT_ID"
+# ── Telegram ──────────────────────────────────────────────────────────────────
 
-# Messaging helpers
 def send_telegram(text: str):
-    token = os.getenv(TELEGRAM_TOKEN_KEY)
-    chat_id = os.getenv(TELEGRAM_CHAT_KEY)
+    token = os.getenv("TELEGRAM_TOKEN")
+    chat_id = os.getenv("TELEGRAM_CHAT_ID")
     if not token or not chat_id:
         print("Telegram not configured; skipping message.")
         return
     try:
         url = f"https://api.telegram.org/bot{token}/sendMessage"
-        payload = {"chat_id": chat_id, "text": text, "parse_mode": "Markdown"}
-        requests.post(url, data=payload, timeout=10)
+        requests.post(
+            url,
+            data={"chat_id": chat_id, "text": text, "parse_mode": "Markdown"},
+            timeout=10,
+        )
     except Exception as e:
-        print(f"Telegram send error: {e}")
+        print(f"[telegram] send error: {e}")
+
 
 def send_telegram_photo(photo_path: str, caption: Optional[str] = None):
-    token = os.getenv(TELEGRAM_TOKEN_KEY)
-    chat_id = os.getenv(TELEGRAM_CHAT_KEY)
+    token = os.getenv("TELEGRAM_TOKEN")
+    chat_id = os.getenv("TELEGRAM_CHAT_ID")
     if not token or not chat_id:
         print("Telegram not configured; skipping photo.")
         return
     if not os.path.isfile(photo_path):
-        print("Photo not found:", photo_path)
+        print(f"[telegram] photo not found: {photo_path}")
         return
     try:
         url = f"https://api.telegram.org/bot{token}/sendPhoto"
         with open(photo_path, "rb") as f:
-            files = {"photo": f}
-            data = {"chat_id": chat_id}
+            data: Dict[str, Any] = {"chat_id": chat_id}
             if caption:
                 data["caption"] = caption
                 data["parse_mode"] = "Markdown"
-            requests.post(url, data=data, files=files, timeout=30)
+            requests.post(url, data=data, files={"photo": f}, timeout=30)
     except Exception as e:
-        print(f"Telegram photo error: {e}")
+        print(f"[telegram] photo error: {e}")
 
-# Market & volatility
+
+# ── Market status ─────────────────────────────────────────────────────────────
+
 def is_market_open() -> bool:
     try:
-        if get_client:
-            return get_client().get_clock().is_open
-        if ALPACA_REST_AVAILABLE:
-            key = os.getenv("ALPACA_API_KEY")
-            secret = os.getenv("ALPACA_SECRET_KEY")
-            base = os.getenv("ALPACA_BASE_URL", "https://api.alpaca.markets")
-            api = tradeapi.REST(key, secret, base_url=base)
-            return api.get_clock().is_open
+        return get_client().get_clock().is_open
     except Exception as e:
-        print("Market status check failed:", e)
-    return False
+        print(f"[market] status check failed: {e}")
+        return False
+
+
+# ── Volatility ────────────────────────────────────────────────────────────────
 
 def compute_volatility(symbol: str, lookback: int = VOLATILITY_WINDOW) -> Optional[float]:
     try:
-        if get_bars:
-            bars = get_bars(symbol, timeframe="5Min", limit=lookback + 1)
-            closes = bars["close"].astype(float)
-        elif ALPACA_REST_AVAILABLE:
-            key = os.getenv("ALPACA_API_KEY")
-            secret = os.getenv("ALPACA_SECRET_KEY")
-            base = os.getenv("ALPACA_BASE_URL", "https://api.alpaca.markets")
-            api = tradeapi.REST(key, secret, base_url=base)
-            barset = api.get_bars(symbol, tradeapi.TimeFrame(5, tradeapi.TimeFrameUnit.Minute), limit=lookback + 1)
-            closes = [b.c for b in barset]
-            import pandas as _pd
-            closes = _pd.Series(closes)
-        else:
-            return None
-
-        returns = [ (closes.iloc[i] / closes.iloc[i-1]) - 1 for i in range(1, len(closes)) ]
+        bars = get_bars(symbol, timeframe="5Min", limit=lookback + 1)
+        closes = bars["close"].astype(float)
+        returns = [(closes.iloc[i] / closes.iloc[i - 1]) - 1 for i in range(1, len(closes))]
         if len(returns) < 2:
             return None
-        vol = statistics.stdev(returns)
-        return vol
+        return statistics.stdev(returns)
     except Exception as e:
-        print(f"Volatility calc failed for {symbol}: {e}")
+        print(f"[volatility] calc failed for {symbol}: {e}")
         return None
 
-# Trade logging & PnL
+
+# ── Trade logging ─────────────────────────────────────────────────────────────
+
 def log_trades(trades: List[Dict[str, Any]], timestamp_str: str):
+    """Append trades to CSV and commit the file back to the repo so it persists across runs."""
     if not trades:
         return
-    header = ["timestamp", "symbol", "side", "price"]
+
+    header = ["timestamp", "symbol", "side", "price", "qty"]
     file_exists = os.path.isfile(TRADE_LOG_FILE)
+
     with open(TRADE_LOG_FILE, "a", newline="") as f:
         writer = csv.writer(f)
         if not file_exists:
             writer.writerow(header)
         for t in trades:
-            writer.writerow([timestamp_str, t["symbol"], t["side"], f"{t['price']:.2f}"])
+            writer.writerow([
+                timestamp_str,
+                t["symbol"],
+                t["side"],
+                f"{t['price']:.2f}",
+                t.get("qty", ""),
+            ])
+
+    # Persist across GitHub Actions runs by committing back to the repo.
+    # Requires the workflow to checkout with a token that has write access,
+    # or use a PAT stored in secrets and passed as GIT_TOKEN.
+    try:
+        subprocess.run(["git", "config", "user.email", "bot@core-automation-ai"], check=True)
+        subprocess.run(["git", "config", "user.name", "Core Trading Bot"], check=True)
+        subprocess.run(["git", "add", TRADE_LOG_FILE], check=True)
+        subprocess.run(
+            ["git", "commit", "-m", f"chore: trade log update {timestamp_str}"],
+            check=True,
+        )
+        subprocess.run(["git", "push"], check=True)
+        print(f"[log] trade_log.csv committed and pushed")
+    except subprocess.CalledProcessError as e:
+        print(f"[log] git commit/push failed (non-fatal): {e}")
+
+
+# ── PnL ───────────────────────────────────────────────────────────────────────
 
 def estimate_pnl_from_account() -> float:
     try:
-        if ALPACA_REST_AVAILABLE:
-            key = os.getenv("ALPACA_API_KEY")
-            secret = os.getenv("ALPACA_SECRET_KEY")
-            base = os.getenv("ALPACA_BASE_URL", "https://api.alpaca.markets")
-            api = tradeapi.REST(key, secret, base_url=base)
-            positions = api.list_positions()
-            total_unrealized = 0.0
-            for p in positions:
-                unreal = float(getattr(p, "unrealized_pl", 0.0))
-                total_unrealized += unreal
-            return total_unrealized
-        if get_account:
-            acct = get_account()
-            positions = getattr(acct, "positions", None)
-            if positions:
-                total_unrealized = 0.0
-                for p in positions:
-                    if hasattr(p, "unrealized_pl"):
-                        total_unrealized += float(p.unrealized_pl)
-                    elif isinstance(p, dict) and "unrealized_pl" in p:
-                        total_unrealized += float(p["unrealized_pl"])
-                return total_unrealized
+        api = get_client()
+        positions = api.list_positions()
+        return sum(float(getattr(p, "unrealized_pl", 0.0)) for p in positions)
     except Exception as e:
-        print("PnL estimate failed:", e)
-    return 0.0
+        print(f"[pnl] estimate failed: {e}")
+        return 0.0
 
-# Daily summary
-def daily_summary_for_date(date: datetime) -> str:
-    if not os.path.isfile(TRADE_LOG_FILE):
-        return "No trade log found."
-    try:
-        import pandas as pd
-        df = pd.read_csv(TRADE_LOG_FILE, parse_dates=["timestamp"])
-    except Exception:
-        lines = []
-        with open(TRADE_LOG_FILE, "r") as f:
-            lines = f.readlines()
-        return f"Trade log exists with {len(lines)-1} entries."
-    start = datetime(date.year, date.month, date.day, tzinfo=ET)
-    end = start + timedelta(days=1)
-    df["timestamp"] = pd.to_datetime(df["timestamp"])
-    mask = (df["timestamp"] >= start) & (df["timestamp"] < end)
-    day_df = df.loc[mask]
-    if day_df.empty:
-        return "No trades for that date."
-    total_trades = len(day_df)
-    buys = len(day_df[day_df["side"] == "BUY"])
-    sells = len(day_df[day_df["side"] == "SELL"])
-    pnl = estimate_pnl_from_account()
-    lines = [
-        f"📅 *Daily Summary — {start.strftime('%Y-%m-%d')}*",
-        f"Total trades: *{total_trades}* (BUY: *{buys}*, SELL: *{sells}*)",
-        f"Estimated PnL: *${pnl:.2f}*",
-    ]
-    return "\n".join(lines)
 
-# Optional charting
+# ── Charting ──────────────────────────────────────────────────────────────────
+
 def make_price_chart(symbol: str, timeframe: str = "5Min", limit: int = 120) -> Optional[str]:
-    if not CHARTING_AVAILABLE:
-        return None
     try:
-        if get_bars:
-            bars = get_bars(symbol, timeframe=timeframe, limit=limit)
-            df = pd.DataFrame({"t": pd.to_datetime(bars["t"]), "close": bars["close"].astype(float)})
-        elif ALPACA_REST_AVAILABLE:
-            key = os.getenv("ALPACA_API_KEY")
-            secret = os.getenv("ALPACA_SECRET_KEY")
-            base = os.getenv("ALPACA_BASE_URL", "https://api.alpaca.markets")
-            api = tradeapi.REST(key, secret, base_url=base)
-            barset = api.get_bars(symbol, tradeapi.TimeFrame(5, tradeapi.TimeFrameUnit.Minute), limit=limit)
-            df = pd.DataFrame({"t": [b.t for b in barset], "close": [b.c for b in barset]})
-            df["t"] = pd.to_datetime(df["t"])
-        else:
-            return None
-        df.set_index("t", inplace=True)
-        path = f"{symbol}_chart.png"
-        plt.figure(figsize=(6,3))
-        plt.plot(df.index, df["close"], linewidth=1.2)
-        plt.title(f"{symbol} recent")
+        bars = get_bars(symbol, timeframe=timeframe, limit=limit)
+        # bars.index is already a DatetimeIndex in ET after get_bars()
+        fig, ax = plt.subplots(figsize=(6, 3))
+        ax.plot(bars.index, bars["close"].astype(float), linewidth=1.2)
+        ax.set_title(f"{symbol} — last {limit} bars ({timeframe})")
+        fig.autofmt_xdate()
         plt.tight_layout()
-        plt.savefig(path, dpi=100)
-        plt.close()
+        path = f"{symbol}_chart.png"
+        fig.savefig(path, dpi=100)
+        plt.close(fig)
         return path
     except Exception as e:
-        print("Chart generation failed:", e)
+        print(f"[chart] generation failed for {symbol}: {e}")
         return None
 
-# Main run logic
+
+# ── Main ──────────────────────────────────────────────────────────────────────
+
 def run():
     now = datetime.now(ET)
     timestamp_str = now.strftime("%Y-%m-%d %H:%M:%S")
     pretty_time = now.strftime("%I:%M %p ET")
+
     send_telegram(f"🟢 *Core Trading Bot Started*\n⏰ {pretty_time}")
+
     if not is_market_open():
         send_telegram("🔴 *Market is closed. Bot exiting.*")
         return
-    trades_made: List[Dict[str, Any]] = []
-    errors: List[str] = []
+
+    # Volatility scan
     volatility_alerts: List[str] = []
     for s in SYMBOLS:
         vol = compute_volatility(s)
         if vol is not None and vol > VOLATILITY_THRESHOLD:
-            volatility_alerts.append(f"`{s}` volatility high: {vol:.4f}")
+            volatility_alerts.append(f"`{s}` vol: {vol:.4f}")
     if volatility_alerts:
         send_telegram("⚠️ *Volatility Alerts*\n\n" + "\n".join(volatility_alerts) + f"\n\n⏰ {pretty_time}")
+
+    # Signal loop
+    trades_made: List[Dict[str, Any]] = []
+    errors: List[str] = []
+
     for symbol in SYMBOLS:
         try:
-            if get_bars:
-                bars = get_bars(symbol, timeframe="5Min", limit=80)
-            elif ALPACA_REST_AVAILABLE:
-                key = os.getenv("ALPACA_API_KEY")
-                secret = os.getenv("ALPACA_SECRET_KEY")
-                base = os.getenv("ALPACA_BASE_URL", "https://api.alpaca.markets")
-                api = tradeapi.REST(key, secret, base_url=base)
-                barset = api.get_bars(symbol, tradeapi.TimeFrame(5, tradeapi.TimeFrameUnit.Minute), limit=80)
-                import pandas as _pd
-                bars = _pd.DataFrame({"t":[b.t for b in barset],"close":[b.c for b in barset]})
-            else:
-                raise RuntimeError("No bars provider available")
+            bars = get_bars(symbol, timeframe="5Min", limit=80)
             signal = generate_signal(bars, now=now)
             price = float(bars["close"].iloc[-1])
             print(f"{symbol} | Signal: {signal} | Price: ${price:.2f}")
-            if signal in ["BUY", "SELL"]:
-                order = submit_order(symbol, signal, price)
-                if order is not None:
-                    trades_made.append({"symbol": symbol, "side": signal, "price": price})
+
+            if signal in ("BUY", "SELL"):
+                result = submit_order(symbol, signal, price)
+                if result is not None:
+                    trades_made.append(result)
+
         except Exception as e:
             tb = traceback.format_exc()
-            print(f"Error for {symbol}: {e}\n{tb}")
+            print(f"[bot] error for {symbol}: {e}\n{tb}")
             errors.append(f"{symbol}: {e}")
+
+    # Log and report
     log_trades(trades_made, timestamp_str)
+
     if trades_made:
         est_pnl = estimate_pnl_from_account()
         lines = ["🤖 *Core Trading Bot — Trades Executed*\n"]
         for t in trades_made:
-            lines.append(f"*{t['side']}* `{t['symbol']}` @ `${t['price']:.2f}`")
-        lines.append(f"\n💰 *Est. PnL:* `${est_pnl:.2f}`")
+            qty_str = f" x{t['qty']}" if t.get("qty") else ""
+            lines.append(f"*{t['side']}* `{t['symbol']}`{qty_str} @ `${t['price']:.2f}`")
+        lines.append(f"\n💰 *Est. Unrealized PnL:* `${est_pnl:.2f}`")
         lines.append(f"⏰ {pretty_time}")
         send_telegram("\n".join(lines))
+
         for t in trades_made:
             chart = make_price_chart(t["symbol"])
             if chart:
                 send_telegram_photo(chart, caption=f"📈 `{t['symbol']}` recent price")
     else:
         send_telegram(f"📭 *No trades executed this run.*\n⏰ {pretty_time}")
+
     if errors:
-        send_telegram("⚠️ *Bot Errors Detected*\n\n" + "\n".join([f"`{e}`" for e in errors]) + f"\n\n⏰ {pretty_time}")
+        error_text = "\n".join(f"`{e}`" for e in errors)
+        send_telegram(f"⚠️ *Bot Errors*\n\n{error_text}\n\n⏰ {pretty_time}")
+
     send_telegram(f"🔵 *Core Trading Bot Finished*\n⏰ {pretty_time}")
 
-# Entrypoint with failure reporting
+
 if __name__ == "__main__":
     try:
         run()

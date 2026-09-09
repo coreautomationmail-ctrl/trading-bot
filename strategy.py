@@ -154,6 +154,35 @@ def check_rsi_ema(bars: pd.DataFrame, signal: str) -> bool:
     return True
 
 
+LONG_TERM_TREND_PERIOD = 200  # daily bars
+
+
+def check_long_term_trend(daily_bars: pd.DataFrame) -> bool:
+    """
+    Regime filter found via the 2022 bear-market backtest: nearly all ORB
+    losses in a grinding downtrend came from BUY signals taken while price
+    was below its 200-day SMA (MSFT: 97% of the loss; NVDA: 100% of trades
+    lost, since it never traded above its 200-day SMA in that window).
+    Blocks new BUY entries outside an established uptrend; SELL/exit logic
+    is untouched so an open position can always be closed.
+
+    Fails closed (blocks BUY) if daily history is missing or too short —
+    unlike the RSI/EMA filter's pass-through default, this filter exists
+    specifically to keep the bot out of bad regimes, so an unknown regime
+    should not be treated as a green light.
+    """
+    if daily_bars is None or len(daily_bars) < LONG_TERM_TREND_PERIOD:
+        print("[strategy] Long-term trend filter: insufficient daily history, blocking BUY")
+        return False
+    closes = daily_bars["close"].astype(float)
+    sma = closes.rolling(LONG_TERM_TREND_PERIOD).mean().iloc[-1]
+    price = closes.iloc[-1]
+    if pd.isna(sma):
+        print("[strategy] Long-term trend filter: SMA not yet computable, blocking BUY")
+        return False
+    return price > sma
+
+
 def _ensure_et_index(bars: pd.DataFrame) -> pd.DataFrame:
     if not isinstance(bars.index, pd.DatetimeIndex):
         raise ValueError("bars.index must be a DatetimeIndex.")
@@ -168,9 +197,14 @@ def _ensure_et_index(bars: pd.DataFrame) -> pd.DataFrame:
 
 # ── Main signal ───────────────────────────────────────────────────────────────
 
-def generate_signal(bars: pd.DataFrame, symbol: str = None, now: datetime = None) -> dict:
+def generate_signal(bars: pd.DataFrame, symbol: str = None, now: datetime = None,
+                     daily_bars: pd.DataFrame = None) -> dict:
     """
     Opening-range breakout with full filter stack.
+
+    daily_bars: daily-timeframe history for `symbol`, used only to gate BUY
+        entries with the 200-day SMA regime filter (see check_long_term_trend).
+        Not needed for SELL/exit evaluation.
 
     Returns:
         {
@@ -243,6 +277,11 @@ def generate_signal(bars: pd.DataFrame, symbol: str = None, now: datetime = None
     # RSI + EMA confirmation
     if not check_rsi_ema(bars, raw):
         hold["reason"] = f"{raw} rejected by RSI/EMA"
+        return hold
+
+    # Long-term trend filter — only gates new BUY entries, not exits
+    if raw == "BUY" and not check_long_term_trend(daily_bars):
+        hold["reason"] = "BUY rejected: below 200-day SMA (bear regime)"
         return hold
 
     # Time-of-day size multiplier

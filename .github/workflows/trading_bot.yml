@@ -2,8 +2,8 @@ name: Trading Bot
 
 on:
   schedule:
-  - cron: "*/15 13-20 * * 1-5"
-   # Every 15 min, market hours only
+  - cron: "*/15 13-20 * * 1,3,5"
+   # Every 15 min, market hours only, Mon/Wed/Fri (paper-trade testing)
   workflow_dispatch:
 
 jobs:
@@ -27,5 +27,6 @@ jobs:
           ALPACA_BASE_URL: ${{ secrets.ALPACA_BASE_URL }}
           TELEGRAM_TOKEN: ${{ secrets.TELEGRAM_TOKEN }}
           TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
+          LIVE_TRADING_APPROVED: ${{ secrets.LIVE_TRADING_APPROVED }}
         run: python bot.py
 

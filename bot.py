@@ -1,7 +1,6 @@
 # bot.py
 from datetime import datetime, timedelta
 import pytz
-import requests
 import os
 import csv
 import traceback
@@ -15,8 +14,10 @@ matplotlib.use("Agg")
 import matplotlib.pyplot as plt
 
 from alpaca_client import get_client, get_bars, get_account
-from strategy import generate_signal
+from strategy import generate_signal, LONG_TERM_TREND_PERIOD
 from executor import submit_order, check_daily_loss_limit
+from notifications import send_telegram, send_telegram_photo
+from safety import enforce_paper_mode
 
 # ── Config ────────────────────────────────────────────────────────────────────
 
@@ -24,42 +25,6 @@ SYMBOLS = ["SPY", "QQQ", "AAPL", "MSFT", "NVDA", "TSLA", "AMZN"]
 ET = pytz.timezone("America/New_York")
 TRADE_LOG_FILE = "trade_log.csv"
 VOLATILITY_THRESHOLD = 0.02
-
-# ── Telegram ──────────────────────────────────────────────────────────────────
-
-def send_telegram(text: str):
-    token = os.getenv("TELEGRAM_TOKEN")
-    chat_id = os.getenv("TELEGRAM_CHAT_ID")
-    if not token or not chat_id:
-        print("Telegram not configured:", text)
-        return
-    try:
-        requests.post(
-            f"https://api.telegram.org/bot{token}/sendMessage",
-            data={"chat_id": chat_id, "text": text, "parse_mode": "Markdown"},
-            timeout=10,
-        )
-    except Exception as e:
-        print(f"[telegram] error: {e}")
-
-
-def send_telegram_photo(photo_path: str, caption: Optional[str] = None):
-    token = os.getenv("TELEGRAM_TOKEN")
-    chat_id = os.getenv("TELEGRAM_CHAT_ID")
-    if not token or not chat_id or not os.path.isfile(photo_path):
-        return
-    try:
-        with open(photo_path, "rb") as f:
-            data: Dict[str, Any] = {"chat_id": chat_id}
-            if caption:
-                data["caption"] = caption
-                data["parse_mode"] = "Markdown"
-            requests.post(
-                f"https://api.telegram.org/bot{token}/sendPhoto",
-                data=data, files={"photo": f}, timeout=30,
-            )
-    except Exception as e:
-        print(f"[telegram] photo error: {e}")
 
 
 # ── Market ────────────────────────────────────────────────────────────────────
@@ -150,6 +115,8 @@ def run():
 
     send_telegram(f"🟢 *Core Trading Bot Started*\n⏰ {pretty_time}")
 
+    enforce_paper_mode()
+
     if not is_market_open():
         send_telegram("🔴 *Market is closed. Bot exiting.*")
         return
@@ -182,7 +149,8 @@ def run():
     for symbol in SYMBOLS:
         try:
             bars = get_bars(symbol, timeframe="5Min", limit=100)
-            result = generate_signal(bars, symbol=symbol, now=now)
+            daily_bars = get_bars(symbol, timeframe="1Day", limit=LONG_TERM_TREND_PERIOD + 10)
+            result = generate_signal(bars, symbol=symbol, now=now, daily_bars=daily_bars)
             signal = result["signal"]
             price = float(bars["close"].iloc[-1])
 

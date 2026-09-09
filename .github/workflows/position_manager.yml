@@ -1,0 +1,31 @@
+name: Long-Term Position Manager
+
+on:
+  schedule:
+    - cron: "0 15 * * 1"
+    # Weekly, Monday ~10am ET (ignores DST, same as the other workflows)
+  workflow_dispatch:
+
+jobs:
+  run-position-manager:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v3
+
+      - uses: actions/setup-python@v4
+        with:
+          python-version: '3.11'
+
+      - name: Install dependencies
+        run: pip install alpaca-trade-api pandas numpy ta python-dotenv pytz matplotlib requests
+
+      - name: Run long-term position manager
+        env:
+          ALPACA_API_KEY: ${{ secrets.ALPACA_API_KEY }}
+          ALPACA_SECRET_KEY: ${{ secrets.ALPACA_SECRET_KEY }}
+          ALPACA_BASE_URL: ${{ secrets.ALPACA_BASE_URL }}
+          TELEGRAM_TOKEN: ${{ secrets.TELEGRAM_TOKEN }}
+          TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
+          LIVE_TRADING_APPROVED: ${{ secrets.LIVE_TRADING_APPROVED }}
+        run: python position_manager.py

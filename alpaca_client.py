@@ -29,6 +29,20 @@ def get_account():
     return api.get_account()
 
 
+def get_historical_bars(symbol: str, timeframe: str, start: str, end: str):
+    """
+    Pull the full bar range [start, end) for backtesting, e.g. a historical
+    shock window. Dates as 'YYYY-MM-DD'; no `limit` is passed so the SDK
+    paginates through the whole range instead of capping at one page.
+    """
+    api = get_client()
+    bars = api.get_bars(symbol, timeframe, start=start, end=end).df
+    if bars.index.tz is None:
+        bars.index = bars.index.tz_localize("UTC")
+    bars.index = bars.index.tz_convert("America/New_York")
+    return bars
+
+
 def get_fills(symbol: str = None):
     """
     Return a list of filled orders.

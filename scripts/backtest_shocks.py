@@ -1,0 +1,177 @@
+# scripts/backtest_shocks.py
+"""
+Replay the live ORB strategy (strategy.generate_signal, unmodified) against
+historical 5-min bars for known market-shock windows, to sanity-check the
+stop-loss/take-profit/kill-switch behavior before this ever trades real money.
+
+Usage: python scripts/backtest_shocks.py
+"""
+import os
+import sys
+from datetime import datetime, timedelta
+
+sys.path.insert(0, os.path.join(os.path.dirname(__file__), ".."))
+
+import pandas as pd
+
+from alpaca_client import get_historical_bars
+from strategy import generate_signal, LONG_TERM_TREND_PERIOD
+from executor import DAILY_LOSS_LIMIT
+
+SYMBOLS = ["SPY", "QQQ", "AAPL", "MSFT", "NVDA", "TSLA", "AMZN"]
+
+SHOCK_WINDOWS = [
+    ("2020 COVID Crash", "2020-02-15", "2020-04-30"),
+    ("2022 Bear Selloff", "2022-01-01", "2022-10-15"),
+    ("2024 Aug Flash Crash", "2024-08-01", "2024-08-10"),
+]
+
+STARTING_CASH = 100_000.0
+MAX_RISK_PCT = 0.02
+SIGNAL_EVERY_N_BARS = 3   # ~15 min at 5-min bars, matching the live cron cadence
+LOOKBACK_BARS = 100       # matches bot.py's get_bars(..., limit=100)
+
+
+def get_daily_bars_for_trend(symbol: str, start: str, end: str) -> pd.DataFrame:
+    """Enough daily history (extended well before `start`) for the 200-day SMA filter."""
+    extended_start = (datetime.strptime(start, "%Y-%m-%d") - timedelta(days=int(LONG_TERM_TREND_PERIOD * 1.6))).strftime("%Y-%m-%d")
+    return get_historical_bars(symbol, "1Day", extended_start, end)
+
+
+def simulate_symbol(symbol: str, bars: pd.DataFrame, daily_bars: pd.DataFrame = None) -> dict:
+    """
+    Bar-by-bar replay. Entry signal is only recomputed every
+    SIGNAL_EVERY_N_BARS bars (matching the live 15-min cron), but stop/take
+    hits are checked every bar — real Alpaca bracket orders live on the
+    broker's side and can fill intrabar regardless of when the bot last ran.
+    """
+    trades = []
+    position = None  # {"entry", "stop", "take", "qty"}
+    equity = STARTING_CASH
+    day_start_equity = equity
+    current_day = None
+    halted_today = False
+
+    for i in range(LOOKBACK_BARS, len(bars)):
+        bar = bars.iloc[i]
+        now = bars.index[i].to_pydatetime()
+        bar_day = now.date()
+
+        if bar_day != current_day:
+            current_day = bar_day
+            day_start_equity = equity
+            halted_today = False
+
+        # ── Manage an open position: did stop or take-profit hit intrabar? ──
+        if position is not None:
+            hi, lo = float(bar["high"]), float(bar["low"])
+            exit_price = None
+            if lo <= position["stop"]:
+                exit_price = position["stop"]
+            elif hi >= position["take"]:
+                exit_price = position["take"]
+            if exit_price is not None:
+                pnl = (exit_price - position["entry"]) * position["qty"]
+                equity += pnl
+                trades.append({"time": now, "side": "EXIT", "price": exit_price, "pnl": pnl})
+                position = None
+
+        # ── Daily loss guard, mirroring executor.check_daily_loss_limit ──
+        if equity - day_start_equity <= DAILY_LOSS_LIMIT:
+            halted_today = True
+
+        # ── Entry / early-exit signal, only every N bars (cron cadence) ──
+        if not halted_today and (i - LOOKBACK_BARS) % SIGNAL_EVERY_N_BARS == 0:
+            window = bars.iloc[max(0, i - LOOKBACK_BARS):i + 1]
+            # Only fully-completed prior days — no look-ahead into today's own bar
+            daily_slice = daily_bars[daily_bars.index.date < bar_day] if daily_bars is not None else None
+            result = generate_signal(window, symbol=symbol, now=now, daily_bars=daily_slice)
+            price = float(bar["close"])
+
+            if result["signal"] == "BUY" and position is None:
+                stop_pct = result["stop_pct"]
+                take_pct = result["take_pct"]
+                risk_dollars = equity * MAX_RISK_PCT * result["size_mult"]
+                qty = max(1, int(risk_dollars / (price * stop_pct)))
+                position = {
+                    "entry": price, "qty": qty,
+                    "stop": price * (1 - stop_pct),
+                    "take": price * (1 + take_pct),
+                }
+                trades.append({
+                    "time": now, "side": "BUY", "price": price, "qty": qty,
+                    "reason": result["reason"],
+                })
+
+            elif result["signal"] == "SELL" and position is not None:
+                pnl = (price - position["entry"]) * position["qty"]
+                equity += pnl
+                trades.append({"time": now, "side": "SELL_SIGNAL_EXIT", "price": price, "pnl": pnl})
+                position = None
+
+    # Mark any still-open position to the last close so the run reports fairly
+    if position is not None:
+        last_price = float(bars["close"].iloc[-1])
+        pnl = (last_price - position["entry"]) * position["qty"]
+        equity += pnl
+        trades.append({"time": bars.index[-1], "side": "MARK_TO_CLOSE", "price": last_price, "pnl": pnl})
+
+    max_dd = 0.0
+    running_peak = STARTING_CASH
+    running_equity = STARTING_CASH
+    for t in trades:
+        if "pnl" in t:
+            running_equity += t["pnl"]
+            running_peak = max(running_peak, running_equity)
+            max_dd = min(max_dd, running_equity - running_peak)
+
+    return {
+        "symbol": symbol,
+        "trades": trades,
+        "final_equity": equity,
+        "total_pnl": equity - STARTING_CASH,
+        "max_drawdown": max_dd,
+    }
+
+
+def run_window(label: str, start: str, end: str):
+    print(f"\n{'=' * 70}\n{label}  ({start} to {end})\n{'=' * 70}")
+    window_pnl = 0.0
+    window_trades = 0
+
+    for symbol in SYMBOLS:
+        try:
+            bars = get_historical_bars(symbol, "5Min", start, end)
+        except Exception as e:
+            print(f"  {symbol}: failed to fetch bars — {e}")
+            continue
+
+        if len(bars) < LOOKBACK_BARS + SIGNAL_EVERY_N_BARS:
+            print(f"  {symbol}: not enough bars in window ({len(bars)}), skipping")
+            continue
+
+        try:
+            daily_bars = get_daily_bars_for_trend(symbol, start, end)
+        except Exception as e:
+            print(f"  {symbol}: failed to fetch daily bars — {e}")
+            daily_bars = None
+
+        result = simulate_symbol(symbol, bars, daily_bars=daily_bars)
+        n_entries = sum(1 for t in result["trades"] if t["side"] == "BUY")
+        wins = sum(1 for t in result["trades"] if t.get("pnl", 0) > 0)
+        losses = sum(1 for t in result["trades"] if t.get("pnl", 0) < 0)
+
+        print(
+            f"  {symbol:6s} | trades={n_entries:3d} | win/loss={wins}/{losses} | "
+            f"PnL=${result['total_pnl']:9,.2f} | max_dd=${result['max_drawdown']:9,.2f}"
+        )
+        window_pnl += result["total_pnl"]
+        window_trades += n_entries
+
+    print(f"  {'-' * 66}")
+    print(f"  WINDOW TOTAL | trades={window_trades} | PnL=${window_pnl:,.2f}")
+
+
+if __name__ == "__main__":
+    for label, start, end in SHOCK_WINDOWS:
+        run_window(label, start, end)

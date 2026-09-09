@@ -1,4 +1,5 @@
 venv/
+.backtest_venv/
 .env
 api.env
 *.png

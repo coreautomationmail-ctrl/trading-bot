@@ -1,11 +1,8 @@
 # bot.py
-from datetime import datetime, timedelta
+from datetime import datetime
 import pytz
-import os
-import csv
 import traceback
 import statistics
-import subprocess
 from typing import List, Dict, Any, Optional
 
 import pandas as pd
@@ -23,7 +20,6 @@ from safety import enforce_paper_mode
 
 SYMBOLS = ["SPY", "QQQ", "AAPL", "MSFT", "NVDA", "TSLA", "AMZN"]
 ET = pytz.timezone("America/New_York")
-TRADE_LOG_FILE = "trade_log.csv"
 VOLATILITY_THRESHOLD = 0.02
 
 
@@ -48,32 +44,6 @@ def compute_volatility(symbol: str, lookback: int = 20) -> Optional[float]:
     except Exception as e:
         print(f"[volatility] {symbol}: {e}")
         return None
-
-
-# ── Trade logging ─────────────────────────────────────────────────────────────
-
-def log_trades(trades: List[Dict[str, Any]], timestamp_str: str):
-    if not trades:
-        return
-    header = ["timestamp", "symbol", "side", "price", "qty"]
-    file_exists = os.path.isfile(TRADE_LOG_FILE)
-    with open(TRADE_LOG_FILE, "a", newline="") as f:
-        writer = csv.writer(f)
-        if not file_exists:
-            writer.writerow(header)
-        for t in trades:
-            writer.writerow([timestamp_str, t["symbol"], t["side"],
-                             f"{t['price']:.2f}", t.get("qty", "")])
-    # Persist to repo so daily_summary.py can read it
-    try:
-        subprocess.run(["git", "config", "user.email", "bot@core-automation-ai"], check=True)
-        subprocess.run(["git", "config", "user.name", "Core Trading Bot"], check=True)
-        subprocess.run(["git", "add", TRADE_LOG_FILE], check=True)
-        subprocess.run(["git", "commit", "-m", f"chore: trade log {timestamp_str}"], check=True)
-        subprocess.run(["git", "push"], check=True)
-        print("[log] trade_log.csv committed")
-    except subprocess.CalledProcessError as e:
-        print(f"[log] git push failed (non-fatal): {e}")
 
 
 # ── PnL ───────────────────────────────────────────────────────────────────────
@@ -110,7 +80,6 @@ def make_price_chart(symbol: str, timeframe: str = "5Min", limit: int = 120) -> 
 
 def run():
     now = datetime.now(ET)
-    timestamp_str = now.strftime("%Y-%m-%d %H:%M:%S")
     pretty_time = now.strftime("%I:%M %p ET")
 
     send_telegram(f"🟢 *Core Trading Bot Started*\n⏰ {pretty_time}")
@@ -175,8 +144,6 @@ def run():
             tb = traceback.format_exc()
             print(f"[bot] {symbol} error: {e}\n{tb}")
             errors.append(f"{symbol}: {e}")
-
-    log_trades(trades_made, timestamp_str)
 
     # Signal summary (sent every run so you can see what the bot evaluated)
     if signal_log:

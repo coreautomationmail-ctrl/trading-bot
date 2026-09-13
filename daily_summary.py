@@ -1,15 +1,14 @@
 # daily_summary.py
 # Runs after market close (4:05 PM ET via GitHub Actions cron).
-# Reads trade_log.csv, fetches account state, and sends a Telegram summary.
+# Pulls today's fills and account state from Alpaca and sends a Telegram summary.
+# Alpaca is the source of truth for trades — nothing is persisted to the repo.
 
 from datetime import datetime, timedelta
 import os
-import csv
 import pytz
 import requests
 
 ET = pytz.timezone("America/New_York")
-TRADE_LOG_FILE = "trade_log.csv"
 
 
 # ── Telegram ──────────────────────────────────────────────────────────────────
@@ -33,16 +32,20 @@ def send_telegram(text: str):
 
 # ── Account / PnL ─────────────────────────────────────────────────────────────
 
+def get_api():
+    import alpaca_trade_api as tradeapi
+    return tradeapi.REST(
+        os.getenv("ALPACA_API_KEY"),
+        os.getenv("ALPACA_SECRET_KEY"),
+        os.getenv("ALPACA_BASE_URL", "https://paper-api.alpaca.markets"),
+        api_version="v2",
+    )
+
+
 def get_account_summary() -> dict:
     """Fetch portfolio value, cash, and unrealized PnL from Alpaca."""
     try:
-        import alpaca_trade_api as tradeapi
-        api = tradeapi.REST(
-            os.getenv("ALPACA_API_KEY"),
-            os.getenv("ALPACA_SECRET_KEY"),
-            os.getenv("ALPACA_BASE_URL", "https://paper-api.alpaca.markets"),
-            api_version="v2",
-        )
+        api = get_api()
         account = api.get_account()
         positions = api.list_positions()
         unrealized_pnl = sum(float(getattr(p, "unrealized_pl", 0)) for p in positions)
@@ -57,28 +60,33 @@ def get_account_summary() -> dict:
         return {}
 
 
-# ── Trade log ─────────────────────────────────────────────────────────────────
+# ── Today's fills ─────────────────────────────────────────────────────────────
 
 def read_todays_trades(today: datetime) -> list[dict]:
-    """Return rows from trade_log.csv that belong to today (ET)."""
-    if not os.path.isfile(TRADE_LOG_FILE):
+    """Return today's (ET) filled orders from Alpaca as
+    {"symbol", "side": "BUY"|"SELL", "qty", "price"} rows. nested=False so
+    bracket stop/take-profit legs show up as their own SELL fills."""
+    start = ET.localize(datetime(today.year, today.month, today.day))
+    end = start + timedelta(days=1)
+    try:
+        orders = get_api().list_orders(
+            status="closed", limit=500, nested=False,
+            after=start.isoformat(), until=end.isoformat(),
+        )
+    except Exception as e:
+        print(f"[summary] order fetch failed: {e}")
         return []
 
-    start = datetime(today.year, today.month, today.day, tzinfo=ET)
-    end = start + timedelta(days=1)
     rows = []
-
-    with open(TRADE_LOG_FILE, newline="") as f:
-        reader = csv.DictReader(f)
-        for row in reader:
-            try:
-                # Timestamps are stored as naive strings; treat as ET
-                ts = datetime.strptime(row["timestamp"], "%Y-%m-%d %H:%M:%S")
-                ts = ET.localize(ts)
-                if start <= ts < end:
-                    rows.append(row)
-            except Exception:
-                continue
+    for o in orders:
+        if getattr(o, "status", None) != "filled" or not o.filled_at:
+            continue
+        rows.append({
+            "symbol": o.symbol,
+            "side": o.side.upper(),
+            "qty": o.filled_qty,
+            "price": o.filled_avg_price,
+        })
     return rows
 
 

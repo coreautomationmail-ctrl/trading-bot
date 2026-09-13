@@ -5,21 +5,31 @@ on:
     - cron: "5 21 * * 1-5"
   workflow_dispatch:
 
+# actions: read lets daily_summary.py download today's bot run logs to tally
+# why signals were rejected.
+permissions:
+  contents: read
+  actions: read
+
+concurrency:
+  group: daily-summary
+  cancel-in-progress: false
+
 jobs:
   run-summary:
     runs-on: ubuntu-latest
+    timeout-minutes: 10
 
     steps:
-      - uses: actions/checkout@v3
-        with:
-          token: ${{ secrets.GIT_TOKEN }}
+      - uses: actions/checkout@v4
 
-      - uses: actions/setup-python@v4
+      - uses: actions/setup-python@v5
         with:
           python-version: "3.11"
+          cache: pip
 
       - name: Install dependencies
-        run: pip install alpaca-trade-api pandas numpy ta python-dotenv pytz matplotlib requests
+        run: pip install -r requirements.txt
 
       - name: Run daily summary
         env:
@@ -28,4 +38,5 @@ jobs:
           ALPACA_BASE_URL: ${{ secrets.ALPACA_BASE_URL }}
           TELEGRAM_TOKEN: ${{ secrets.TELEGRAM_TOKEN }}
           TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: python daily_summary.py

@@ -6,19 +6,28 @@ on:
     # Weekly, Monday ~10am ET (ignores DST, same as the other workflows)
   workflow_dispatch:
 
+permissions:
+  contents: read
+
+concurrency:
+  group: position-manager
+  cancel-in-progress: false
+
 jobs:
   run-position-manager:
     runs-on: ubuntu-latest
+    timeout-minutes: 10
 
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
 
-      - uses: actions/setup-python@v4
+      - uses: actions/setup-python@v5
         with:
-          python-version: '3.11'
+          python-version: "3.11"
+          cache: pip
 
       - name: Install dependencies
-        run: pip install alpaca-trade-api pandas numpy ta python-dotenv pytz matplotlib requests
+        run: pip install -r requirements.txt
 
       - name: Run long-term position manager
         env:

@@ -1,15 +1,15 @@
 # listener.py
-# Long-running Telegram command listener.
-# Deployed via GitHub Actions (restarts every 6h to stay within runner limits).
+# Telegram command handler. Runs on a short cron, drains any pending commands,
+# answers them, acknowledges the updates, and exits — a few seconds of runtime.
+# (It used to long-poll for 6h per run, ~24 runner-hours/day, which is what
+# exhausted the private-repo Actions quota and is against Actions usage terms.)
 #
 # Supported commands (send in your Telegram chat):
-#   /status   — portfolio value, cash, open positions, unrealized PnL
+#   /status    — portfolio value, cash, open positions, unrealized PnL
 #   /positions — list all open positions with entry price and unrealized PnL
-#   /summary  — today's trade summary (same as daily_summary.py output)
-#   /stop     — gracefully exit the listener (useful before deploying changes)
+#   /summary   — today's trade summary (same as daily_summary.py output)
 
 import os
-import time
 import pytz
 import requests
 from datetime import datetime
@@ -18,8 +18,6 @@ ET = pytz.timezone("America/New_York")
 
 TELEGRAM_TOKEN = os.getenv("TELEGRAM_TOKEN")
 TELEGRAM_CHAT_ID = os.getenv("TELEGRAM_CHAT_ID")
-POLL_INTERVAL = 3  # seconds between Telegram long-poll calls
-TIMEOUT = 30       # long-poll timeout in seconds
 
 
 # ── Telegram helpers ──────────────────────────────────────────────────────────
@@ -38,12 +36,14 @@ def send(text: str):
         print(f"[telegram] send error: {e}")
 
 
-def get_updates(offset: int) -> list:
+def get_updates(offset: int = 0) -> list:
+    """Fetch pending updates without long-polling. Calling this with
+    offset=last_id+1 is also how Telegram acknowledges them."""
     try:
         resp = requests.get(
             f"https://api.telegram.org/bot{TELEGRAM_TOKEN}/getUpdates",
-            params={"offset": offset, "timeout": TIMEOUT},
-            timeout=TIMEOUT + 5,
+            params={"offset": offset, "timeout": 0},
+            timeout=15,
         )
         data = resp.json()
         if data.get("ok"):
@@ -123,68 +123,50 @@ HELP_TEXT = (
     "🤖 *Core Trading Bot — Commands*\n\n"
     "/status — portfolio snapshot\n"
     "/positions — open positions\n"
-    "/summary — today's trade summary\n"
-    "/stop — stop this listener"
+    "/summary — today's trade summary\n\n"
+    "_Commands are picked up every 15 minutes._"
 )
 
 
-def handle_message(text: str) -> bool:
-    """Process a command. Returns True if listener should stop."""
+def handle_message(text: str):
     cmd = text.strip().split()[0].lower()
-
-    if cmd == "/stop":
-        send("🛑 Listener stopping. Restart via GitHub Actions when ready.")
-        return True
-
     if cmd in ("/help", "/start"):
         send(HELP_TEXT)
-        return False
-
-    if cmd in COMMANDS:
+    elif cmd in COMMANDS:
         send(COMMANDS[cmd]())
     else:
         send(f"Unknown command: `{cmd}`\n\n{HELP_TEXT}")
 
-    return False
 
-
-# ── Main loop ─────────────────────────────────────────────────────────────────
+# ── Entrypoint ────────────────────────────────────────────────────────────────
 
 def run():
-    print(f"[listener] started at {datetime.now(ET).strftime('%I:%M %p ET')}")
-    send(f"👂 *Listener online* — {datetime.now(ET).strftime('%I:%M %p ET')}\nSend /help for commands.")
+    print(f"[listener] run at {datetime.now(ET).strftime('%I:%M %p ET')}")
+    updates = get_updates()
+    if not updates:
+        print("[listener] no pending commands")
+        return
 
-    offset = 0
-    while True:
-        updates = get_updates(offset)
-        for update in updates:
-            offset = update["update_id"] + 1
-            message = update.get("message") or update.get("edited_message")
-            if not message:
-                continue
+    for update in updates:
+        message = update.get("message") or update.get("edited_message")
+        if not message:
+            continue
+        # Only respond to the configured chat
+        if str(message.get("chat", {}).get("id", "")) != TELEGRAM_CHAT_ID:
+            continue
+        text = message.get("text", "").strip()
+        if not text:
+            continue
+        print(f"[listener] received: {text}")
+        handle_message(text)
 
-            # Only respond to the configured chat
-            chat_id = str(message.get("chat", {}).get("id", ""))
-            if chat_id != TELEGRAM_CHAT_ID:
-                continue
-
-            text = message.get("text", "").strip()
-            if not text:
-                continue
-
-            print(f"[listener] received: {text}")
-            should_stop = handle_message(text)
-            if should_stop:
-                return
-
-        time.sleep(POLL_INTERVAL)
+    # Acknowledge everything we just processed so the next run doesn't re-read it
+    get_updates(offset=updates[-1]["update_id"] + 1)
 
 
 if __name__ == "__main__":
     try:
         run()
-    except KeyboardInterrupt:
-        print("[listener] stopped by keyboard interrupt")
     except Exception as e:
         print(f"[listener] crashed: {e}")
         send(f"❌ *Listener crashed*\n\n`{e}`")

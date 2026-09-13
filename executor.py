@@ -65,7 +65,8 @@ def exit_orb_trade(api, trade: dict, price: float) -> dict | None:
             print(f"[executor] cancel leg {leg.id} failed (non-fatal): {e}")
     try:
         api.submit_order(symbol=trade["symbol"], qty=trade["qty"], side="sell",
-                         type="market", time_in_force="day")
+                         type="market", time_in_force="day",
+                         client_order_id=f"{ORB_TAG}x-{trade['symbol']}-{datetime.now(ET):%Y%m%d-%H%M%S}")
         print(f"[executor] ✅ EXIT {trade['symbol']} | {trade['qty']} shares @ ~${price:.2f}")
         return {"symbol": trade["symbol"], "side": "SELL", "price": price, "qty": trade["qty"]}
     except Exception as e:

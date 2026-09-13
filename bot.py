@@ -1,16 +1,15 @@
 # bot.py
-from datetime import datetime
+from datetime import datetime, timedelta
 import pytz
 import traceback
 import statistics
 from typing import List, Dict, Any, Optional
 
-import pandas as pd
 import matplotlib
 matplotlib.use("Agg")
 import matplotlib.pyplot as plt
 
-from alpaca_client import get_client, get_bars, get_account
+from alpaca_client import get_client, get_bars
 from strategy import generate_signal, LONG_TERM_TREND_PERIOD
 from executor import submit_order, check_daily_loss_limit, flatten_intraday
 from notifications import send_telegram, send_telegram_photo
@@ -21,16 +20,27 @@ from safety import enforce_paper_mode
 SYMBOLS = ["SPY", "QQQ", "AAPL", "MSFT", "NVDA", "TSLA", "AMZN"]
 ET = pytz.timezone("America/New_York")
 VOLATILITY_THRESHOLD = 0.02
+FLATTEN_BEFORE_CLOSE = timedelta(minutes=15)
+
+# Telegram policy: one heartbeat on the first eligible run of the day, one
+# message per run that trades or errors, one flatten report before the close.
+# Everything else goes to the Actions log; daily_summary.py digests it.
+HEARTBEAT_WINDOW = ((9, 40), (9, 58))
 
 
 # ── Market ────────────────────────────────────────────────────────────────────
 
-def is_market_open() -> bool:
+def get_market_clock():
+    """Returns (is_open, next_close as tz-aware ET datetime) or (False, None)."""
     try:
-        return get_client().get_clock().is_open
+        clock = get_client().get_clock()
+        next_close = clock.next_close
+        if hasattr(next_close, "to_pydatetime"):
+            next_close = next_close.to_pydatetime()
+        return bool(clock.is_open), next_close.astimezone(ET)
     except Exception as e:
         print(f"[market] status check failed: {e}")
-        return False
+        return False, None
 
 
 # ── Volatility scan ───────────────────────────────────────────────────────────
@@ -81,18 +91,18 @@ def make_price_chart(symbol: str, timeframe: str = "5Min", limit: int = 120) -> 
 def run():
     now = datetime.now(ET)
     pretty_time = now.strftime("%I:%M %p ET")
-
-    send_telegram(f"🟢 *Core Trading Bot Started*\n⏰ {pretty_time}")
+    print(f"[bot] run at {pretty_time}")
 
     enforce_paper_mode()
 
-    if not is_market_open():
-        send_telegram("🔴 *Market is closed. Bot exiting.*")
+    is_open, next_close = get_market_clock()
+    if not is_open:
+        print("[bot] market closed, exiting")
         return
 
-    # Last run before the close: flatten today's ORB trades, never hold overnight.
-    # Matches strategy.check_time_filter, which stops taking entries at 15:45.
-    if (now.hour, now.minute) >= (15, 45):
+    # Last run before the close (early-close days included): flatten today's
+    # ORB trades so nothing is held overnight.
+    if now >= next_close - FLATTEN_BEFORE_CLOSE:
         closed = flatten_intraday()
         if closed:
             lines = ["🏁 *End-of-Day Flatten*\n"] + [
@@ -100,8 +110,7 @@ def run():
             ] + [f"\n💰 *Unrealized PnL:* `${estimate_pnl():.2f}`", f"⏰ {pretty_time}"]
             send_telegram("\n".join(lines))
         else:
-            send_telegram(f"🏁 *End-of-Day:* no open ORB trades to flatten.\n⏰ {pretty_time}")
-        send_telegram(f"🔵 *Bot Finished*\n⏰ {pretty_time}")
+            print("[bot] EOD: no open ORB trades to flatten")
         return
 
     # Daily loss guard — alert and exit if limit hit
@@ -115,19 +124,25 @@ def run():
         )
         return
 
-    # Volatility scan
+    # Volatility scan — logged every run, only messaged in the heartbeat
     vol_alerts: List[str] = []
     for s in SYMBOLS:
         vol = compute_volatility(s)
         if vol is not None and vol > VOLATILITY_THRESHOLD:
             vol_alerts.append(f"`{s}` {vol:.4f}")
     if vol_alerts:
-        send_telegram("⚠️ *High Volatility*\n" + "\n".join(vol_alerts) + f"\n⏰ {pretty_time}")
+        print("[bot] high volatility: " + ", ".join(vol_alerts))
+
+    if HEARTBEAT_WINDOW[0] <= (now.hour, now.minute) < HEARTBEAT_WINDOW[1]:
+        msg = f"🟢 *Bot online* — {now:%a %b %d}, close {next_close:%I:%M %p} ET"
+        if vol_alerts:
+            msg += "\n⚠️ High volatility: " + ", ".join(vol_alerts)
+        send_telegram(msg)
 
     # Signal loop
     trades_made: List[Dict[str, Any]] = []
     errors: List[str] = []
-    signal_log: List[str] = []
+    reasons: Dict[str, str] = {}
 
     for symbol in SYMBOLS:
         try:
@@ -136,10 +151,9 @@ def run():
             result = generate_signal(bars, symbol=symbol, now=now, daily_bars=daily_bars)
             signal = result["signal"]
             price = float(bars["close"].iloc[-1])
+            reasons[symbol] = result["reason"]
 
-            signal_log.append(
-                f"`{symbol}` {signal} | reason: {result['reason']} | ${price:.2f}"
-            )
+            # daily_summary.py parses this exact line format from the Actions log
             print(f"{symbol} | {signal} | ${price:.2f} | {result['reason']}")
 
             if signal in ("BUY", "SELL"):
@@ -159,32 +173,21 @@ def run():
             print(f"[bot] {symbol} error: {e}\n{tb}")
             errors.append(f"{symbol}: {e}")
 
-    # Signal summary (sent every run so you can see what the bot evaluated)
-    if signal_log:
-        send_telegram(
-            f"🔍 *Signal Scan — {pretty_time}*\n\n" + "\n".join(signal_log)
-        )
-
-    # Trade report
     if trades_made:
         pnl = estimate_pnl()
-        lines = ["🤖 *Trades Executed*\n"]
+        lines = [f"🤖 *Trades — {pretty_time}*\n"]
         for t in trades_made:
-            lines.append(f"*{t['side']}* `{t['symbol']}` x{t.get('qty','')} @ `${t['price']:.2f}`")
+            lines.append(f"*{t['side']}* `{t['symbol']}` x{t.get('qty','')} @ `${t['price']:.2f}`"
+                         f"\n   _{reasons.get(t['symbol'], '')}_")
         lines.append(f"\n💰 *Unrealized PnL:* `${pnl:.2f}`")
-        lines.append(f"⏰ {pretty_time}")
         send_telegram("\n".join(lines))
         for t in trades_made:
             chart = make_price_chart(t["symbol"])
             if chart:
                 send_telegram_photo(chart, caption=f"📈 `{t['symbol']}`")
-    else:
-        send_telegram(f"📭 *No trades this run.*\n⏰ {pretty_time}")
 
     if errors:
-        send_telegram("⚠️ *Errors*\n" + "\n".join(f"`{e}`" for e in errors))
-
-    send_telegram(f"🔵 *Bot Finished*\n⏰ {pretty_time}")
+        send_telegram(f"⚠️ *Errors — {pretty_time}*\n" + "\n".join(f"`{e}`" for e in errors))
 
 
 if __name__ == "__main__":

@@ -1,24 +1,35 @@
 name: Telegram Listener
 
 on:
-  workflow_dispatch:
   schedule:
-    - cron: "0 */6 * * *"
+    - cron: "*/15 * * * *"
+    # Drains pending /commands and exits — seconds per run, not a 6h server.
+  workflow_dispatch:
+
+# actions: read so /summary can tally today's bot logs like daily_summary does
+permissions:
+  contents: read
+  actions: read
+
+concurrency:
+  group: telegram-listener
+  cancel-in-progress: false
 
 jobs:
   run-listener:
     runs-on: ubuntu-latest
-    timeout-minutes: 360
+    timeout-minutes: 5
 
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
 
-      - uses: actions/setup-python@v4
+      - uses: actions/setup-python@v5
         with:
           python-version: "3.11"
+          cache: pip
 
       - name: Install dependencies
-        run: pip install alpaca-trade-api pandas numpy ta python-dotenv pytz matplotlib requests
+        run: pip install -r requirements.txt
 
       - name: Run Telegram listener
         env:
@@ -27,4 +38,5 @@ jobs:
           ALPACA_API_KEY: ${{ secrets.ALPACA_API_KEY }}
           ALPACA_SECRET_KEY: ${{ secrets.ALPACA_SECRET_KEY }}
           ALPACA_BASE_URL: ${{ secrets.ALPACA_BASE_URL }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: python listener.py

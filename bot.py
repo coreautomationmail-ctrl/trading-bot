@@ -12,7 +12,7 @@ import matplotlib.pyplot as plt
 
 from alpaca_client import get_client, get_bars, get_account
 from strategy import generate_signal, LONG_TERM_TREND_PERIOD
-from executor import submit_order, check_daily_loss_limit
+from executor import submit_order, check_daily_loss_limit, flatten_intraday
 from notifications import send_telegram, send_telegram_photo
 from safety import enforce_paper_mode
 
@@ -88,6 +88,20 @@ def run():
 
     if not is_market_open():
         send_telegram("🔴 *Market is closed. Bot exiting.*")
+        return
+
+    # Last run before the close: flatten today's ORB trades, never hold overnight.
+    # Matches strategy.check_time_filter, which stops taking entries at 15:45.
+    if (now.hour, now.minute) >= (15, 45):
+        closed = flatten_intraday()
+        if closed:
+            lines = ["🏁 *End-of-Day Flatten*\n"] + [
+                f"SELL `{t['symbol']}` x{t['qty']} @ `${t['price']:.2f}`" for t in closed
+            ] + [f"\n💰 *Unrealized PnL:* `${estimate_pnl():.2f}`", f"⏰ {pretty_time}"]
+            send_telegram("\n".join(lines))
+        else:
+            send_telegram(f"🏁 *End-of-Day:* no open ORB trades to flatten.\n⏰ {pretty_time}")
+        send_telegram(f"🔵 *Bot Finished*\n⏰ {pretty_time}")
         return
 
     # Daily loss guard — alert and exit if limit hit

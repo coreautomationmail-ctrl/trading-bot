@@ -16,7 +16,7 @@ import pandas as pd
 
 from alpaca_client import get_historical_bars
 from strategy import generate_signal, LONG_TERM_TREND_PERIOD, compute_opening_rvol_series
-from executor import DAILY_LOSS_LIMIT
+from executor import DAILY_LOSS_LIMIT, MAX_POSITION_PCT
 
 SYMBOLS = ["SPY", "QQQ", "AAPL", "MSFT", "NVDA", "TSLA", "AMZN"]
 
@@ -40,7 +40,7 @@ def get_daily_bars_for_trend(symbol: str, start: str, end: str) -> pd.DataFrame:
 
 def simulate_symbol(symbol: str, bars: pd.DataFrame, daily_bars: pd.DataFrame = None,
                      stop_style: str = "fixed", use_rvol: bool = False, min_rvol: float = 1.0,
-                     rvol_bars: pd.DataFrame = None) -> dict:
+                     rvol_bars: pd.DataFrame = None, eod_flatten: bool = True) -> dict:
     """
     Bar-by-bar replay. Entry signal is only recomputed every
     SIGNAL_EVERY_N_BARS bars (matching the live 15-min cron), but stop/take
@@ -84,6 +84,13 @@ def simulate_symbol(symbol: str, bars: pd.DataFrame, daily_bars: pd.DataFrame = 
                 equity += pnl
                 trades.append({"time": now, "side": "EXIT", "price": exit_price, "pnl": pnl})
                 position = None
+            elif eod_flatten and (now.hour, now.minute) >= (15, 45):
+                # End-of-day flatten, mirroring bot.py — never hold overnight
+                exit_price = float(bar["close"])
+                pnl = (exit_price - position["entry"]) * position["qty"]
+                equity += pnl
+                trades.append({"time": now, "side": "EOD_EXIT", "price": exit_price, "pnl": pnl})
+                position = None
 
         # ── Daily loss guard, mirroring executor.check_daily_loss_limit ──
         if equity - day_start_equity <= DAILY_LOSS_LIMIT:
@@ -107,7 +114,10 @@ def simulate_symbol(symbol: str, bars: pd.DataFrame, daily_bars: pd.DataFrame = 
                 stop_pct = result["stop_pct"]
                 take_pct = result["take_pct"]
                 risk_dollars = equity * MAX_RISK_PCT * result["size_mult"]
-                qty = max(1, int(risk_dollars / (price * stop_pct)))
+                qty = int(risk_dollars / (price * stop_pct))
+                qty = min(qty, int(equity * MAX_POSITION_PCT / price))  # mirrors executor cap
+                if qty < 1:
+                    continue
                 position = {
                     "entry": price, "qty": qty,
                     "stop": price * (1 - stop_pct),
@@ -153,6 +163,9 @@ def simulate_symbol(symbol: str, bars: pd.DataFrame, daily_bars: pd.DataFrame = 
 # rather than growing CLI flags — keeps every comparison run reproducible by name.
 VARIANTS = {
     "fixed":         {"stop_style": "fixed", "use_rvol": False},
+    # Diagnostic only: overnight holds are what the live bot used to do by
+    # accident (day-TIF bracket legs expired, nothing flattened). Not a live option.
+    "fixed+overnight": {"stop_style": "fixed", "use_rvol": False, "eod_flatten": False},
     "atr":           {"stop_style": "atr",   "use_rvol": False},
     "fixed+rvol0.8": {"stop_style": "fixed", "use_rvol": True, "min_rvol": 0.8},
     "fixed+rvol":    {"stop_style": "fixed", "use_rvol": True, "min_rvol": 1.0},

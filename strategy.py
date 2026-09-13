@@ -39,6 +39,59 @@ def get_symbol_config(symbol: str) -> dict:
     return SYMBOL_CONFIG.get(symbol.upper(), DEFAULT_CONFIG)
 
 
+# ── ATR-normalized stop/take (opt-in alternative to the fixed-% config above) ──
+# k = 10% of 14-day ATR, matching the stop rule in Zarattini/Barbon/Aziz (2024),
+# "Trading the Opening Range Breakouts" — the strongest public backtest evidence
+# found for ORB stop calibration. Keeps the same 2:1 take:stop ratio used by
+# SYMBOL_CONFIG so this is a like-for-like comparison of stop *sizing*, not a
+# change to the reward:risk shape.
+ATR_STOP_MULT = 0.10
+ATR_STOP_TAKE_RATIO = 2.0
+
+
+def get_atr_stop_take_pct(daily_bars: pd.DataFrame, price: float, fallback_cfg: dict) -> tuple:
+    """Returns (stop_pct, take_pct) derived from 14-day daily ATR, expressed as a
+    fraction of price so callers don't need to change. Falls back to the fixed
+    per-symbol config if daily history or price is insufficient."""
+    if daily_bars is None or len(daily_bars) < 15 or price <= 0:
+        return fallback_cfg["stop_pct"], fallback_cfg["take_pct"]
+    atr_val = get_atr(daily_bars, period=14).iloc[-1]
+    if pd.isna(atr_val):
+        return fallback_cfg["stop_pct"], fallback_cfg["take_pct"]
+    stop_pct = (ATR_STOP_MULT * float(atr_val)) / price
+    return stop_pct, stop_pct * ATR_STOP_TAKE_RATIO
+
+
+# ── Opening relative volume (opt-in additional entry filter) ───────────────────
+# Time-of-day-adjusted RVOL: today's opening-window volume vs the trailing
+# same-window average over prior sessions. This is distinct from the existing
+# volume check above (which compares the latest bar to today's own running
+# session average) — RVOL compares across days, which is what the "stocks in
+# play" ORB research (Zarattini/Barbon/Aziz 2024) found predictive.
+RVOL_WINDOW_MINUTES = 15
+RVOL_LOOKBACK_DAYS = 20
+
+
+def compute_opening_rvol_series(bars: pd.DataFrame, window_minutes: int = RVOL_WINDOW_MINUTES,
+                                 lookback_days: int = RVOL_LOOKBACK_DAYS) -> pd.Series:
+    """
+    Per-session-date series: today's opening-window volume / trailing
+    `lookback_days`-session average opening-window volume (today excluded via
+    shift(1), so no look-ahead). Requires multi-day intraday history in `bars`.
+    """
+    bars = _ensure_et_index(bars)
+    end_minutes = 9 * 60 + 30 + window_minutes
+    end_str = f"{end_minutes // 60:02d}:{end_minutes % 60:02d}"
+    opening = bars.between_time("09:30", end_str)
+    if opening.empty or "volume" not in opening.columns:
+        return pd.Series(dtype=float)
+    daily_open_vol = opening.groupby(opening.index.date)["volume"].sum()
+    daily_open_vol.index = pd.to_datetime(daily_open_vol.index)
+    min_periods = max(5, lookback_days // 2)
+    trailing_avg = daily_open_vol.rolling(lookback_days, min_periods=min_periods).mean().shift(1)
+    return daily_open_vol / trailing_avg
+
+
 def get_time_size_multiplier(now: datetime = None) -> tuple:
     if now is None:
         now = datetime.now(ET)
@@ -198,13 +251,22 @@ def _ensure_et_index(bars: pd.DataFrame) -> pd.DataFrame:
 # ── Main signal ───────────────────────────────────────────────────────────────
 
 def generate_signal(bars: pd.DataFrame, symbol: str = None, now: datetime = None,
-                     daily_bars: pd.DataFrame = None) -> dict:
+                     daily_bars: pd.DataFrame = None, stop_style: str = "fixed",
+                     opening_rvol: float = None, min_rvol: float = 1.0) -> dict:
     """
     Opening-range breakout with full filter stack.
 
-    daily_bars: daily-timeframe history for `symbol`, used only to gate BUY
-        entries with the 200-day SMA regime filter (see check_long_term_trend).
+    daily_bars: daily-timeframe history for `symbol`, used to gate BUY
+        entries with the 200-day SMA regime filter (see check_long_term_trend)
+        and, when stop_style="atr", to size the stop/take distance.
         Not needed for SELL/exit evaluation.
+    stop_style: "fixed" (default, unchanged live behavior) uses SYMBOL_CONFIG's
+        per-symbol stop_pct/take_pct. "atr" uses get_atr_stop_take_pct instead —
+        opt-in only, for backtest comparison.
+    opening_rvol: precomputed value from compute_opening_rvol_series for
+        `now`'s session date. None (default) disables the filter — unchanged
+        live behavior. When provided, entries are rejected if opening_rvol
+        < min_rvol.
 
     Returns:
         {
@@ -265,6 +327,11 @@ def generate_signal(bars: pd.DataFrame, symbol: str = None, now: datetime = None
             hold["reason"] = f"volume too low ({latest_vol:.0f} < {avg_vol * cfg['vol_mult']:.0f})"
             return hold
 
+    # Opening relative volume — opt-in, disabled unless caller passes opening_rvol
+    if opening_rvol is not None and not pd.isna(opening_rvol) and opening_rvol < min_rvol:
+        hold["reason"] = f"opening RVOL too low ({opening_rvol:.2f} < {min_rvol})"
+        return hold
+
     # Breakout direction
     if latest_close > range_high:
         raw = "BUY"
@@ -286,12 +353,18 @@ def generate_signal(bars: pd.DataFrame, symbol: str = None, now: datetime = None
 
     # Time-of-day size multiplier
     size_mult, window = get_time_size_multiplier(now or datetime.now(ET))
+
+    if stop_style == "atr":
+        stop_pct, take_pct = get_atr_stop_take_pct(daily_bars, latest_close, cfg)
+    else:
+        stop_pct, take_pct = cfg["stop_pct"], cfg["take_pct"]
+
     print(f"[strategy] ✅ {raw} | symbol={symbol} | size_mult={size_mult} | {window}")
 
     return {
         "signal":    raw,
         "size_mult": size_mult,
-        "stop_pct":  cfg["stop_pct"],
-        "take_pct":  cfg["take_pct"],
+        "stop_pct":  stop_pct,
+        "take_pct":  take_pct,
         "reason":    f"{raw} breakout confirmed | {window}",
     }

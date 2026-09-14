@@ -5,3 +5,4 @@ api.env
 *.png
 __pycache__/
 *.pyc
+scripts/.cache/

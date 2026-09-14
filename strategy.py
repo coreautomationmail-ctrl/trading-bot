@@ -144,14 +144,16 @@ def check_volatility_kill_switch(bars: pd.DataFrame, multiplier: float = 2.5) ->
     return False
 
 
-def check_time_filter(now: datetime = None) -> bool:
+def check_time_filter(now: datetime = None, earliest_minute: int = 45) -> bool:
+    """earliest_minute: minutes past 9:00 ET before which entries are rejected
+    (default 45 = 9:45, unchanged live behavior)."""
     if now is None:
         now = datetime.now(ET)
     h, m = now.hour, now.minute
     if h < 9 or h >= 16:
         print(f"[strategy] Outside market hours ({now.strftime('%H:%M')} ET)")
         return False
-    if h == 9 and m < 45:
+    if h == 9 and m < earliest_minute:
         print(f"[strategy] Too early ({now.strftime('%H:%M')} ET)")
         return False
     if h == 15 and m >= 45:
@@ -252,9 +254,15 @@ def _ensure_et_index(bars: pd.DataFrame) -> pd.DataFrame:
 
 def generate_signal(bars: pd.DataFrame, symbol: str = None, now: datetime = None,
                      daily_bars: pd.DataFrame = None, stop_style: str = "fixed",
-                     opening_rvol: float = None, min_rvol: float = 1.0) -> dict:
+                     opening_rvol: float = None, min_rvol: float = 1.0,
+                     or_minutes: int = 30) -> dict:
     """
     Opening-range breakout with full filter stack.
+
+    or_minutes: length of the opening range in minutes from 9:30 ET. 30
+        (default) is the unchanged live behavior (9:30-10:00, first entry
+        9:45). Other values are opt-in for backtest comparison; the earliest
+        entry then becomes one 5-min bar after the range closes.
 
     daily_bars: daily-timeframe history for `symbol`, used to gate BUY
         entries with the 200-day SMA regime filter (see check_long_term_trend)
@@ -290,7 +298,8 @@ def generate_signal(bars: pd.DataFrame, symbol: str = None, now: datetime = None
         hold["reason"] = "not enough bars"
         return hold
 
-    if not check_time_filter(now):
+    earliest = 45 if or_minutes == 30 else 30 + or_minutes + 5
+    if not check_time_filter(now, earliest_minute=earliest):
         hold["reason"] = "time filter"
         return hold
 
@@ -308,8 +317,14 @@ def generate_signal(bars: pd.DataFrame, symbol: str = None, now: datetime = None
         hold["reason"] = "pre-market gap too large"
         return hold
 
-    # Opening range 9:30–10:00
-    opening = bars.between_time("09:30", "10:00")
+    # Opening range 9:30 + or_minutes (default 10:00). The default keeps the
+    # historical inclusive end (the 10:00 bar is part of the range); other
+    # lengths use a half-open interval so "5 min" really means one 5-min bar.
+    or_end = f"{9 + (30 + or_minutes) // 60:02d}:{(30 + or_minutes) % 60:02d}"
+    if or_minutes == 30:
+        opening = bars.between_time("09:30", or_end)
+    else:
+        opening = bars.between_time("09:30", or_end, inclusive="left")
     if opening.empty:
         hold["reason"] = "opening range empty"
         return hold

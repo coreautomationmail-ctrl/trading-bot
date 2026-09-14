@@ -4,7 +4,8 @@ Replay the live ORB strategy (strategy.generate_signal, unmodified) against
 historical 5-min bars for known market-shock windows, to sanity-check the
 stop-loss/take-profit/kill-switch behavior before this ever trades real money.
 
-Usage: python scripts/backtest_shocks.py
+Usage: python scripts/backtest_shocks.py [--slippage=BPS] [variant ...]
+       e.g. python scripts/backtest_shocks.py --slippage=10 fixed fixed+notarget atr+notarget
 """
 import os
 import sys
@@ -23,6 +24,7 @@ SYMBOLS = ["SPY", "QQQ", "AAPL", "MSFT", "NVDA", "TSLA", "AMZN"]
 SHOCK_WINDOWS = [
     ("2020 COVID Crash", "2020-02-15", "2020-04-30"),
     ("2022 Bear Selloff", "2022-01-01", "2022-10-15"),
+    ("2023 Calm Grind", "2023-05-01", "2023-07-31"),   # non-shock control window
     ("2024 Aug Flash Crash", "2024-08-01", "2024-08-10"),
 ]
 
@@ -30,6 +32,9 @@ STARTING_CASH = 100_000.0
 MAX_RISK_PCT = 0.02
 SIGNAL_EVERY_N_BARS = 3   # ~15 min at 5-min bars, matching the live cron cadence
 LOOKBACK_BARS = 100       # matches bot.py's get_bars(..., limit=100)
+# Per-side slippage in basis points, applied against you on every fill.
+# The ORB literature assumes 0; override with --slippage=N to see if an edge survives.
+SLIPPAGE_BPS = 0.0
 
 
 def get_daily_bars_for_trend(symbol: str, start: str, end: str) -> pd.DataFrame:
@@ -40,7 +45,8 @@ def get_daily_bars_for_trend(symbol: str, start: str, end: str) -> pd.DataFrame:
 
 def simulate_symbol(symbol: str, bars: pd.DataFrame, daily_bars: pd.DataFrame = None,
                      stop_style: str = "fixed", use_rvol: bool = False, min_rvol: float = 1.0,
-                     rvol_bars: pd.DataFrame = None, eod_flatten: bool = True) -> dict:
+                     rvol_bars: pd.DataFrame = None, eod_flatten: bool = True,
+                     use_target: bool = True, or_minutes: int = 30) -> dict:
     """
     Bar-by-bar replay. Entry signal is only recomputed every
     SIGNAL_EVERY_N_BARS bars (matching the live 15-min cron), but stop/take
@@ -50,7 +56,15 @@ def simulate_symbol(symbol: str, bars: pd.DataFrame, daily_bars: pd.DataFrame = 
     rvol_bars: optional longer intraday history (extending before `bars`) so the
         RVOL trailing baseline is valid from the first simulated day. Falls
         back to `bars` itself, which leaves the first ~lookback days unfiltered.
+    use_target: False = stop + EOD exit only, no take-profit (the exit model
+        in Zarattini/Barbon/Aziz 2024). The signal's take_pct is ignored.
+    or_minutes: forwarded to generate_signal (opening-range length).
+
+    Fills: entries pay SLIPPAGE_BPS above the signal close; exits receive
+    SLIPPAGE_BPS below the exit price. A stop that gaps through (bar open
+    already below the stop) fills at the open, not the stop price.
     """
+    slip = SLIPPAGE_BPS / 10_000.0
     rvol_series = None
     if use_rvol:
         rvol_series = compute_opening_rvol_series(rvol_bars if rvol_bars is not None else bars)
@@ -73,20 +87,21 @@ def simulate_symbol(symbol: str, bars: pd.DataFrame, daily_bars: pd.DataFrame = 
 
         # ── Manage an open position: did stop or take-profit hit intrabar? ──
         if position is not None:
-            hi, lo = float(bar["high"]), float(bar["low"])
+            hi, lo, op = float(bar["high"]), float(bar["low"]), float(bar["open"])
             exit_price = None
             if lo <= position["stop"]:
-                exit_price = position["stop"]
+                exit_price = min(position["stop"], op)   # gap-through fills at the open
             elif hi >= position["take"]:
                 exit_price = position["take"]
             if exit_price is not None:
+                exit_price *= (1 - slip)
                 pnl = (exit_price - position["entry"]) * position["qty"]
                 equity += pnl
                 trades.append({"time": now, "side": "EXIT", "price": exit_price, "pnl": pnl})
                 position = None
             elif eod_flatten and (now.hour, now.minute) >= (15, 45):
                 # End-of-day flatten, mirroring bot.py — never hold overnight
-                exit_price = float(bar["close"])
+                exit_price = float(bar["close"]) * (1 - slip)
                 pnl = (exit_price - position["entry"]) * position["qty"]
                 equity += pnl
                 trades.append({"time": now, "side": "EOD_EXIT", "price": exit_price, "pnl": pnl})
@@ -107,7 +122,7 @@ def simulate_symbol(symbol: str, bars: pd.DataFrame, daily_bars: pd.DataFrame = 
 
             result = generate_signal(window, symbol=symbol, now=now, daily_bars=daily_slice,
                                       stop_style=stop_style, opening_rvol=rvol_val,
-                                      min_rvol=min_rvol)
+                                      min_rvol=min_rvol, or_minutes=or_minutes)
             price = float(bar["close"])
 
             if result["signal"] == "BUY" and position is None:
@@ -118,10 +133,11 @@ def simulate_symbol(symbol: str, bars: pd.DataFrame, daily_bars: pd.DataFrame = 
                 qty = min(qty, int(equity * MAX_POSITION_PCT / price))  # mirrors executor cap
                 if qty < 1:
                     continue
+                entry = price * (1 + slip)
                 position = {
-                    "entry": price, "qty": qty,
-                    "stop": price * (1 - stop_pct),
-                    "take": price * (1 + take_pct),
+                    "entry": entry, "qty": qty,
+                    "stop": price * (1 - stop_pct),   # stop anchored to signal price, like the live bracket
+                    "take": price * (1 + take_pct) if use_target else float("inf"),
                 }
                 trades.append({
                     "time": now, "side": "BUY", "price": price, "qty": qty,
@@ -129,7 +145,7 @@ def simulate_symbol(symbol: str, bars: pd.DataFrame, daily_bars: pd.DataFrame = 
                 })
 
             elif result["signal"] == "SELL" and position is not None:
-                pnl = (price - position["entry"]) * position["qty"]
+                pnl = (price * (1 - slip) - position["entry"]) * position["qty"]
                 equity += pnl
                 trades.append({"time": now, "side": "SELL_SIGNAL_EXIT", "price": price, "pnl": pnl})
                 position = None
@@ -171,6 +187,15 @@ VARIANTS = {
     "fixed+rvol":    {"stop_style": "fixed", "use_rvol": True, "min_rvol": 1.0},
     "fixed+rvol1.2": {"stop_style": "fixed", "use_rvol": True, "min_rvol": 1.2},
     "atr+rvol":      {"stop_style": "atr",   "use_rvol": True, "min_rvol": 1.0},
+    # ── Exit-model candidates (2026-09-13 research round) ─────────────────
+    # Stop + EOD, no take-profit: the documented Zarattini et al. exit.
+    "fixed+notarget":  {"stop_style": "fixed", "use_rvol": False, "use_target": False},
+    "atr+notarget":    {"stop_style": "atr",   "use_rvol": False, "use_target": False},
+    # Opening-range length sweep, each with the documented exit.
+    "or5+atr+nt":      {"stop_style": "atr",   "use_rvol": False, "use_target": False, "or_minutes": 5},
+    "or15+atr+nt":     {"stop_style": "atr",   "use_rvol": False, "use_target": False, "or_minutes": 15},
+    "or5+fixed+nt":    {"stop_style": "fixed", "use_rvol": False, "use_target": False, "or_minutes": 5},
+    "or15+fixed+nt":   {"stop_style": "fixed", "use_rvol": False, "use_target": False, "or_minutes": 15},
 }
 
 # Calendar days of extra 5-min history fetched before each window so the
@@ -233,7 +258,13 @@ def run_window(label: str, start: str, end: str, variants: list) -> dict:
 
 
 if __name__ == "__main__":
-    variants = sys.argv[1:] or ["fixed"]
+    args = sys.argv[1:]
+    for a in list(args):
+        if a.startswith("--slippage="):
+            SLIPPAGE_BPS = float(a.split("=", 1)[1])
+            args.remove(a)
+    variants = args or ["fixed"]
+    print(f"slippage = {SLIPPAGE_BPS:g} bps per side")
     for v in variants:
         if v not in VARIANTS:
             sys.exit(f"Unknown variant '{v}'. Choose from: {', '.join(VARIANTS)}")

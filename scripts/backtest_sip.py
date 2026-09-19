@@ -19,7 +19,7 @@ Deviation: per window the candidate pool is the POOL_SIZE most liquid
 eligible names ranked *before* the window starts (dollar ADV), not the whole
 market -- 5-min bars for ~7,000 symbols over months is millions of rows.
 
-Usage: python scripts/backtest_sip.py [--entry=open|break] [--slippage=BPS] [--short] [--pool=N] [--top=N]
+Usage: python scripts/backtest_sip.py [--entry=open|break] [--slippage=BPS] [--short] [--pool=N] [--top=N] [--atr-stop=K]
 Needs .env with Alpaca keys; SIP historical data works on the free plan.
 Fetched bars are cached in scripts/.cache/ (gitignored).
 """
@@ -313,9 +313,11 @@ if __name__ == "__main__":
             POOL_SIZE = int(a.split("=")[1])
         elif a.startswith("--top="):
             TOP_N = int(a.split("=")[1])
+        elif a.startswith("--atr-stop="):
+            ATR_STOP_MULT = float(a.split("=")[1])
         else:
             sys.exit(f"unknown arg {a}")
-    print(f"entry={ENTRY} | slippage={SLIPPAGE_BPS:g} bps/side | short={ALLOW_SHORT} | pool={POOL_SIZE} | top={TOP_N}")
+    print(f"entry={ENTRY} | slippage={SLIPPAGE_BPS:g} bps/side | short={ALLOW_SHORT} | pool={POOL_SIZE} | top={TOP_N} | atr_stop={ATR_STOP_MULT:g}")
     results = [run_window(*w) for w in WINDOWS]
     print(f"\n{'=' * 70}\nTOTAL\n{'=' * 70}")
     n = sum(r["trades"] for r in results)

@@ -19,7 +19,7 @@ Deviation: per window the candidate pool is the POOL_SIZE most liquid
 eligible names ranked *before* the window starts (dollar ADV), not the whole
 market -- 5-min bars for ~7,000 symbols over months is millions of rows.
 
-Usage: python scripts/backtest_sip.py [--entry=open|break] [--slippage=BPS] [--short] [--pool=N] [--top=N] [--atr-stop=K]
+Usage: python scripts/backtest_sip.py [--entry=open|break] [--slippage=BPS] [--short] [--pool=N] [--top=N] [--atr-stop=K] [--spy-gap=PCT]
 Needs .env with Alpaca keys; SIP historical data works on the free plan.
 Fetched bars are cached in scripts/.cache/ (gitignored).
 """
@@ -60,6 +60,7 @@ FLATTEN_AT = (15, 45)
 SLIPPAGE_BPS = 0.0
 ALLOW_SHORT = False
 ENTRY = "open"
+SPY_GAP_GATE = 0.0           # skip the day when SPY opens down more than this fraction (0 = off)
 DAILY_WARMUP_DAYS = 45       # calendar days before window for ADV14/ATR14
 INTRADAY_WARMUP_DAYS = 28    # calendar days before window for the RVOL5 baseline
 EXCHANGES = {"NYSE", "NASDAQ", "ARCA", "AMEX"}
@@ -227,6 +228,13 @@ def run_window(label: str, start: str, end: str) -> dict:
     daily = cached(f"daily_{tag}", lambda: fetch_bars(universe, "1Day", d_start, end, chunk=200))
     feats = daily_features(daily)
 
+    # Regime gate: SPY open vs its prior close (SPY is in the raw universe; the
+    # ETF exclusion only applies to the traded names).
+    spy = daily[daily.symbol == "SPY"].sort_index()
+    spy_gap = (spy["open"] / spy["close"].shift(1) - 1.0)
+    spy_gap.index = spy_gap.index.date
+    skipped_days = 0
+
     # Pool: eligible on the first session of the window, ranked by dollar ADV
     sessions = sorted(d for d in set(feats.index.get_level_values("date")) if str(d) >= start)
     first_day = sessions[0]
@@ -256,6 +264,10 @@ def run_window(label: str, start: str, end: str) -> dict:
         if day not in rvol_days:
             curve.append(equity)
             continue
+        if SPY_GAP_GATE and spy_gap.get(day, 0.0) <= -SPY_GAP_GATE:
+            skipped_days += 1
+            curve.append(equity)
+            continue
         rv = rvol.xs(day, level="date")
         rv = rv[rv.index.isin(elig.index) & (rv >= MIN_RVOL)].sort_values(ascending=False).head(TOP_N)
         day_equity = equity
@@ -272,6 +284,8 @@ def run_window(label: str, start: str, end: str) -> dict:
                 equity += t["pnl"]
         curve.append(equity)
 
+    if SPY_GAP_GATE:
+        print(f"  gate skipped {skipped_days} of {len(sessions)} day(s)")
     return summarize(label, trades, curve, len(sessions))
 
 
@@ -315,9 +329,11 @@ if __name__ == "__main__":
             TOP_N = int(a.split("=")[1])
         elif a.startswith("--atr-stop="):
             ATR_STOP_MULT = float(a.split("=")[1])
+        elif a.startswith("--spy-gap="):
+            SPY_GAP_GATE = float(a.split("=")[1]) / 100.0   # percent
         else:
             sys.exit(f"unknown arg {a}")
-    print(f"entry={ENTRY} | slippage={SLIPPAGE_BPS:g} bps/side | short={ALLOW_SHORT} | pool={POOL_SIZE} | top={TOP_N} | atr_stop={ATR_STOP_MULT:g}")
+    print(f"entry={ENTRY} | slippage={SLIPPAGE_BPS:g} bps/side | short={ALLOW_SHORT} | pool={POOL_SIZE} | top={TOP_N} | atr_stop={ATR_STOP_MULT:g} | spy_gap_gate={SPY_GAP_GATE:.2%}")
     results = [run_window(*w) for w in WINDOWS]
     print(f"\n{'=' * 70}\nTOTAL\n{'=' * 70}")
     n = sum(r["trades"] for r in results)

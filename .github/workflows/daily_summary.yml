@@ -2,7 +2,7 @@ name: Daily Summary
 
 on:
   schedule:
-    - cron: "5 21 * * 1-5"
+    - cron: "20 21 * * 1-5"  # after the afternoon trading_bot session job ends (21:10Z)
   workflow_dispatch:
 
 # actions: read lets daily_summary.py download today's bot run logs to tally

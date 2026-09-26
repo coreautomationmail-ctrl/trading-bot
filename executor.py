@@ -1,4 +1,5 @@
-from datetime import datetime
+import time
+from datetime import datetime, timedelta
 
 import pytz
 
@@ -18,6 +19,11 @@ MAX_POSITION_PCT = 0.25
 # long-term sleeve (position_manager.py) sharing the same Alpaca account.
 ORB_TAG = "orb"
 
+# How far back open_orb_trades looks for still-held entries (catches trades
+# orphaned on an earlier day, e.g. by a failed flatten).
+ORB_LOOKBACK_DAYS = 7
+OPEN_LEG_STATUSES = ("new", "accepted", "held", "partially_filled", "pending_cancel")
+
 # Daily loss limit — bot stops trading if unrealized PnL drops below this
 # For a $100k paper account, -$1,500 = -1.5% drawdown limit
 DAILY_LOSS_LIMIT = -1500.0
@@ -36,13 +42,24 @@ def already_have_position(symbol: str) -> bool:
 
 def open_orb_trades(api) -> list[dict]:
     """
-    Today's filled ORB entries whose bracket legs are still working — i.e. the
-    shares are still held. Entries whose stop or take-profit already filled are
-    excluded. Only looks at orders tagged ORB_TAG, so the long-term sleeve's
-    positions are never touched.
+    ORB entries (last ORB_LOOKBACK_DAYS) whose shares are still held: filled,
+    no bracket leg filled, and no filled ORB exit for that symbol since. Legs
+    may be working *or* already cancelled — a failed flatten used to cancel the
+    legs, reject the sell, and orphan a naked position this function then
+    ignored. Only orders tagged ORB_TAG are considered, so the long-term
+    sleeve's positions are never touched; qty is capped at the live position.
     """
-    start = datetime.now(ET).replace(hour=0, minute=0, second=0, microsecond=0)
-    orders = api.list_orders(status="closed", limit=500, nested=True, after=start.isoformat())
+    start = datetime.now(ET) - timedelta(days=ORB_LOOKBACK_DAYS)
+    orders = api.list_orders(status="all", limit=500, nested=True, after=start.isoformat())
+    positions = {p.symbol: int(float(p.qty)) for p in api.list_positions()}
+    exits = {}        # symbol -> latest filled ORB exit time
+    rearmed = {}      # symbol -> working re-armed stops (tagged ORB_TAG + "x-stop-")
+    for o in orders:
+        cid = o.client_order_id or ""
+        if cid.startswith(f"{ORB_TAG}x-") and o.status == "filled":
+            exits[o.symbol] = max(exits.get(o.symbol, o.filled_at), o.filled_at)
+        elif cid.startswith(f"{ORB_TAG}x-stop-") and o.status in OPEN_LEG_STATUSES:
+            rearmed.setdefault(o.symbol, []).append(o)
     trades = []
     for o in orders:
         if not (o.client_order_id or "").startswith(f"{ORB_TAG}-"):
@@ -50,19 +67,52 @@ def open_orb_trades(api) -> list[dict]:
         if o.side != "buy" or o.status != "filled":
             continue
         legs = getattr(o, "legs", None) or []
-        open_legs = [l for l in legs if l.status in ("new", "accepted", "held", "partially_filled")]
-        if open_legs:
-            trades.append({"symbol": o.symbol, "qty": int(float(o.filled_qty)), "legs": open_legs})
+        if any(l.status == "filled" for l in legs):
+            continue
+        if o.symbol in exits and exits[o.symbol] > o.filled_at:
+            continue
+        qty = min(int(float(o.filled_qty)), positions.get(o.symbol, 0))
+        if qty < 1:
+            continue
+        open_legs = [l for l in legs if l.status in OPEN_LEG_STATUSES] + rearmed.get(o.symbol, [])
+        stop = next((float(l.stop_price) for l in legs if l.stop_price), None)
+        trades.append({"symbol": o.symbol, "qty": qty, "legs": open_legs, "stop": stop})
     return trades
 
 
+def _wait_legs_done(api, legs, timeout: float = 15.0) -> bool:
+    """Poll until every cancelled leg reaches a final state. Returns False if a
+    leg filled (the bracket already exited) — the caller must not sell again.
+    Selling while legs are still pending_cancel is rejected by Alpaca because
+    the legs still reserve the shares."""
+    deadline = time.monotonic() + timeout
+    pending = {l.id for l in legs}
+    while pending and time.monotonic() < deadline:
+        for leg_id in list(pending):
+            status = api.get_order(leg_id).status
+            if status == "filled":
+                return False
+            if status in ("canceled", "expired", "rejected", "replaced"):
+                pending.discard(leg_id)
+        if pending:
+            time.sleep(0.5)
+    if pending:
+        print(f"[executor] legs still pending after {timeout:.0f}s: {sorted(pending)}")
+    return True
+
+
 def exit_orb_trade(api, trade: dict, price: float) -> dict | None:
-    """Cancel the bracket legs, then market-sell exactly the ORB qty."""
+    """Cancel the bracket legs, wait for the cancels to land, then market-sell
+    exactly the ORB qty. If the sell fails, re-arm a GTC stop so the position
+    is never left unprotected."""
     for leg in trade["legs"]:
         try:
             api.cancel_order(leg.id)
         except Exception as e:
             print(f"[executor] cancel leg {leg.id} failed (non-fatal): {e}")
+    if not _wait_legs_done(api, trade["legs"]):
+        print(f"[executor] {trade['symbol']}: bracket leg already filled, nothing to exit")
+        return None
     try:
         api.submit_order(symbol=trade["symbol"], qty=trade["qty"], side="sell",
                          type="market", time_in_force="day",
@@ -71,6 +121,14 @@ def exit_orb_trade(api, trade: dict, price: float) -> dict | None:
         return {"symbol": trade["symbol"], "side": "SELL", "price": price, "qty": trade["qty"]}
     except Exception as e:
         print(f"[executor] exit {trade['symbol']} failed: {e}")
+        if trade.get("stop"):
+            try:
+                api.submit_order(symbol=trade["symbol"], qty=trade["qty"], side="sell",
+                                 type="stop", stop_price=trade["stop"], time_in_force="gtc",
+                                 client_order_id=f"{ORB_TAG}x-stop-{trade['symbol']}-{datetime.now(ET):%Y%m%d-%H%M%S}")
+                print(f"[executor] re-armed GTC stop {trade['symbol']} @ ${trade['stop']}")
+            except Exception as e2:
+                print(f"[executor] ⚠️ {trade['symbol']} UNPROTECTED — re-arm stop failed: {e2}")
         return None
 
 
@@ -190,7 +248,7 @@ def submit_order(symbol: str, signal: str, price: float, size_mult: float = 1.0,
             return None
 
     elif signal == "SELL":
-        # Only exit ORB trades opened today — never the long-term sleeve's shares
+        # Only exit tagged ORB trades — never the long-term sleeve's shares
         trades = [t for t in open_orb_trades(api) if t["symbol"] == symbol]
         if not trades:
             print(f"[executor] No open ORB trade in {symbol} to close")

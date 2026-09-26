@@ -76,6 +76,9 @@ def run():
     api = get_client()
     lines = [f"📊 *Weekly Long-Term Review — {pretty_time}*\n"]
     errors = []
+    # Cash left for buys this run — the sleeve shares the account with the ORB
+    # bot and must never push cash negative (2026-09-21 it bought on margin).
+    cash = float(api.get_account().cash)
 
     for symbol in WATCHLIST:
         try:
@@ -88,8 +91,10 @@ def run():
                     lines.append(
                         f"⏸ `{symbol}` BULLISH — at position cap (${position_value:,.0f}), no buy"
                     )
+                elif (shares := max(1, int(WEEKLY_DCA_PER_TICKER / trend["price"]))) * trend["price"] > cash:
+                    lines.append(f"⏸ `{symbol}` BULLISH — not enough cash (${cash:,.0f}), no buy")
                 else:
-                    shares = max(1, int(WEEKLY_DCA_PER_TICKER / trend["price"]))
+                    cash -= shares * trend["price"]
                     api.submit_order(
                         symbol=symbol, qty=shares, side="buy",
                         type="market", time_in_force="day",

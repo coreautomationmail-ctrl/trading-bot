@@ -15,6 +15,10 @@ MAX_RISK_PCT = 0.02
 # single 1.2%-stop AMZN entry once took 125% of the account on margin.
 MAX_POSITION_PCT = 0.25
 
+# Cap on total open ORB notional. The per-entry cap alone let one afternoon
+# (2026-09-21) stack four 25% entries in correlated names — ~98% of equity.
+MAX_ORB_EXPOSURE_PCT = 0.50
+
 # client_order_id prefix so intraday ORB entries can be told apart from the
 # long-term sleeve (position_manager.py) sharing the same Alpaca account.
 ORB_TAG = "orb"
@@ -211,11 +215,17 @@ def submit_order(symbol: str, signal: str, price: float, size_mult: float = 1.0,
         risk_dollars = portfolio * MAX_RISK_PCT * size_mult
         shares = int(risk_dollars / (price * stop_pct))
 
-        # Never exceed the per-position cap or spend cash we don't have (no margin)
-        max_notional = min(portfolio * MAX_POSITION_PCT, cash)
+        # Never exceed the per-position cap, the total ORB cap, or spend cash
+        # we don't have (no margin)
+        positions = {p.symbol: p for p in api.list_positions()}
+        orb_exposure = sum(t["qty"] * abs(float(positions[t["symbol"]].current_price))
+                           for t in open_orb_trades(api) if t["symbol"] in positions)
+        max_notional = min(portfolio * MAX_POSITION_PCT, cash,
+                           portfolio * MAX_ORB_EXPOSURE_PCT - orb_exposure)
         shares = min(shares, int(max_notional / price))
         if shares < 1:
-            print(f"[executor] {symbol}: sized to 0 shares (cash=${cash:,.0f}, cap=${max_notional:,.0f}), skipping")
+            print(f"[executor] {symbol}: sized to 0 shares (cash=${cash:,.0f}, orb_exposure=${orb_exposure:,.0f}, "
+                  f"cap=${max_notional:,.0f}), skipping")
             return None
 
         stop_price  = round(price * (1 - stop_pct), 2)

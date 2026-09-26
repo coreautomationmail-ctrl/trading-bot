@@ -16,6 +16,7 @@ from datetime import datetime
 import pytz
 
 from alpaca_client import get_client, get_bars
+from executor import open_orb_trades
 from notifications import send_telegram
 from safety import enforce_paper_mode
 
@@ -59,10 +60,12 @@ def get_trend(symbol: str) -> dict:
     return {"trend": trend, "price": price, "sma_fast": sma_fast, "sma_slow": sma_slow}
 
 
-def get_position_qty(api, symbol: str) -> float:
+def get_position_qty(api, symbol: str, orb_qty: dict) -> float:
+    """Sleeve-owned shares: the Alpaca position minus any shares held by open
+    ORB trades (both strategies share one account; QQQ/AAPL/MSFT overlap)."""
     for p in api.list_positions():
         if p.symbol == symbol:
-            return float(p.qty)
+            return max(0.0, float(p.qty) - orb_qty.get(symbol, 0))
     return 0.0
 
 
@@ -79,11 +82,14 @@ def run():
     # Cash left for buys this run — the sleeve shares the account with the ORB
     # bot and must never push cash negative (2026-09-21 it bought on margin).
     cash = float(api.get_account().cash)
+    orb_qty = {}
+    for t in open_orb_trades(api):
+        orb_qty[t["symbol"]] = orb_qty.get(t["symbol"], 0) + t["qty"]
 
     for symbol in WATCHLIST:
         try:
             trend = get_trend(symbol)
-            qty = get_position_qty(api, symbol)
+            qty = get_position_qty(api, symbol, orb_qty)
 
             if trend["trend"] == "BULLISH":
                 position_value = qty * trend["price"]
@@ -104,7 +110,10 @@ def run():
                     )
 
             elif trend["trend"] == "BEARISH" and qty > 0:
-                api.close_position(symbol)
+                # Sell only the sleeve's shares — close_position would also
+                # dump any ORB shares held in the same symbol.
+                api.submit_order(symbol=symbol, qty=qty, side="sell",
+                                 type="market", time_in_force="day")
                 lines.append(f"🔴 `{symbol}` BEARISH — closed {qty:g} shares, trend broke")
 
             elif trend["trend"] == "BEARISH":

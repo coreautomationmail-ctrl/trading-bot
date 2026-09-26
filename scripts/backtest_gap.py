@@ -22,6 +22,12 @@ Exit: stop, else 15:45. No target.
 
 Usage: python scripts/backtest_gap.py [--entry=pullback|or15] [--gap=PCT]
          [--slippage=BPS] [--short | --short-only] [--top=N] [--cutoff=HH:MM]
+         [--ssr] [--min-price=USD] [--min-adv=SHARES]
+
+  --ssr        skip shorts under SEC Rule 201: gap <= -10%, carry-over from a
+               -10% day yesterday, or a trade <= 0.9 x prev close before entry
+               (a sell-stop short can't fill on a downtick once SSR is on).
+  --min-price / --min-adv  tighten candidate eligibility (hard-to-borrow proxy).
 """
 import os
 import sys
@@ -41,6 +47,10 @@ SLIPPAGE_BPS = 0.0
 ALLOW_SHORT = False
 LONG = True
 TOP_N = 20
+SSR = False
+SSR_DROP = 0.10
+MIN_PRICE = None             # None -> sip.MIN_PRICE
+MIN_ADV = None               # None -> sip.MIN_ADV
 
 
 def _no_cache(what):
@@ -58,11 +68,14 @@ def _enter(side, raw, stop, ts, alloc, equity, slip):
     return {"entry": entry, "qty": qty, "stop": stop, "time": ts}
 
 
-def simulate_day(bars: pd.DataFrame, side: int, atr: float, alloc: float, equity: float):
+def simulate_day(bars: pd.DataFrame, side: int, atr: float, alloc: float, equity: float,
+                 ssr_level: float | None = None):
     slip = SLIPPAGE_BPS / 10_000.0
     session = bars.between_time("09:30", "15:45")
     if session.empty or (session.index[0].hour, session.index[0].minute) != (9, 30):
         return None
+    if ssr_level is not None and float(session.iloc[0]["low"]) <= ssr_level:
+        return None                                          # SSR triggered in the opening bar
     day_open = float(session.iloc[0]["open"])
     pos = None
     trigger = stop = None
@@ -88,6 +101,8 @@ def simulate_day(bars: pd.DataFrame, side: int, atr: float, alloc: float, equity
         if pos is None:
             if (ts.hour, ts.minute) >= ENTRY_CUTOFF:
                 return None
+            if ssr_level is not None and lo <= ssr_level:
+                return None                                  # SSR on before (or on) the entry bar
             if ENTRY == "pullback":
                 if not in_pb:
                     if (adv < prev_lo) if side == 1 else (adv > prev_lo):
@@ -154,7 +169,8 @@ def run_window(label: str, start: str, end: str) -> dict:
             curve.append(equity)
             continue
         fd = fd[fd.index.isin(pool)]
-        elig = fd[(fd.prev_close > sip.MIN_PRICE) & (fd.adv14 >= sip.MIN_ADV) & (fd.atr14 > sip.MIN_ATR)]
+        elig = fd[(fd.prev_close > (MIN_PRICE or sip.MIN_PRICE)) & (fd.adv14 >= (MIN_ADV or sip.MIN_ADV))
+                  & (fd.atr14 > sip.MIN_ATR)]
         elig = elig[~elig.index.isin(etfs)]
         if day not in rvol_days:
             curve.append(equity)
@@ -162,6 +178,9 @@ def run_window(label: str, start: str, end: str) -> dict:
         gap = (op.reindex(elig.index) / elig.prev_close - 1.0).dropna()
         longs = set(gap[gap >= MIN_GAP].index) if LONG else set()
         shorts = set(gap[gap <= -MIN_GAP].index) if ALLOW_SHORT else set()
+        if SSR:
+            shorts = {s_ for s_ in shorts
+                      if gap[s_] > -SSR_DROP and not bool(elig.loc[s_, "ssr_carry"])}
         rv = rvol.xs(day, level="date")
         rv = rv[rv.index.isin(longs | shorts) & (rv >= sip.MIN_RVOL)].sort_values(ascending=False).head(TOP_N)
         n_cand += len(rv)
@@ -173,7 +192,8 @@ def run_window(label: str, start: str, end: str) -> dict:
             g = intraday.loc[sym]
             bars = g[g.index.date == day]
             side = 1 if sym in longs else -1
-            t = simulate_day(bars, side, float(elig.loc[sym, "atr14"]), alloc, day_equity)
+            ssr_level = (1 - SSR_DROP) * float(elig.loc[sym, "prev_close"]) if SSR and side == -1 else None
+            t = simulate_day(bars, side, float(elig.loc[sym, "atr14"]), alloc, day_equity, ssr_level)
             if t:
                 t.update(symbol=sym, date=day, rvol5=float(rv[sym]), gap=float(gap[sym]))
                 trades.append(t)
@@ -197,6 +217,12 @@ if __name__ == "__main__":
         elif a.startswith("--cutoff="):
             h, m = a.split("=")[1].split(":")
             ENTRY_CUTOFF = (int(h), int(m))
+        elif a == "--ssr":
+            SSR = True
+        elif a.startswith("--min-price="):
+            MIN_PRICE = float(a.split("=")[1])
+        elif a.startswith("--min-adv="):
+            MIN_ADV = float(a.split("=")[1])
         elif a == "--short":
             ALLOW_SHORT = True
         elif a == "--short-only":
@@ -204,7 +230,8 @@ if __name__ == "__main__":
         else:
             sys.exit(f"unknown arg {a}")
     print(f"entry={ENTRY} | gap>={MIN_GAP:.1%} | slippage={SLIPPAGE_BPS:g} bps/side | "
-          f"long={LONG} short={ALLOW_SHORT} | top={TOP_N} | cutoff={ENTRY_CUTOFF}")
+          f"long={LONG} short={ALLOW_SHORT} | top={TOP_N} | cutoff={ENTRY_CUTOFF} | "
+          f"ssr={SSR} min_price={MIN_PRICE or sip.MIN_PRICE:g} min_adv={MIN_ADV or sip.MIN_ADV:,.0f}")
     results = [run_window(*w) for w in sip.WINDOWS]
     print(f"\n{'=' * 70}\nTOTAL\n{'=' * 70}")
     n = sum(r["trades"] for r in results)

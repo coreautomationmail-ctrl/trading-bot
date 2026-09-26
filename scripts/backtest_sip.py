@@ -145,6 +145,8 @@ def daily_features(daily: pd.DataFrame) -> pd.DataFrame:
             "prev_close": g["close"].shift(1).values,
             "adv14": g["volume"].rolling(RVOL_SESSIONS).mean().shift(1).values,
             "atr14": get_atr(g, period=14).shift(1).values,
+            # Rule 201 carry-over: yesterday traded >=10% below its prior close
+            "ssr_carry": (g["low"] <= 0.9 * g["close"].shift(1)).shift(1, fill_value=False).values,
         }))
     return pd.concat(out).set_index(["symbol", "date"])
 

@@ -40,8 +40,10 @@ def get_open_positions() -> dict:
     return {p.symbol: p for p in api.list_positions()}
 
 
-def already_have_position(symbol: str) -> bool:
-    return symbol in get_open_positions()
+def already_in_orb_trade(api, symbol: str) -> bool:
+    # Only ORB shares count — the long-term sleeve's holdings (AAPL, MSFT,
+    # QQQ...) used to block every ORB entry in those symbols.
+    return any(t["symbol"] == symbol for t in open_orb_trades(api))
 
 
 def open_orb_trades(api) -> list[dict]:
@@ -202,7 +204,7 @@ def submit_order(symbol: str, signal: str, price: float, size_mult: float = 1.0,
         return None
 
     if signal == "BUY":
-        if already_have_position(symbol):
+        if already_in_orb_trade(api, symbol):
             print(f"[executor] Already in {symbol}, skipping BUY")
             return None
 

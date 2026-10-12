@@ -1,9 +1,9 @@
 name: Telegram Listener
 
+# Runs every minute on the Vision VPS (systemd trading-listener.timer) since
+# 2026-10-11 -- GitHub's */15 cron actually fired every 4-7h. Kept as a manual
+# fallback only; don't re-add the schedule or two pollers race for updates.
 on:
-  schedule:
-    - cron: "*/15 * * * *"
-    # Drains pending /commands and exits — seconds per run, not a 6h server.
   workflow_dispatch:
 
 # actions: read so /summary can tally today's bot logs like daily_summary does

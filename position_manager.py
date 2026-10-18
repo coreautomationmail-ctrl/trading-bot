@@ -84,6 +84,8 @@ def run():
     cash = float(api.get_account().cash)
     orb_qty = {}
     for t in open_orb_trades(api):
+        if t["side"] != "long":
+            continue
         orb_qty[t["symbol"]] = orb_qty.get(t["symbol"], 0) + t["qty"]
 
     for symbol in WATCHLIST:

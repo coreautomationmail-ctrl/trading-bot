@@ -32,6 +32,11 @@ OPEN_LEG_STATUSES = ("new", "accepted", "held", "partially_filled", "pending_can
 # For a $100k paper account, -$1,500 = -1.5% drawdown limit
 DAILY_LOSS_LIMIT = -1500.0
 
+# Downside breakouts open paper shorts (bracket: stop above, target below)
+# instead of being ignored. Enabled 2026-10-17: the long-only bot sat out a
+# whole falling week (81 SELL signals, 0 trades), starving the go-live sample.
+ALLOW_SHORTS = True
+
 
 # ── Account helpers ───────────────────────────────────────────────────────────
 
@@ -40,20 +45,21 @@ def get_open_positions() -> dict:
     return {p.symbol: p for p in api.list_positions()}
 
 
-def already_in_orb_trade(api, symbol: str) -> bool:
+def orb_trade_in(api, symbol: str) -> dict | None:
     # Only ORB shares count — the long-term sleeve's holdings (AAPL, MSFT,
     # QQQ...) used to block every ORB entry in those symbols.
-    return any(t["symbol"] == symbol for t in open_orb_trades(api))
+    return next((t for t in open_orb_trades(api) if t["symbol"] == symbol), None)
 
 
 def open_orb_trades(api) -> list[dict]:
     """
-    ORB entries (last ORB_LOOKBACK_DAYS) whose shares are still held: filled,
+    ORB entries (last ORB_LOOKBACK_DAYS), long or short, still held: filled,
     no bracket leg filled, and no filled ORB exit for that symbol since. Legs
     may be working *or* already cancelled — a failed flatten used to cancel the
     legs, reject the sell, and orphan a naked position this function then
     ignored. Only orders tagged ORB_TAG are considered, so the long-term
-    sleeve's positions are never touched; qty is capped at the live position.
+    sleeve's positions are never touched; qty is capped at the live position
+    (shares held for a long entry, shares short for a short entry).
     """
     start = datetime.now(ET) - timedelta(days=ORB_LOOKBACK_DAYS)
     orders = api.list_orders(status="all", limit=500, nested=True, after=start.isoformat())
@@ -70,19 +76,21 @@ def open_orb_trades(api) -> list[dict]:
     for o in orders:
         if not (o.client_order_id or "").startswith(f"{ORB_TAG}-"):
             continue
-        if o.side != "buy" or o.status != "filled":
+        if o.status != "filled":
             continue
+        side = "long" if o.side == "buy" else "short"
         legs = getattr(o, "legs", None) or []
         if any(l.status == "filled" for l in legs):
             continue
         if o.symbol in exits and exits[o.symbol] > o.filled_at:
             continue
-        qty = min(int(float(o.filled_qty)), positions.get(o.symbol, 0))
+        held = positions.get(o.symbol, 0)  # negative when short
+        qty = min(int(float(o.filled_qty)), held if side == "long" else -held)
         if qty < 1:
             continue
         open_legs = [l for l in legs if l.status in OPEN_LEG_STATUSES] + rearmed.get(o.symbol, [])
         stop = next((float(l.stop_price) for l in legs if l.stop_price), None)
-        trades.append({"symbol": o.symbol, "qty": qty, "legs": open_legs, "stop": stop})
+        trades.append({"symbol": o.symbol, "qty": qty, "side": side, "legs": open_legs, "stop": stop})
     return trades
 
 
@@ -108,9 +116,10 @@ def _wait_legs_done(api, legs, timeout: float = 15.0) -> bool:
 
 
 def exit_orb_trade(api, trade: dict, price: float) -> dict | None:
-    """Cancel the bracket legs, wait for the cancels to land, then market-sell
-    exactly the ORB qty. If the sell fails, re-arm a GTC stop so the position
-    is never left unprotected."""
+    """Cancel the bracket legs, wait for the cancels to land, then close exactly
+    the ORB qty (sell a long, buy back a short). If that fails, re-arm a GTC
+    stop so the position is never left unprotected."""
+    close_side = "sell" if trade.get("side", "long") == "long" else "buy"
     for leg in trade["legs"]:
         try:
             api.cancel_order(leg.id)
@@ -120,16 +129,16 @@ def exit_orb_trade(api, trade: dict, price: float) -> dict | None:
         print(f"[executor] {trade['symbol']}: bracket leg already filled, nothing to exit")
         return None
     try:
-        api.submit_order(symbol=trade["symbol"], qty=trade["qty"], side="sell",
+        api.submit_order(symbol=trade["symbol"], qty=trade["qty"], side=close_side,
                          type="market", time_in_force="day",
                          client_order_id=f"{ORB_TAG}x-{trade['symbol']}-{datetime.now(ET):%Y%m%d-%H%M%S}")
         print(f"[executor] ✅ EXIT {trade['symbol']} | {trade['qty']} shares @ ~${price:.2f}")
-        return {"symbol": trade["symbol"], "side": "SELL", "price": price, "qty": trade["qty"]}
+        return {"symbol": trade["symbol"], "side": close_side.upper(), "price": price, "qty": trade["qty"]}
     except Exception as e:
         print(f"[executor] exit {trade['symbol']} failed: {e}")
         if trade.get("stop"):
             try:
-                api.submit_order(symbol=trade["symbol"], qty=trade["qty"], side="sell",
+                api.submit_order(symbol=trade["symbol"], qty=trade["qty"], side=close_side,
                                  type="stop", stop_price=trade["stop"], time_in_force="gtc",
                                  client_order_id=f"{ORB_TAG}x-stop-{trade['symbol']}-{datetime.now(ET):%Y%m%d-%H%M%S}")
                 print(f"[executor] re-armed GTC stop {trade['symbol']} @ ${trade['stop']}")
@@ -179,8 +188,9 @@ def check_daily_loss_limit() -> bool:
 def submit_order(symbol: str, signal: str, price: float, size_mult: float = 1.0,
                  stop_pct: float = None, take_pct: float = None) -> dict | None:
     """
-    Submit a BUY (GTC bracket: hard stop + take profit) or SELL (exit today's
-    ORB trade in that symbol) order.
+    Act on a breakout signal. BUY covers an open ORB short, otherwise opens a
+    long; SELL exits an open ORB long, otherwise opens a short (ALLOW_SHORTS).
+    Entries are GTC brackets with a hard stop and take profit.
 
     Args:
         symbol:     ticker
@@ -203,68 +213,86 @@ def submit_order(symbol: str, signal: str, price: float, size_mult: float = 1.0,
     if check_daily_loss_limit():
         return None
 
-    if signal == "BUY":
-        if already_in_orb_trade(api, symbol):
-            print(f"[executor] Already in {symbol}, skipping BUY")
-            return None
+    if signal not in ("BUY", "SELL"):
+        return None
+    long_entry = signal == "BUY"
 
-        account  = api.get_account()
-        portfolio = float(account.portfolio_value)
-        cash = float(account.cash)
+    # Opposite-side ORB trade open → this signal is its exit. Same side → skip.
+    # Only tagged ORB trades are ever exited — never the long-term sleeve's shares.
+    trade = orb_trade_in(api, symbol)
+    if trade:
+        if (trade["side"] == "long") != long_entry:
+            return exit_orb_trade(api, trade, price)
+        print(f"[executor] Already {trade['side']} {symbol}, skipping {signal}")
+        return None
 
-        # Risk-based sizing adjusted by time-of-day multiplier
-        # shares = (portfolio * risk%) / (price * stop%) * size_mult
-        risk_dollars = portfolio * MAX_RISK_PCT * size_mult
-        shares = int(risk_dollars / (price * stop_pct))
-
-        # Never exceed the per-position cap, the total ORB cap, or spend cash
-        # we don't have (no margin)
-        positions = {p.symbol: p for p in api.list_positions()}
-        orb_exposure = sum(t["qty"] * abs(float(positions[t["symbol"]].current_price))
-                           for t in open_orb_trades(api) if t["symbol"] in positions)
-        max_notional = min(portfolio * MAX_POSITION_PCT, cash,
-                           portfolio * MAX_ORB_EXPOSURE_PCT - orb_exposure)
-        shares = min(shares, int(max_notional / price))
-        if shares < 1:
-            print(f"[executor] {symbol}: sized to 0 shares (cash=${cash:,.0f}, orb_exposure=${orb_exposure:,.0f}, "
-                  f"cap=${max_notional:,.0f}), skipping")
-            return None
-
-        stop_price  = round(price * (1 - stop_pct), 2)
-        limit_price = round(price * (1 + take_pct), 2)
-
-        try:
-            # Bracket order with hard stop + take profit. GTC so the protective
-            # legs survive the close if flatten_intraday somehow doesn't run —
-            # with "day" they were cancelled at 4pm, leaving a naked position.
-            api.submit_order(
-                symbol=symbol,
-                qty=shares,
-                side="buy",
-                type="market",
-                time_in_force="gtc",
-                order_class="bracket",
-                stop_loss={"stop_price": stop_price},
-                take_profit={"limit_price": limit_price},
-                client_order_id=f"{ORB_TAG}-{symbol}-{datetime.now(ET):%Y%m%d-%H%M%S}",
-            )
-            print(
-                f"[executor] ✅ BUY {shares}x {symbol} @ ~${price:.2f} | "
-                f"SL=${stop_price} TP=${limit_price} | "
-                f"size_mult={size_mult:.2f} risk=${risk_dollars:.0f} notional=${shares * price:,.0f}"
-            )
-            return {"symbol": symbol, "side": "BUY", "price": price, "qty": shares}
-
-        except Exception as e:
-            print(f"[executor] BUY order failed for {symbol}: {e}")
-            return None
-
-    elif signal == "SELL":
-        # Only exit tagged ORB trades — never the long-term sleeve's shares
-        trades = [t for t in open_orb_trades(api) if t["symbol"] == symbol]
-        if not trades:
+    positions = {p.symbol: p for p in api.list_positions()}
+    if not long_entry:
+        if not ALLOW_SHORTS:
             print(f"[executor] No open ORB trade in {symbol} to close")
             return None
-        return exit_orb_trade(api, trades[0], price)
+        # Alpaca won't flip a long to a short in one order, and an ORB entry
+        # must never sell the sleeve's shares.
+        if symbol in positions and float(positions[symbol].qty) > 0:
+            print(f"[executor] {symbol}: long-term sleeve holds shares, skipping short")
+            return None
+        asset = api.get_asset(symbol)
+        if not (asset.shortable and asset.easy_to_borrow):
+            print(f"[executor] {symbol}: not easy to borrow, skipping short")
+            return None
 
-    return None
+    account  = api.get_account()
+    portfolio = float(account.portfolio_value)
+    cash = float(account.cash)
+
+    # Risk-based sizing adjusted by time-of-day multiplier
+    # shares = (portfolio * risk%) / (price * stop%) * size_mult
+    risk_dollars = portfolio * MAX_RISK_PCT * size_mult
+    shares = int(risk_dollars / (price * stop_pct))
+
+    # Never exceed the per-position cap, the total ORB cap (longs + shorts),
+    # or the cash on hand (no margin; applied to shorts too so exposure
+    # stays comparable to the long-only record)
+    orb_exposure = sum(t["qty"] * abs(float(positions[t["symbol"]].current_price))
+                       for t in open_orb_trades(api) if t["symbol"] in positions)
+    max_notional = min(portfolio * MAX_POSITION_PCT, cash,
+                       portfolio * MAX_ORB_EXPOSURE_PCT - orb_exposure)
+    shares = min(shares, int(max_notional / price))
+    if shares < 1:
+        print(f"[executor] {symbol}: sized to 0 shares (cash=${cash:,.0f}, orb_exposure=${orb_exposure:,.0f}, "
+              f"cap=${max_notional:,.0f}), skipping")
+        return None
+
+    if long_entry:
+        stop_price  = round(price * (1 - stop_pct), 2)
+        limit_price = round(price * (1 + take_pct), 2)
+    else:
+        stop_price  = round(price * (1 + stop_pct), 2)
+        limit_price = round(price * (1 - take_pct), 2)
+    label = "BUY" if long_entry else "SHORT"
+
+    try:
+        # Bracket order with hard stop + take profit. GTC so the protective
+        # legs survive the close if flatten_intraday somehow doesn't run —
+        # with "day" they were cancelled at 4pm, leaving a naked position.
+        api.submit_order(
+            symbol=symbol,
+            qty=shares,
+            side="buy" if long_entry else "sell",
+            type="market",
+            time_in_force="gtc",
+            order_class="bracket",
+            stop_loss={"stop_price": stop_price},
+            take_profit={"limit_price": limit_price},
+            client_order_id=f"{ORB_TAG}-{symbol}-{datetime.now(ET):%Y%m%d-%H%M%S}",
+        )
+        print(
+            f"[executor] ✅ {label} {shares}x {symbol} @ ~${price:.2f} | "
+            f"SL=${stop_price} TP=${limit_price} | "
+            f"size_mult={size_mult:.2f} risk=${risk_dollars:.0f} notional=${shares * price:,.0f}"
+        )
+        return {"symbol": symbol, "side": label, "price": price, "qty": shares}
+
+    except Exception as e:
+        print(f"[executor] {label} order failed for {symbol}: {e}")
+        return None

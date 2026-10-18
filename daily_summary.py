@@ -93,7 +93,7 @@ def get_orb_trades(api, today: datetime) -> list[dict]:
             continue
         if cid.startswith(f"{ORB_TAG}x-"):
             exits.setdefault(o.symbol, []).append((float(o.filled_qty), float(o.filled_avg_price)))
-        elif cid.startswith(f"{ORB_TAG}-") and o.side == "buy":
+        elif cid.startswith(f"{ORB_TAG}-"):  # long (buy) or short (sell) entry
             entries.append(o)
 
     trades = []
@@ -109,7 +109,9 @@ def get_orb_trades(api, today: datetime) -> list[dict]:
             _, exit_px = exits[o.symbol].pop(0)
         trades.append({
             "symbol": o.symbol, "qty": qty, "entry": entry_px, "exit": exit_px,
-            "pnl": (exit_px - entry_px) * qty if exit_px is not None else None,
+            "side": "long" if o.side == "buy" else "short",
+            "pnl": ((exit_px - entry_px) if o.side == "buy" else (entry_px - exit_px)) * qty
+                   if exit_px is not None else None,
         })
     return trades
 
@@ -183,6 +185,8 @@ def build_summary(today: datetime) -> str:
             avg_l = sum(t["pnl"] for t in losses) / len(losses) if losses else 0.0
             lines.append(f"win rate {len(wins)}/{len(closed)}  |  avg win `${avg_w:+,.0f}`  avg loss `${avg_l:+,.0f}`")
         for t in trades:
+            if t["side"] == "short":
+                t["symbol"] += " (short)"
             if t["pnl"] is None:
                 lines.append(f"  • `{t['symbol']}` {t['qty']:g} @ {t['entry']:.2f} → *still open*")
             else:

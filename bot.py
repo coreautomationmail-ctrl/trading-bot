@@ -106,7 +106,7 @@ def run():
         closed = flatten_intraday()
         if closed:
             lines = ["🏁 *End-of-Day Flatten*\n"] + [
-                f"SELL `{t['symbol']}` x{t['qty']} @ `${t['price']:.2f}`" for t in closed
+                f"{t['side']} `{t['symbol']}` x{t['qty']} @ `${t['price']:.2f}`" for t in closed
             ] + [f"\n💰 *Unrealized PnL:* `${estimate_pnl():.2f}`", f"⏰ {pretty_time}"]
             send_telegram("\n".join(lines))
         else:

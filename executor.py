@@ -19,6 +19,13 @@ MAX_POSITION_PCT = 0.25
 # (2026-09-21) stack four 25% entries in correlated names — ~98% of equity.
 MAX_ORB_EXPOSURE_PCT = 0.50
 
+# Names that move together count as one bet: same-direction ORB notional in a
+# bucket is capped at MAX_BUCKET_PCT. On 2026-10-23 SPY + QQQ were bought
+# together (~$50k, the whole 50% total cap on what is one index position) and
+# both lost, -$209 of the week's -$201.
+CORRELATION_BUCKETS = [{"SPY", "QQQ"}, {"AAPL", "MSFT", "AMZN", "NVDA"}]
+MAX_BUCKET_PCT = 0.25
+
 # client_order_id prefix so intraday ORB entries can be told apart from the
 # long-term sleeve (position_manager.py) sharing the same Alpaca account.
 ORB_TAG = "orb"
@@ -253,14 +260,19 @@ def submit_order(symbol: str, signal: str, price: float, size_mult: float = 1.0,
     # Never exceed the per-position cap, the total ORB cap (longs + shorts),
     # or the cash on hand (no margin; applied to shorts too so exposure
     # stays comparable to the long-only record)
-    orb_exposure = sum(t["qty"] * abs(float(positions[t["symbol"]].current_price))
-                       for t in open_orb_trades(api) if t["symbol"] in positions)
+    open_trades = [t for t in open_orb_trades(api) if t["symbol"] in positions]
+    orb_exposure = sum(t["qty"] * abs(float(positions[t["symbol"]].current_price)) for t in open_trades)
+    bucket = next((b for b in CORRELATION_BUCKETS if symbol in b), {symbol})
+    bucket_exposure = sum(t["qty"] * abs(float(positions[t["symbol"]].current_price))
+                          for t in open_trades
+                          if t["symbol"] in bucket and (t["side"] == "long") == long_entry)
     max_notional = min(portfolio * MAX_POSITION_PCT, cash,
-                       portfolio * MAX_ORB_EXPOSURE_PCT - orb_exposure)
+                       portfolio * MAX_ORB_EXPOSURE_PCT - orb_exposure,
+                       portfolio * MAX_BUCKET_PCT - bucket_exposure)
     shares = min(shares, int(max_notional / price))
     if shares < 1:
         print(f"[executor] {symbol}: sized to 0 shares (cash=${cash:,.0f}, orb_exposure=${orb_exposure:,.0f}, "
-              f"cap=${max_notional:,.0f}), skipping")
+              f"bucket_exposure=${bucket_exposure:,.0f}, cap=${max_notional:,.0f}), skipping")
         return None
 
     if long_entry:

@@ -26,6 +26,12 @@ MAX_ORB_EXPOSURE_PCT = 0.50
 CORRELATION_BUCKETS = [{"SPY", "QQQ"}, {"AAPL", "MSFT", "AMZN", "NVDA"}]
 MAX_BUCKET_PCT = 0.25
 
+# Skip entries smaller than this. Once two 25% positions fill the total cap the
+# leftover room bought 1-3 shares ($264-$779): 4 of the 9 round trips in the
+# week of 2026-10-19 were dust that said nothing about the strategy but counted
+# toward the 100-trade go-live scorecard.
+MIN_ENTRY_NOTIONAL = 2000.0
+
 # client_order_id prefix so intraday ORB entries can be told apart from the
 # long-term sleeve (position_manager.py) sharing the same Alpaca account.
 ORB_TAG = "orb"
@@ -270,6 +276,10 @@ def submit_order(symbol: str, signal: str, price: float, size_mult: float = 1.0,
                        portfolio * MAX_ORB_EXPOSURE_PCT - orb_exposure,
                        portfolio * MAX_BUCKET_PCT - bucket_exposure)
     shares = min(shares, int(max_notional / price))
+    if 0 < shares and shares * price < MIN_ENTRY_NOTIONAL:
+        print(f"[executor] {symbol}: {shares} shares = ${shares * price:,.0f} is below the "
+              f"${MIN_ENTRY_NOTIONAL:,.0f} minimum entry, skipping")
+        return None
     if shares < 1:
         print(f"[executor] {symbol}: sized to 0 shares (cash=${cash:,.0f}, orb_exposure=${orb_exposure:,.0f}, "
               f"bucket_exposure=${bucket_exposure:,.0f}, cap=${max_notional:,.0f}), skipping")

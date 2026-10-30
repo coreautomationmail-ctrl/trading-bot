@@ -1,5 +1,6 @@
 venv/
 .backtest_venv/
+.kronos_venv/
 .env
 api.env
 *.png

@@ -7,3 +7,4 @@ api.env
 __pycache__/
 *.pyc
 scripts/.cache/
+.nautilus_venv/

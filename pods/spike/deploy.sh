@@ -1,6 +1,6 @@
 #!/bin/sh
 # Deploy/refresh the STRATTON spike pod on the VPS (run from this folder):
-#   ssh postiz 'mkdir -p /opt/stratton-spike/data' && scp Dockerfile spike_pod.py postiz:/opt/stratton-spike/ && ssh postiz 'sh -s' < deploy.sh
+#   ssh postiz 'mkdir -p /opt/stratton-spike/data' && scp Dockerfile spike_pod.py spike_scorecard.py postiz:/opt/stratton-spike/ && ssh postiz 'sh -s' < deploy.sh
 # Reuses the trading listener's paper keys + Telegram (.env); state in /opt/stratton-spike/data.
 set -e
 cd /opt/stratton-spike

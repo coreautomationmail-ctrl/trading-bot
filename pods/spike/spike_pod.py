@@ -233,6 +233,17 @@ def manage_exits(state: dict, now: datetime):
             t["exit_order"] = o["id"]
 
 
+def maybe_send_scorecard(state: dict):
+    """Once per ISO week, Saturdays from 16:00 UTC (same slot as the ORB scorecard)."""
+    import spike_scorecard
+    now = datetime.now(ZoneInfo("UTC"))
+    week = now.strftime("%G-W%V")
+    if now.weekday() != 5 or now.hour < 16 or state.get("scorecard_week") == week:
+        return
+    send_telegram(spike_scorecard.build(TRADES_CSV, now.strftime("%b %d %Y")))
+    state["scorecard_week"] = week
+
+
 def main():
     if os.getenv("ALPACA_BASE_URL", "").rstrip("/") != PAPER_URL:
         raise SystemExit("spike pod is paper-only: ALPACA_BASE_URL must be the paper endpoint")
@@ -248,6 +259,8 @@ def main():
             clock = api("GET", "/v2/clock")
             now = datetime.now(ET)
             if not clock["is_open"]:
+                maybe_send_scorecard(state)
+                save_state(state)
                 time.sleep(60)
                 continue
             if state.get("day") != str(now.date()):

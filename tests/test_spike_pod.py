@@ -95,3 +95,16 @@ def test_order_flow_enter_exit_and_log(tmp_path, monkeypatch):
     assert state["open"] == [] and state["realized_today"] == 50.0
     rows = (tmp_path / "t.csv").read_text().splitlines()
     assert len(rows) == 2 and ",short,10," in rows[1]
+
+
+def test_scorecard_from_trade_log(tmp_path):
+    import spike_scorecard as sc
+    p = tmp_path / "t.csv"
+    p.write_text("symbol,side,qty,entry_time,entry_px,exit_time,exit_px,pnl,bps,signal_bar\n"
+                 "META,short,10,a,500,b,495,50,100.5,x\n"
+                 "AMD,long,20,a,100,b,99,-20,-100.5,x\n")
+    s = sc.stats(sc.load(str(p)))
+    assert s["n"] == 2 and s["long"] == 1 and s["gross"] == 30
+    assert abs(s["net"] - (30 - 0.04 * 30)) < 1e-9
+    assert "IN PROGRESS" in sc.build(str(p), "Oct 31 2026")
+    assert sc.build(str(tmp_path / "missing.csv"), "x").startswith("STRATTON")

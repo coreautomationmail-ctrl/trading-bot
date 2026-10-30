@@ -89,7 +89,7 @@ def _to_ny(df: pd.DataFrame) -> pd.DataFrame:
     return df
 
 
-def fetch_bars(symbols: list, timeframe: str, start: str, end: str, chunk: int) -> pd.DataFrame:
+def fetch_bars(symbols: list, timeframe: str, start: str, end: str, chunk: int, feed: str = "sip") -> pd.DataFrame:
     api = get_client()
     frames = []
     n_chunks = -(-len(symbols) // chunk)
@@ -98,7 +98,7 @@ def fetch_bars(symbols: list, timeframe: str, start: str, end: str, chunk: int) 
         df = None
         for attempt in range(3):
             try:
-                df = api.get_bars(batch, timeframe, start=start, end=end, feed="sip").df
+                df = api.get_bars(batch, timeframe, start=start, end=end, feed=feed).df
                 break
             except Exception as e:
                 print(f"    fetch {timeframe} chunk {i // chunk + 1}/{n_chunks} failed ({e}); retry")

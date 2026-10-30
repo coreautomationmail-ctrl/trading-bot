@@ -35,8 +35,17 @@ import backtest_sip as sip
 
 SYMBOLS = ["SPY", "QQQ", "IWM", "AAPL", "MSFT", "NVDA", "AMZN", "TSLA",
            "META", "AMD", "GOOGL", "JPM"]
+# Out-of-sample universe: the most liquid non-ETF names by dollar volume in
+# Q1 2016 (swing_pool_rank_2016Q1), minus the 12 above and GOOG -- picked
+# without hindsight about which names later ran.
+WIDE = ["BAC", "XOM", "GE", "PFE", "GILD", "C", "WFC", "T", "CVX", "JNJ", "MCD",
+        "VZ", "DIS", "PG", "BHC", "BKNG", "V", "INTC", "CSCO", "GS", "WMT", "BA",
+        "HD", "IBM", "CMG", "CMCSA", "KO", "SLB", "AVGO", "QCOM", "RTX", "ORCL",
+        "NKE", "SBUX", "AMGN", "MRK", "COP", "BIDU", "AIG", "F", "PEP", "MDLZ",
+        "BIIB", "ABBV", "CVS", "UNP", "AXP", "BMY", "CAT", "PM"]
 YEARS = range(2016, 2027)
 END = "2026-10-27"
+FEED = "sip"
 HOLDS = (5, 15, 30)
 VOL_X = 5.0
 K_SPIKE = 4.0
@@ -47,11 +56,12 @@ def load_year(sym: str, year: int) -> pd.DataFrame:
     def build():
         start = f"{year}-01-01"
         end = END if year == 2026 else f"{year + 1}-01-01"
-        df = sip.fetch_bars([sym], "1Min", start, end, chunk=1)
+        df = sip.fetch_bars([sym], "1Min", start, end, chunk=1, feed=FEED)
         if df.empty:
             return df
         return df[["open", "high", "low", "close", "volume"]].astype("float32")
-    return sip.cached(f"m1_{sym}_{year}", build)
+    prefix = "m1" if FEED == "sip" else f"m1{FEED}"
+    return sip.cached(f"{prefix}_{sym}_{year}", build)
 
 
 def features(df: pd.DataFrame) -> pd.DataFrame:
@@ -138,16 +148,60 @@ def sweep(syms):
               f"{(yrs > 0).sum():2d}/{len(yrs)}  {stk:5.2f}  {t['bps'].mean() - 4:6.2f}")
 
 
+def iex_check(syms, cfgs=((5, 4, 30), (8, 4, 60), (8, 5, 60))):
+    """Detect spikes on IEX bars (what Alpaca's free live feed shows), fill on
+    SIP prices (what the market trades at). Compare with SIP-detected spikes."""
+    global FEED
+    res = {}
+    for sym in syms:
+        for y in YEARS:
+            FEED = "sip"
+            s = features(load_year(sym, y))
+            FEED = "iex"
+            iex = features(load_year(sym, y))
+            # IEX signal at minute t -> same minute on the SIP grid
+            iex = iex.reindex(s.index)
+            hm = s.index.hour * 60 + s.index.minute
+            w = (hm >= 9 * 60 + 35) & (hm <= 15 * 60 + 30)
+            for vx, k, h in cfgs:
+                for src, f in (("sip", s), ("iex", iex)):
+                    m = (w & (f["ret_std"] > 0) & (f["volume"] >= vx * f["vol_mean"]) &
+                         (f["ret"].abs() >= k * f["ret_std"])).fillna(False).to_numpy()
+                    side = np.sign(f["ret"].fillna(0).to_numpy())
+                    res.setdefault((vx, k, h, src), []).extend(
+                        (sym, d, b) for d, b in trades(s, m, side, h, 1))
+    FEED = "sip"
+    print("\nentry delayed 1 bar (latency); prices = SIP")
+    print("vol_x  k  hold  detect  trades  gross  t(daily)")
+    for (vx, k, h, src), rows in sorted(res.items()):
+        t = pd.DataFrame(rows, columns=["sym", "date", "bps"])
+        daily = t.groupby("date")["bps"].mean()
+        ts = daily.mean() / (daily.std(ddof=1) / np.sqrt(len(daily))) if len(daily) > 2 else float("nan")
+        print(f"{vx:5d} {k:2d} {h:5d}   {src:4s}  {len(t):6d} {t['bps'].mean():6.2f} {ts:7.2f}")
+
+
 def main():
     syms = SYMBOLS
     fetch_only = False
+    global YEARS, FEED
+    do_sweep = False
     for a in sys.argv[1:]:
         if a.startswith("--symbols="):
-            syms = a.split("=", 1)[1].split(",")
+            v = a.split("=", 1)[1]
+            syms = WIDE if v == "wide" else v.split(",")
+        elif a.startswith("--years="):
+            lo, hi = a.split("=", 1)[1].split("-")
+            YEARS = range(int(lo), int(hi) + 1)
+        elif a.startswith("--feed="):
+            FEED = a.split("=", 1)[1]
         elif a == "--fetch-only":
             fetch_only = True
         elif a == "--sweep":
-            return sweep(syms)
+            do_sweep = True
+        elif a == "--iex-check":
+            return iex_check(syms)
+    if do_sweep:
+        return sweep(syms)
 
     results = {}   # (rule, hold) -> list of (sym, date, bps)
     for sym in syms:

@@ -39,9 +39,10 @@ TAG = "spk"
 # Universe (v2, 2026-10-30): the top 25 of the 62 backtested names by 2025
 # average daily dollar volume (scripts/spike_buckets.py: the edge rises with
 # prior-year dollar volume), minus every symbol the ORB bot (bot.SYMBOLS) or
-# the long-term sleeve (position_manager.WATCHLIST) trades, so the bots never
-# share a position. v1 traded all 53 non-overlapping names and failed the
-# wide-universe test.
+# the long-term sleeve (position_manager.WATCHLIST) trades. Since 2026-10-30 the
+# pod has its own paper account; adding those 8 big names back was tested and
+# rejected (afternoon 2022-26: ~-1 bps on their own). v1 traded all 53
+# non-overlapping names and failed the wide-universe test.
 UNIVERSE = [
     "META", "IWM", "AMD", "GOOGL", "AVGO", "ORCL", "INTC", "V", "BAC",
     "WMT", "BA", "XOM", "GS", "JNJ", "PFE", "HD", "QCOM",

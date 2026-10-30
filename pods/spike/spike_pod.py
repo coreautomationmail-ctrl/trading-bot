@@ -1,5 +1,5 @@
 """
-STRATTON pod #2: volume-spike momentum (paper).
+STRATTON pod #2: volume-spike momentum (paper), v2: top-dollar-volume names, afternoon only.
 
 Backtest (scripts/backtest_scalp.py): a 1-min bar with volume >= VOL_X x its
 trailing 30-bar mean and |log(close/open)| >= K x the trailing 30-bar std of
@@ -36,15 +36,15 @@ PAPER_URL = "https://paper-api.alpaca.markets"
 DATA_URL = "https://data.alpaca.markets/v2/stocks/bars"
 TAG = "spk"
 
-# Universe: no symbol the ORB bot (bot.SYMBOLS) or the long-term sleeve
-# (position_manager.WATCHLIST) trades, so the bots never share a position.
+# Universe (v2, 2026-10-30): the top 25 of the 62 backtested names by 2025
+# average daily dollar volume (scripts/spike_buckets.py: the edge rises with
+# prior-year dollar volume), minus every symbol the ORB bot (bot.SYMBOLS) or
+# the long-term sleeve (position_manager.WATCHLIST) trades, so the bots never
+# share a position. v1 traded all 53 non-overlapping names and failed the
+# wide-universe test.
 UNIVERSE = [
-    "IWM", "META", "AMD", "GOOGL",
-    "BAC", "XOM", "GE", "PFE", "GILD", "C", "WFC", "T", "CVX", "JNJ", "MCD",
-    "VZ", "DIS", "PG", "BHC", "BKNG", "V", "INTC", "CSCO", "GS", "WMT", "BA",
-    "HD", "IBM", "CMG", "CMCSA", "SLB", "AVGO", "QCOM", "RTX", "ORCL",
-    "NKE", "SBUX", "AMGN", "MRK", "COP", "BIDU", "AIG", "F", "PEP", "MDLZ",
-    "BIIB", "ABBV", "CVS", "UNP", "AXP", "BMY", "CAT", "PM",
+    "META", "IWM", "AMD", "GOOGL", "AVGO", "ORCL", "INTC", "V", "BAC",
+    "WMT", "BA", "XOM", "GS", "JNJ", "PFE", "HD", "QCOM",
 ]
 VOL_X = float(os.getenv("SPIKE_VOL_X", "8"))
 K = float(os.getenv("SPIKE_K", "5"))
@@ -56,7 +56,9 @@ ENABLED = os.getenv("SPIKE_ENABLED", "true").lower() == "true"
 STATE_DIR = os.getenv("STATE_DIR", "/data")
 WINDOW = 30
 MIN_BARS = 20
-FIRST_ENTRY, LAST_ENTRY, FLATTEN = (9 * 60 + 35), (15 * 60 + 30), (15 * 60 + 55)
+# v2: afternoon signals only -- 13:00-14:58 held up in core, wide and held-out
+# 2017-22 (spike_buckets.py); 14:54 so the 60-min hold exits before FLATTEN.
+FIRST_ENTRY, LAST_ENTRY, FLATTEN = (13 * 60), (14 * 60 + 54), (15 * 60 + 55)
 
 
 # ---------- spike detection (mirrors backtest_scalp.features/signals) ----------

@@ -78,3 +78,16 @@ miss fills, mostly on the trades that would have won).
 Runs: rsi2 at 2 bps (swing); intraday index momentum at 0.5 bps; gap-and-go
 short-only with SSR at 1 bps. Kronos standalone needs no run: +3.1 bps gross
 minus 2 x 1 bps = +1.1 bps < 3.
+
+**Result: FAIL, nothing flips.**
+- rsi2 at 2 bps: excess +6.1 bps (t 4.0, n 60,197), well short of the 15
+  bps swing bar; the raw +20.7 bps net is mostly market beta.
+- intraday index momentum at 0.5 bps: -0.41 bps (t -1.3), 3/11 years
+  positive; worse since 2024.
+- gap-and-go short-only + SSR at 1 bps: +0.11R on n=244 (< 300), one of
+  five windows negative.
+- Kronos standalone: +1.1 bps by arithmetic.
+Logs: scripts/.cache/lowcost_*.log.
+
+**Lesson:** costs were not what sank these; the signals are weak. Cheaper
+execution is still worth having for spike_mom, but it won't revive old ideas.

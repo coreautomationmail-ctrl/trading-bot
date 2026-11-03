@@ -126,3 +126,22 @@ symbol > 25% of P&L. Also reported (not gated): win rate, median, top-1%
 share of P&L, and a variant exiting at the close of f (holds through the
 forecast release). Spike-pod correlation: skipped (pod P&L not here).
 Script: scripts/research/pre_earnings_runup.py.
+
+**Result: FAIL.** 45,218 filings -> 20,483 trades (design) / 19,359
+(held-out), 2016-2026.
+
+| slice | n | excess (net) | t | years+ | 16-20 / 21-26 | win | median |
+|---|---|---|---|---|---|---|---|
+| design 1-500, f-5 -> f-1 | 20,483 | -14.3 bps | -4.7 | 1/11 | -15 / -14 | 48% | -13.8 |
+| held-out 501-1000, f-5 -> f-1 | 19,359 | -13.6 bps | -3.7 | 0/11 | -14 / -13 | 49% | -9.8 |
+| variant thru f, design | 20,483 | -11.4 bps | -2.7 | 3/11 | -10 / -13 | 49% | -13.3 |
+| variant thru f, held-out | 19,359 | -8.6 bps | -1.6 | 7/11 | +4 / -19 | 49% | -13.3 |
+
+No symbol > 3% of P&L, so it is broad, not one name. Gross of the 10 bps
+round trip the pre-release excess is about -4 bps: no premium at all,
+before or through the release. Raw long returns (+18 bps net) are just
+the pool's drift. Log: research/pre_earnings_runup.log.
+
+**Lesson:** with PEAD also dead, earnings timing carries no daily-bar
+edge in these liquid names, before, on, or after the release. Drop
+earnings-calendar ideas unless they use intraday data around the print.

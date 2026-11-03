@@ -1,0 +1,24 @@
+  edgar 0/1000
+  edgar 100/1000
+  edgar 200/1000
+  edgar 300/1000
+  edgar 400/1000
+  edgar 500/1000
+  edgar 600/1000
+  edgar 700/1000
+  edgar 800/1000
+  edgar 900/1000
+no SEC CIK/filings for 3 symbols (renamed/delisted): QRVO ARMH TMH...
+45,218 earnings 8-Ks for 925 names
+
+f-5 open -> f-1 close, design ranks 1-500: n=20,483  raw net +17.9  excess -14.3 bps (t=-4.69)  median -13.8  win 48%  years+ 1/11  16-20 -14.8 / 21-26 -13.8  top symbol 3% (PVH)  top-1% share -126%  -> FAIL
+   excess by year: 2016:-18  2017:-24  2018:-26  2019:-19  2020:+15  2021:-23  2022:-12  2023:-15  2024:-4  2025:-12  2026:-18
+
+f-5 open -> f-1 close, held-out ranks 501-1000: n=19,359  raw net +13.3  excess -13.6 bps (t=-3.69)  median -9.8  win 49%  years+ 0/11  16-20 -14.3 / 21-26 -13.1  top symbol 3% (LITE)  top-1% share -156%  -> FAIL
+   excess by year: 2016:-25  2017:-16  2018:-10  2019:-8  2020:-12  2021:-42  2022:-10  2023:-2  2024:-2  2025:-9  2026:-11
+
+f-5 open -> f close (variant), design ranks 1-500: n=20,483  raw net +25.9  excess -11.4 bps (t=-2.65)  median -13.3  win 49%  years+ 3/11  16-20 -9.8 / 21-26 -12.7  top symbol 2% (GME)  top-1% share -217%
+   excess by year: 2016:-12  2017:-28  2018:-24  2019:+7  2020:+9  2021:-28  2022:-10  2023:+4  2024:-9  2025:-20  2026:-14
+
+f-5 open -> f close (variant), held-out ranks 501-1000: n=19,359  raw net +23.7  excess -8.6 bps (t=-1.63)  median -13.3  win 49%  years+ 7/11  16-20 +3.7 / 21-26 -19.1  top symbol 2% (LITE)  top-1% share -347%
+   excess by year: 2016:+1  2017:+2  2018:-17  2019:+13  2020:+21  2021:-63  2022:-25  2023:+4  2024:+12  2025:-39  2026:+3

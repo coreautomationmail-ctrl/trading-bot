@@ -31,3 +31,10 @@ dates (2026-11-02, see journal).
 8. gap-fade-largecaps: the 62 names, fade opening gaps of 1-3% that have
    no earnings release (EDGAR) in the prior 24 h, exit at 11:00. 1-min +
    EDGAR.
+9. eleven-am-effect: recent NYSE small-cap study finds 30 s-5 min returns
+   efficient but 45-60 min horizons show persistent patterns incl. an
+   11:00 effect. Test on the 62 names: sign of 10:00-11:00 return vs
+   11:00-12:00, and time-of-day return profile. 1-min.
+10. reversal-near-52wk-high: Quantpedia's #3 of 2021 combines 52-week-high
+   proximity with short-term reversal; run as an interaction of ideas 2
+   and 6 (losers that are near their 52wk high). Daily, excess vs pool.

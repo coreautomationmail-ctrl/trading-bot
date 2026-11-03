@@ -84,6 +84,7 @@ def run(count_only: bool):
         prev = pd.read_csv(OUT)
         done = set(zip(prev["sym"], prev["ts"]))
     jobs = [j for j in jobs if (j[0], str(j[1])) not in done]
+    jobs = [j for j in jobs if len(context(j[4], j[1])) == LOOKBACK]   # first days of 2025 lack history
     print(f"{len(jobs)} to forecast", flush=True)
     tok = KronosTokenizer.from_pretrained("NeoQuasar/Kronos-Tokenizer-base")
     pred = KronosPredictor(Kronos.from_pretrained("NeoQuasar/Kronos-small"), tok, device="cpu", max_context=512)
@@ -126,7 +127,7 @@ def analyze():
     t["q"] = pd.qcut(t["edge"], 5, labels=False, duplicates="drop")
     for q, g in t.groupby("q"):
         print(f"  q{q} edge {g['edge'].min():+6.1f}..{g['edge'].max():+6.1f}  {line(g['bps'])}")
-    print(f"\nIC(edge, bps) = {t['edge'].corr(t['bps'], method='spearman'):+.3f}")
+    print(f"\nIC(edge, bps) = {t['edge'].rank().corr(t['bps'].rank()):+.3f}")
 
 
 if __name__ == "__main__":

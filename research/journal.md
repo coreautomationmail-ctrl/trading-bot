@@ -40,3 +40,28 @@ Logs: scripts/.cache/pead_ear4.log, pead_ear8.log.
 **Lesson:** event drifts in liquid US names are priced in within a session.
 Earnings timing may still matter BEFORE the release (idea 1, pre-earnings
 run-up), which uses the same EDGAR cache.
+
+## 2026-11-02 kronos-spike-filter: Kronos-small as a filter on spike_mom
+
+**Pre-registered.** For every spike_mom trade 2025-26 (all day, 1-bar
+delay), forecast the next 12 five-minute bars with Kronos-small from the
+400 bars up to the signal. "Agree" = forecast return points the trade's
+way. PASS: agree minus disagree >= 0 with t >= 2 in the afternoon (13:00+)
+AND before 13:00. Script: scripts/kronos/kronos_spike_filter.py.
+
+**Result: FAIL.** n=1,755 (8 early-2025 trades lacked 400 bars of history).
+
+| window | agree | disagree | diff (t) |
+|---|---|---|---|
+| afternoon | +11.0 bps (n 313) | +22.2 bps (n 638) | -11.2 (-1.55) |
+| before 13:00 | -7.8 bps (n 283) | +2.7 bps (n 521) | -10.5 (-1.81) |
+| all day | +2.1 | +13.4 | -11.4 (-2.39) |
+
+Kronos's agreement doesn't help; if anything the trades it disagrees with
+do better (same sign in both windows, neither t >= 2; rank IC -0.008, so
+no graded relationship). Likely mechanism: Kronos forecasts reversal after
+big jumps, so "disagree" mostly marks the largest spikes, and larger
+spikes continue more. That is testable without Kronos (next idea).
+
+**Lesson:** a generic price-forecasting model adds nothing to a
+volume-shock signal; don't spend more CPU on Kronos filters.

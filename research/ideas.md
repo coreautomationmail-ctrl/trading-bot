@@ -7,6 +7,11 @@ momentum, spike_fade, vwap_fade, event drift on any big move, RSI2, Kronos
 standalone, spike_mom (PASS, live as the spike pod), PEAD on real earnings
 dates (2026-11-02, see journal).
 
+0. spike-size-bucket: within spike_mom trades (backtest_scalp.trades),
+   does the size of the trigger (move sigma, volume multiple) predict the
+   60-min outcome? Kronos-filter result (journal 2026-11-02) hints larger
+   spikes continue more. Test sigma terciles, afternoon and before 13:00
+   separately, 2016-21 to design, 2022-26 held out. 1-min.
 1. pre-earnings-runup: buy the pool names 5 sessions before a scheduled
    earnings release, sell the day before it (Barber et al. 2013, "earnings
    announcement premium"). Daily + EDGAR. Release dates must be known in

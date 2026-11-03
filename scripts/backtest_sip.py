@@ -107,6 +107,8 @@ def fetch_bars(symbols: list, timeframe: str, start: str, end: str, chunk: int, 
         if df is None:
             continue
         df = _to_ny(df)
+        if df.empty:              # no bars for this batch (e.g. not listed yet)
+            continue
         if timeframe != "1Day":   # regular session only -- extended hours are ~40% of rows
             df = df.between_time("09:30", "15:59")
         frames.append(df[["open", "high", "low", "close", "volume", "symbol"]])

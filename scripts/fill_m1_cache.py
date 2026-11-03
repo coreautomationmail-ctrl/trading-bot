@@ -25,7 +25,10 @@ YEARS = range(2016, 2027)
 
 def fill(job):
     sym, year = job
-    df = bt.load_year(sym, year)
+    try:
+        df = bt.load_year(sym, year)
+    except Exception as e:   # one bad symbol-year must not stop the other ~2,000
+        return f"{sym} {year}: ERROR {type(e).__name__}: {e}"[:200]
     if df.empty:   # a rate-limited fetch comes back empty; don't let the cache keep it
         os.remove(os.path.join(os.path.dirname(__file__), ".cache", f"m1_{sym}_{year}.pkl"))
         return f"{sym} {year}: EMPTY (not cached; rerun to retry)"

@@ -57,6 +57,31 @@ def stats(rows: list[dict]) -> dict:
             "long": sum(1 for r in rows if r["side"] == "long")}
 
 
+def shadow_summary(path: str) -> str:
+    """The shadow log (all 62 names, all day, no orders) vs the backtest."""
+    if not os.path.exists(path):
+        return "Shadow log: no signals yet"
+    with open(path, newline="") as f:
+        rows = [r for r in csv.DictReader(f) if r.get("bps")]
+    if not rows:
+        return "Shadow log: no signals yet"
+    lines = [f"Shadow log (62 names, no orders, gross bps): {len(rows)} signals since {rows[0]['date']}"]
+    for label, keep in (("before 13:00 ET", lambda et: et < "13:00"), ("13:00+ ET", lambda et: et >= "13:00")):
+        bps = [float(r["bps"]) for r in rows if keep(r["et"])]
+        if bps:
+            n, mean = len(bps), sum(bps) / len(bps)
+            sd = math.sqrt(sum((x - mean) ** 2 for x in bps) / (n - 1)) if n > 1 else 0.0
+            lines.append(f"  {label}: n {n}, {mean:+.1f} bps (t {mean / (sd / math.sqrt(n)) if sd else 0:+.2f})")
+    return "\n".join(lines)
+
+
+def slippage_line(rows: list[dict]) -> str:
+    slips = [float(r["slip_bps"]) for r in rows if r.get("slip_bps") not in (None, "")]
+    if not slips:
+        return ""
+    return f"slippage vs signal price: avg {sum(slips) / len(slips):+.1f} bps (n {len(slips)}; backtest assumes ~2)"
+
+
 def load_control(path: str) -> dict:
     try:
         with open(path) as f:
@@ -119,6 +144,9 @@ def build(path: str, date_label: str, control_note: str = "") -> str:
              f"{s['n']} trades ({s['long']} long), win {s['wins']}/{s['n']}, avg {s['bps']:+.1f} bps gross",
              f"gross ${s['gross']:+,.0f} -> net after ${EXTRA_COST_PER_SHARE:.2f}/share/side ${s['net']:+,.0f}",
              ""]
+    slip = slippage_line(load(path))
+    if slip:
+        lines.insert(3, slip)
     lines += [f"{'[x]' if ok else '[ ]'} {name}: {value}" for name, ok, value in checks]
     lines += ["", verdict]
     if control_note:

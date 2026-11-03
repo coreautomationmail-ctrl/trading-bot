@@ -155,3 +155,40 @@ def test_paused_pod_does_not_enter(tmp_path, monkeypatch):
     state = {"open": [], "day": "2026-11-02", "realized_today": 0.0}
     pod.enter(state, "META", 1, {"c": 500.0, "t": "x"}, datetime(2026, 11, 2, 13, 5, tzinfo=pod.ET))
     assert state["open"] == []
+
+
+def test_shadow_signal_settles_like_the_backtest(tmp_path, monkeypatch):
+    """Entry = open 2 bars after the signal bar, exit = close 61 bars after; logged once."""
+    import csv
+    from datetime import datetime, timedelta
+    monkeypatch.setattr(pod, "SHADOW_CSV", str(tmp_path / "s.csv"))
+    st = pod.SymState(pod.SHADOW_FIRST, pod.SHADOW_LAST)
+    st.last_std, st.last_vol_mean = 0.001, 1000.0
+    t0 = datetime.now(pod.ZoneInfo("UTC")).replace(second=0, microsecond=0) - timedelta(minutes=70)
+    key = lambda m: (t0 + timedelta(minutes=m)).strftime("%Y-%m-%dT%H:%M:00Z")
+    sig_bar = {"t": key(0), "o": 100.0, "c": 101.0, "v": 9000}
+    state = {}
+    pod.shadow_signal(state, "GE", 1, st, sig_bar, t0.astimezone(pod.ET))
+    recent = {"GE": {key(0): sig_bar, key(2): {"o": 101.2, "c": 101.3}}}
+    pod.shadow_settle(state, recent)
+    assert state["shadow"][0]["entry_px"] == 101.2 and not (tmp_path / "s.csv").exists()
+    recent["GE"][key(62)] = {"o": 102.0, "c": 102.212}             # minute 61 missing: next bar used
+    pod.shadow_settle(state, recent)
+    assert state["shadow"] == []
+    rows = list(csv.DictReader(open(tmp_path / "s.csv")))
+    assert len(rows) == 1 and rows[0]["side"] == "1" and abs(float(rows[0]["bps"]) - 99.6) < 0.5
+    assert rows[0]["sigma"] == "9.95" and rows[0]["volx"] == "9.0"
+
+
+def test_scorecard_reports_shadow_and_slippage(tmp_path):
+    import spike_scorecard as sc
+    s = tmp_path / "s.csv"
+    s.write_text("date,et,symbol,signal_bar,side,sigma,volx,entry_px,exit_px,bps\n"
+                 "2026-11-03,10:05,GE,x,1,6,9,100,101,99.5\n"
+                 "2026-11-03,13:30,GE,x,-1,6,9,100,101,-99.5\n")
+    out = sc.shadow_summary(str(s))
+    assert "2 signals" in out and "before 13:00 ET: n 1" in out and "13:00+ ET: n 1" in out
+    t = tmp_path / "t.csv"
+    t.write_text("symbol,side,qty,entry_time,entry_px,exit_time,exit_px,pnl,bps,signal_bar,signal_px,slip_bps\n"
+                 "META,short,10,a,500,b,495,50,100.5,x,500.2,4.0\n")
+    assert "slippage vs signal price: avg +4.0 bps" in sc.build(str(t), "x")

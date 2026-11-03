@@ -174,3 +174,16 @@ PASS (adopt the learned exit) needs ALL: held-out mean (policy - fixed 60)
 same one round trip on both sides, so they cancel. Also reported (not
 gated): fixed 30/90/120-min holds, average minutes held.
 Script: scripts/research/spike_exit_rl.py.
+
+**Result: FAIL.** n=1485 (806 design / 679 held out); 228 states had
+n >= 30 and 71 of them learned "exit".
+Policy minus fixed 60 (gross; costs cancel): design +2.2 bps (paired t 2.89),
+held out +1.9 bps (t 1.35); same sign, but below +3 / t 2. Policy averages
+~43 min held in both periods. Held-out diff by year: 2022 +11.2, 2023 +4.0,
+2024 -3.4, 2025 +1.7, 2026 -3.0.
+Fixed holds (gross bps), design / held out: 30 min +6.1 / +14.2, 60 min +11.6 /
++10.4, 90 min +4.5 / +12.1, 120 min +3.6 / +12.6. No fixed length beats 60
+in both periods, so the held-out edge of 30 min is noise, not a rule.
+Verdict: keep the fixed 60-min hold. The learned exit is a small, real-looking
+gain (+2 bps both periods), too weak to adopt; revisit once the 215 extra
+names (~4x trades) are cached; same rules, then a fresh held-out run.

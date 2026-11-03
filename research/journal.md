@@ -157,3 +157,20 @@ the pool's drift. Log: research/pre_earnings_runup.log.
 **Lesson:** with PEAD also dead, earnings timing carries no daily-bar
 edge in these liquid names, before, on, or after the release. Drop
 earnings-calendar ideas unless they use intraday data around the print.
+
+## 2026-11-03 spike-exit-rl: can a learned exit beat the fixed 60-min hold?
+
+**Pre-registered.** Same trades as spike-size (spike_mom as live, top 25 of
+the 62 by prior-year dollar volume, 2017-2026, enter next open + 1-bar
+delay). Each trade's path is followed up to 120 min (or 15:59 ET).
+Policy: batch RL (fitted value iteration / optimal stopping) with decisions
+every 5 min. State = minutes held, unrealized P&L bucket (bps: <-50, -50..-20,
+-20..0, 0..20, 20..50, >50), last-5-min move (down <-5 / flat / up >5 bps).
+Actions hold/exit. Q(hold) = mean of the next 5 min's P&L plus next-state
+value, from 2017-21 trades only; states with n < 30 fall back to the live
+rule (hold to 60). Applied unchanged to 2022-26.
+PASS (adopt the learned exit) needs ALL: held-out mean (policy - fixed 60)
+>= +3 bps with paired t >= 2, and the same sign in 2017-21. Costs are the
+same one round trip on both sides, so they cancel. Also reported (not
+gated): fixed 30/90/120-min holds, average minutes held.
+Script: scripts/research/spike_exit_rl.py.

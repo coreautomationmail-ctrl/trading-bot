@@ -104,6 +104,18 @@ tercile >= +5 bps with t >= 2, AND the same sign in 2017-21. Costs cancel in
 the difference; levels reported net of 2 bps/side.
 Script: scripts/research/spike_size.py.
 
+**Result: FAIL.** n=1485 trades, all +7.1 bps net (t 3.08); years
+2017..2026: -2 -7 +12 +19 +10 -1 +2 -8 +24 +11.
+Sigma terciles (cuts 6.50 / 9.73): design big-small +17.3 bps (t 3.29),
+but held out -1.2 bps (t -0.11): q0/q1/q2 = +7.1 / +6.5 / +5.9 net. The
+2017-21 size effect did not survive. Volume multiple (cuts 9.92 / 14.19):
+design -2.0 (t -0.37), held out -15.1 (t -1.42); the biggest-volume third
+is the worst held out (-2.9 net).
+Verdict: no size-up on big spikes; keep flat sizing. Side finding: the
+live pod's afternoon signal itself holds up (+7 bps net, t 3.1, positive
+in both halves), consistent with the scorecard's EXPECTED_BPS=8.
+Top symbols' share of gross bps: IWM 9%, GOOGL 9%, META 9%.
+
 ## 2026-11-02 pre-earnings-runup: buy the week before a forecast earnings date
 
 **Pre-registered.** Hypothesis: stocks earn a premium in the days before a

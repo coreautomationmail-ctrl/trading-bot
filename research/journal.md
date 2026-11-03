@@ -91,3 +91,15 @@ Logs: scripts/.cache/lowcost_*.log.
 
 **Lesson:** costs were not what sank these; the signals are weak. Cheaper
 execution is still worth having for spike_mom, but it won't revive old ideas.
+
+## 2026-11-02 spike-size-bucket: do bigger spikes run further?
+
+**Pre-registered.** spike_mom as live (vol >= 8x, move >= 5 sigma, signal
+13:00-14:54 ET, 1-bar delay, hold 60), SIP 1-min, names in the top 25 of
+the 62 by PRIOR-year dollar volume, 2017-2026. Size = move in sigmas
+(|ret| / trailing std); also report by volume multiple. Tercile cutpoints
+set on 2017-2021 only, applied unchanged to 2022-2026 (held out).
+PASS (a reason to size up on big spikes): in 2022-26, top-minus-bottom
+tercile >= +5 bps with t >= 2, AND the same sign in 2017-21. Costs cancel in
+the difference; levels reported net of 2 bps/side.
+Script: scripts/research/spike_size.py.

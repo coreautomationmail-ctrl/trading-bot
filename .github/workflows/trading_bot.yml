@@ -49,6 +49,7 @@ jobs:
           TELEGRAM_TOKEN: ${{ secrets.TELEGRAM_TOKEN }}
           TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
           LIVE_TRADING_APPROVED: ${{ secrets.LIVE_TRADING_APPROVED }}
+          ORB_PAUSED: "true"   # 2026-11-02: no edge after costs; set "false" to resume
         run: |
           # Session end (UTC): the morning job hands off at 16:50Z, the
           # afternoon job runs past the latest possible close+flatten

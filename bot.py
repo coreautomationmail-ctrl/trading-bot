@@ -1,4 +1,5 @@
 # bot.py
+import os
 from datetime import datetime, timedelta
 import pytz
 import traceback
@@ -26,6 +27,9 @@ FLATTEN_BEFORE_CLOSE = timedelta(minutes=15)
 # message per run that trades or errors, one flatten report before the close.
 # Everything else goes to the Actions log; daily_summary.py digests it.
 HEARTBEAT_WINDOW = ((9, 40), (9, 58))
+# Paused 2026-11-02: no edge after costs in any test, and losing on paper.
+# The flatten and position management still run, so nothing is left open.
+PAUSED = os.getenv("ORB_PAUSED", "false").lower() == "true"
 
 
 # ── Market ────────────────────────────────────────────────────────────────────
@@ -111,6 +115,10 @@ def run():
             send_telegram("\n".join(lines))
         else:
             print("[bot] EOD: no open ORB trades to flatten")
+        return
+
+    if PAUSED:
+        print("[bot] ORB paused (ORB_PAUSED): no new entries")
         return
 
     # Daily loss guard — alert and exit if limit hit

@@ -142,6 +142,7 @@ def send_telegram(text: str):
 
 STATE_FILE = os.path.join(STATE_DIR, "spike_state.json")
 TRADES_CSV = os.path.join(STATE_DIR, "spike_trades.csv")
+CONTROL_FILE = os.path.join(STATE_DIR, "spike_control.json")  # written by the weekly scorecard
 
 
 def load_state() -> dict:
@@ -181,7 +182,9 @@ def filled_price(order_id: str):
 
 
 def enter(state: dict, sym: str, side: int, bar: dict, now: datetime):
-    if not ENABLED or len(state["open"]) >= MAX_OPEN:
+    import spike_scorecard
+    control = spike_scorecard.load_control(CONTROL_FILE)
+    if not ENABLED or control["paused"] or len(state["open"]) >= MAX_OPEN:
         return
     if state["realized_today"] <= -DAILY_LOSS_STOP:
         return
@@ -192,7 +195,7 @@ def enter(state: dict, sym: str, side: int, bar: dict, now: datetime):
         asset = api("GET", f"/v2/assets/{sym}")
         if not (asset.get("shortable") and asset.get("easy_to_borrow")):
             return
-    qty = int(POS_USD // float(bar["c"]))
+    qty = int(POS_USD * control["size_mult"] // float(bar["c"]))
     if qty < 1:
         return
     cid = f"{TAG}-{sym}-{now:%Y%m%d-%H%M%S}"
@@ -243,7 +246,10 @@ def maybe_send_scorecard(state: dict):
     week = now.strftime("%G-W%V")
     if now.weekday() != 5 or now.hour < 16 or state.get("scorecard_week") == week:
         return
-    send_telegram(spike_scorecard.build(TRADES_CSV, now.strftime("%b %d %Y")))
+    control, note = spike_scorecard.decide(spike_scorecard.load(TRADES_CSV),
+                                           spike_scorecard.load_control(CONTROL_FILE), now.date())
+    spike_scorecard.save_control(CONTROL_FILE, control)
+    send_telegram(spike_scorecard.build(TRADES_CSV, now.strftime("%b %d %Y"), note))
     state["scorecard_week"] = week
 
 

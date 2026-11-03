@@ -61,6 +61,7 @@ def test_order_flow_enter_exit_and_log(tmp_path, monkeypatch):
     from datetime import datetime, timedelta
     monkeypatch.setattr(pod, "STATE_DIR", str(tmp_path))
     monkeypatch.setattr(pod, "TRADES_CSV", str(tmp_path / "t.csv"))
+    monkeypatch.setattr(pod, "CONTROL_FILE", str(tmp_path / "control.json"))
     monkeypatch.setattr(pod, "send_telegram", lambda m: None)
     orders, fills = {}, {}
 
@@ -108,3 +109,49 @@ def test_scorecard_from_trade_log(tmp_path):
     assert abs(s["net"] - (30 - 0.04 * 30)) < 1e-9
     assert "IN PROGRESS" in sc.build(str(p), "Oct 31 2026")
     assert sc.build(str(tmp_path / "missing.csv"), "x").startswith("STRATTON")
+
+
+def _rows(bps_list, qty=10, px=100.0):
+    return [{"pnl": str(b / 1e4 * px * qty), "bps": str(b), "qty": str(qty), "side": "long"} for b in bps_list]
+
+
+def test_control_pauses_when_live_runs_under_the_backtest():
+    from datetime import date
+    import spike_scorecard as sc
+    fresh = {"paused": False, "size_mult": 1.0}
+    few = _rows([-30, 10] * 10)                                   # 20 trades: too few to judge
+    assert sc.decide(few, fresh, date(2026, 11, 7))[0]["paused"] is False
+    bad = _rows([-40, 0, 10] * 20)                                # 60 trades averaging -10 bps
+    control, note = sc.decide(bad, fresh, date(2026, 11, 7))
+    assert control["paused"] and "PAUSING" in note
+    again, note = sc.decide(_rows([50] * 200), control, date(2026, 12, 5))
+    assert again["paused"] and "owner resumes" in note        # only the owner unpauses
+
+
+def test_control_grows_size_on_proven_edge_once_a_month():
+    from datetime import date
+    import spike_scorecard as sc
+    good = _rows([60, -20, 30, 10] * 30)                          # 120 trades, +20 bps
+    c1, note = sc.decide(good, {"paused": False, "size_mult": 1.0}, date(2026, 11, 7))
+    assert c1["size_mult"] == 1.5 and "GROWING" in note
+    c2, _ = sc.decide(good, c1, date(2026, 11, 14))
+    assert c2["size_mult"] == 1.5                                 # not again within 28 days
+    c3, _ = sc.decide(good, c2, date(2026, 12, 5))
+    assert c3["size_mult"] == 2.25
+    c4, _ = sc.decide(good, {**c3, "size_mult": 3.0}, date(2027, 2, 1))
+    assert c4["size_mult"] == 3.0                                 # capped
+
+
+def test_paused_pod_does_not_enter(tmp_path, monkeypatch):
+    from datetime import datetime
+    import spike_scorecard as sc
+    monkeypatch.setattr(pod, "CONTROL_FILE", str(tmp_path / "c.json"))
+    sc.save_control(pod.CONTROL_FILE, {"paused": True, "size_mult": 1.0})
+
+    def no_api(*a, **k):
+        raise AssertionError("a paused pod must not call Alpaca")
+
+    monkeypatch.setattr(pod, "api", no_api)
+    state = {"open": [], "day": "2026-11-02", "realized_today": 0.0}
+    pod.enter(state, "META", 1, {"c": 500.0, "t": "x"}, datetime(2026, 11, 2, 13, 5, tzinfo=pod.ET))
+    assert state["open"] == []

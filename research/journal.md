@@ -65,3 +65,16 @@ spikes continue more. That is testable without Kronos (next idea).
 
 **Lesson:** a generic price-forecasting model adds nothing to a
 volume-shock signal; don't spend more CPU on Kronos filters.
+
+## 2026-11-02 low-cost-rerun: do near-misses pass with limit-order costs?
+
+**Pre-registered.** Re-run the closest past failures at the cost a
+patient limit-order entry might achieve: intraday 0.5-1 bps/side (half the
+default), swing 2 bps/side (vs 5). Same gate as research/agent.md otherwise
+(n >= 300, net >= 3 bps intraday / >= 15 bps swing excess, t >= 2.5, >= 70%
+of years positive, both halves same sign). A flip is only a CANDIDATE: it
+becomes a pod only if paper fills prove the lower cost (limit orders also
+miss fills, mostly on the trades that would have won).
+Runs: rsi2 at 2 bps (swing); intraday index momentum at 0.5 bps; gap-and-go
+short-only with SSR at 1 bps. Kronos standalone needs no run: +3.1 bps gross
+minus 2 x 1 bps = +1.1 bps < 3.

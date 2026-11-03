@@ -36,7 +36,8 @@ import pandas as pd
 from alpaca_client import get_client
 from strategy import get_atr
 
-CACHE_DIR = os.path.join(os.path.dirname(__file__), ".cache")
+# STRATTON_CACHE lets a git worktree (the Vision research agent) use the main checkout's cache.
+CACHE_DIR = os.getenv("STRATTON_CACHE") or os.path.join(os.path.dirname(__file__), ".cache")
 
 WINDOWS = [
     ("2020 COVID Crash", "2020-02-15", "2020-04-30"),

@@ -103,3 +103,26 @@ PASS (a reason to size up on big spikes): in 2022-26, top-minus-bottom
 tercile >= +5 bps with t >= 2, AND the same sign in 2017-21. Costs cancel in
 the difference; levels reported net of 2 bps/side.
 Script: scripts/research/spike_size.py.
+
+## 2026-11-02 pre-earnings-runup: buy the week before a forecast earnings date
+
+**Pre-registered.** Hypothesis: stocks earn a premium in the days before a
+scheduled earnings release (Barber, De George, Lehavy & Trueman 2013,
+"The earnings announcement premium around the globe"; Frazzini & Lamont
+2007). Events: every 8-K item 2.02 filing P for the pool (EDGAR cache).
+Forecast date = P's date + 364 days (never the actual next date). Forecast
+reaction session f = first session on/after that date (next session if P
+was accepted after 16:00 ET). Rule: long at the open of session f-5, exit
+at the close of f-1 (5 sessions; if the real release comes early, so be
+it). One trade per symbol per f. Price at entry-1 close >= $5. Data: pool
+daily SIP bars 2016-01..2026-10-02, forecasts from 2015+ filings. Costs 5
+bps/side; scored as excess vs the equal-weight pool over the same 5
+sessions (`pool_benchmark`, hold 5).
+Design slice: pool ranks 1-500 (Q1-2016 dollar volume). Held-out: ranks
+501-1000, run only with the same rules and reported regardless.
+PASS (design slice) needs ALL: n >= 300; mean excess >= 15 bps; t >= 2.5;
+positive in >= 70% of years 2016-2026; same sign 2016-20 and 2021-26; no
+symbol > 25% of P&L. Also reported (not gated): win rate, median, top-1%
+share of P&L, and a variant exiting at the close of f (holds through the
+forecast release). Spike-pod correlation: skipped (pod P&L not here).
+Script: scripts/research/pre_earnings_runup.py.

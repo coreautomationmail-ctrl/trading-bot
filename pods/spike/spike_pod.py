@@ -22,6 +22,10 @@ bars after the signal bar, exit the close 60 bars later) appended to
 STATE_DIR/spike_shadow.csv. ~10x the live evidence of the pod's own trades,
 so live-vs-backtest is judged in weeks, not months.
 
+After each session the day's IEX 1-min bars for the 62 names are saved to
+STATE_DIR/iex/<date>.csv.gz: our own record of exactly what the live feed
+showed, to measure how far it differs from the SIP data the backtests use.
+
 Each trade also records slippage: fill vs the signal bar's close, in bps
 against the trade (positive = paid more than the signal price).
 
@@ -30,6 +34,7 @@ State (open trades) lives in STATE_DIR so a container restart resumes.
 Closed trades are appended to STATE_DIR/spike_trades.csv for the scorecard.
 """
 import csv
+import gzip
 import json
 import math
 import os
@@ -130,12 +135,14 @@ def api(method: str, path: str, **kw):
     return r.json() if r.text else None
 
 
-def fetch_bars(start: datetime, symbols: list = None) -> dict:
+def fetch_bars(start: datetime, symbols: list = None, end: datetime = None) -> dict:
     """IEX 1-min bars since `start`: {sym: [bar, ...]} (default: the traded universe)."""
     out, token = {}, None
     while True:
         params = {"symbols": ",".join(symbols or UNIVERSE), "timeframe": "1Min", "feed": "iex",
                   "start": start.isoformat(), "limit": 10000, "sort": "asc"}
+        if end:
+            params["end"] = end.isoformat()
         if token:
             params["page_token"] = token
         r = requests.get(DATA_URL, headers=_headers(), params=params, timeout=20)
@@ -312,6 +319,34 @@ def shadow_settle(state: dict, recent: dict):
     state["shadow"] = keep
 
 
+# ---------- daily IEX archive ----------
+
+ARCHIVE_DIR = os.path.join(STATE_DIR, "iex")
+ARCHIVE_FIELDS = ["symbol", "t", "o", "h", "l", "c", "v", "n", "vw"]
+
+
+def maybe_archive(state: dict, now: datetime):
+    """Once per session, after 16:05 ET: save that day's regular-hours IEX bars for SHADOW."""
+    day = state.get("day")
+    if not day or state.get("archived") == day:
+        return
+    if str(now.date()) == day and now.hour * 60 + now.minute < 16 * 60 + 5:
+        return
+    d = datetime.fromisoformat(day).replace(tzinfo=ET)
+    bars = fetch_bars(d.replace(hour=9, minute=30), SHADOW, d.replace(hour=16, minute=0))
+    os.makedirs(ARCHIVE_DIR, exist_ok=True)
+    path = os.path.join(ARCHIVE_DIR, f"{day}.csv.gz")
+    with gzip.open(path + ".tmp", "wt", newline="") as f:
+        w = csv.DictWriter(f, fieldnames=ARCHIVE_FIELDS, extrasaction="ignore")
+        w.writeheader()
+        for sym in sorted(bars):
+            for b in bars[sym]:
+                w.writerow({"symbol": sym, **b})
+    os.replace(path + ".tmp", path)
+    state["archived"] = day
+    print(f"archived {sum(len(v) for v in bars.values())} IEX bars to {path}", flush=True)
+
+
 def maybe_send_scorecard(state: dict):
     """Once per ISO week, Saturdays from 16:00 UTC (same slot as the ORB scorecard)."""
     import spike_scorecard
@@ -344,6 +379,7 @@ def main():
             clock = api("GET", "/v2/clock")
             now = datetime.now(ET)
             if not clock["is_open"]:
+                maybe_archive(state, datetime.now(ET))
                 maybe_send_scorecard(state)
                 save_state(state)
                 time.sleep(60)

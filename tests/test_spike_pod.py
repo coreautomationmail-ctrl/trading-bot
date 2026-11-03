@@ -192,3 +192,24 @@ def test_scorecard_reports_shadow_and_slippage(tmp_path):
     t.write_text("symbol,side,qty,entry_time,entry_px,exit_time,exit_px,pnl,bps,signal_bar,signal_px,slip_bps\n"
                  "META,short,10,a,500,b,495,50,100.5,x,500.2,4.0\n")
     assert "slippage vs signal price: avg +4.0 bps" in sc.build(str(t), "x")
+
+
+def test_archive_saves_the_session_once(tmp_path, monkeypatch):
+    import gzip
+    from datetime import datetime
+    monkeypatch.setattr(pod, "ARCHIVE_DIR", str(tmp_path / "iex"))
+    calls = []
+
+    def fake_fetch(start, symbols=None, end=None):
+        calls.append((start, end))
+        return {"GE": [{"t": "2026-11-02T14:30:00Z", "o": 1, "h": 2, "l": 0.5, "c": 1.5, "v": 100, "n": 3, "vw": 1.2}]}
+
+    monkeypatch.setattr(pod, "fetch_bars", fake_fetch)
+    state = {"day": "2026-11-02"}
+    pod.maybe_archive(state, datetime(2026, 11, 2, 15, 59, tzinfo=pod.ET))   # session not over
+    assert calls == []
+    pod.maybe_archive(state, datetime(2026, 11, 2, 16, 6, tzinfo=pod.ET))
+    pod.maybe_archive(state, datetime(2026, 11, 2, 18, 0, tzinfo=pod.ET))    # already done
+    assert len(calls) == 1 and calls[0][1].hour == 16 and state["archived"] == "2026-11-02"
+    lines = gzip.open(tmp_path / "iex" / "2026-11-02.csv.gz", "rt").read().splitlines()
+    assert lines[0] == "symbol,t,o,h,l,c,v,n,vw" and lines[1].startswith("GE,2026-11-02T14:30:00Z")

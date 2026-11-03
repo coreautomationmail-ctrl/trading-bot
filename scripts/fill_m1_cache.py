@@ -1,9 +1,10 @@
 """
 Fill the 1-min SIP cache (scripts/.cache/m1_<SYM>_<YEAR>.pkl) for the 62
-backtest_scalp names, 2016-2026, in parallel. The research desk has no API
+backtest_scalp names, 2016-2026, in parallel (2 workers: more trips Alpaca's
+200 requests/min limit). The research desk has no API
 keys, so everything it reads must already be cached.
 
-Usage: python scripts/fill_m1_cache.py [--workers=6]
+Usage: python scripts/fill_m1_cache.py [--workers=2]
 """
 import os
 import sys
@@ -20,11 +21,14 @@ YEARS = range(2016, 2027)
 def fill(job):
     sym, year = job
     df = bt.load_year(sym, year)
+    if df.empty:   # a rate-limited fetch comes back empty; don't let the cache keep it
+        os.remove(os.path.join(os.path.dirname(__file__), ".cache", f"m1_{sym}_{year}.pkl"))
+        return f"{sym} {year}: EMPTY (not cached; rerun to retry)"
     return f"{sym} {year}: {len(df):,} rows"
 
 
 def main():
-    workers = int(next((a.split("=")[1] for a in sys.argv[1:] if a.startswith("--workers=")), 6))
+    workers = int(next((a.split("=")[1] for a in sys.argv[1:] if a.startswith("--workers=")), 2))
     cache = os.path.join(os.path.dirname(__file__), ".cache")
     jobs = [(s, y) for s in bt.SYMBOLS + bt.WIDE for y in YEARS
             if not os.path.exists(os.path.join(cache, f"m1_{s}_{y}.pkl"))]

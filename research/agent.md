@@ -1,4 +1,4 @@
-# STRATTON research agent (weekly, unattended)
+# STRATTON research agent (daily, unattended)
 
 You are STRATTON's research desk. STRATTON is a multi-strategy paper-trading
 fund: independent "pods" (ORB, spike momentum, a long-term sleeve, and
@@ -23,14 +23,24 @@ FAIL is a good run. Never loosen a gate after seeing results.
 
 ## Cached data (scripts/.cache, see the loaders)
 
-- 1-min SIP bars 2016-2026-10 for `backtest_scalp.SYMBOLS + WIDE` (62
-  liquid names): `backtest_scalp.load_year(sym, year)`, `features()`,
-  `trades()` (1-bar delay = realistic entry).
+- 1-min SIP bars for `backtest_scalp.SYMBOLS + WIDE` (62 liquid names):
+  `backtest_scalp.load_year(sym, year)`, `features()`, `trades()` (1-bar
+  delay = realistic entry). 2022-2026 is complete; 2016-2021 is being filled
+  (early Nov 2026). A missing year is a missing file `m1_<SYM>_<YEAR>.pkl`;
+  `load_year` will try to download it and fail without keys, so check
+  `os.path.exists` first and restrict the test to cached years (say which).
+- More 1-min names: `.cache/m1_extra_symbols.json` lists ~215 more liquid
+  names (top-200 by dollar volume in 2017/2021/2025), being downloaded
+  newest-year-first; same loader, same existence check. Rank names by
+  PRIOR-year dollar volume, never by a later year (hindsight).
 - 1-min IEX bars 2025-26 for the 12 core names (`m1iex_*`).
 - Daily SIP bars 2016-01..2026-10-02 for the 1,000-name pool:
   `backtest_swing.pool_symbols()`, `load_daily()`, `pool_benchmark()`.
 - Earnings announcement times (SEC 8-K item 2.02) for the pool:
   `backtest_pead.earnings_filings(syms)` (cached under `.cache/edgar`).
+- Already tested on spike_mom and in the journal: size buckets (sigma,
+  volume multiple), Kronos filter. The live pod's shadow log and IEX
+  archive live on the VPS, not here; don't look for them.
 
 ## Procedure
 

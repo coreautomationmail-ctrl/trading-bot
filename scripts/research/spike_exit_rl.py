@@ -5,8 +5,13 @@ Same trades as spike_size.py. Each trade's path is followed up to 120 min.
 Batch RL (fitted value iteration over a small state grid, decisions every
 5 min) learns hold/exit on 2017-21 and is applied unchanged to 2022-26.
 
-Usage: python scripts/research/spike_exit_rl.py
+Usage: python scripts/research/spike_exit_rl.py [--wide]
+
+  --wide  spike-exit-rl-wide (2026-11-04): the 62 + the 215 extra names, top 100
+          by prior-year dollar volume; also reports the held-out trades the
+          top-25 run didn't have ("fresh")
 """
+import json
 import os
 import sys
 from collections import defaultdict
@@ -25,11 +30,17 @@ from spike_size import YEARS, DESIGN, VOL_X, K, DELAY, FIRST, LAST, tstat
 MAX_HOLD, STEP, BASE, MIN_N = 120, 5, 60, 30
 PNL_EDGES = [-50, -20, 0, 20, 50]
 MOVE_EDGES = [-5, 5]
+WIDE = "--wide" in sys.argv
+TOP = 100 if WIDE else 25
 
 
 def collect():
-    """[(sym, year, path)] where path[k-1] = side-adjusted bps after k minutes held."""
+    """([(sym, year, path)] where path[k-1] = side-adjusted bps after k minutes held,
+    {(sym, year)} in the original top 25)."""
     names = bt.SYMBOLS + bt.WIDE
+    if WIDE:
+        extra = json.load(open(os.path.join(HERE, "..", ".cache", "m1_extra_symbols.json")))
+        names += [s for s in extra if s not in names]
     dv, rows = {}, []
     for sym in names:
         for y in range(YEARS.start - 1, YEARS.stop):
@@ -60,11 +71,13 @@ def collect():
                 rows.append((sym, y, np.array(path)))
                 busy = j
         print(f"done {sym}", flush=True)
-    rank = {}
+    rank, orig = {}, set()
+    base = set(bt.SYMBOLS + bt.WIDE)
     for y in YEARS:
         prev = sorted(((dv[(s, y - 1)], s) for s in names if (s, y - 1) in dv), reverse=True)
         rank.update({(s, y): r + 1 for r, (_, s) in enumerate(prev)})
-    return [r for r in rows if rank.get((r[0], r[1]), 99) <= 25]
+        orig.update((s, y) for _, s in [p for p in prev if p[1] in base][:25])  # the top-25 run's picks
+    return [r for r in rows if rank.get((r[0], r[1]), 9999) <= TOP], orig
 
 
 def at(path, k):
@@ -111,7 +124,7 @@ def run(policy, p):
 
 
 def main():
-    rows = collect()
+    rows, orig = collect()
     years = np.array([y for _, y, _ in rows])
     paths = [p for _, _, p in rows]
     design = [p for p, y in zip(paths, years) if y in DESIGN]
@@ -133,6 +146,11 @@ def main():
     print(f"learned exit states ({len(exits)}): " + ", ".join(f"k{s[0]}/pnl{s[1]}/mv{s[2]} q{v[2]:+.1f} n{v[1]}" for s, v in exits[:15]))
     (dd, _), (hd, ht) = verdict["2017-21 design"], verdict["2022-26 held out"]
     ok = hd >= 3 and ht >= 2 and np.sign(dd) == np.sign(hd)
+    if WIDE:
+        fresh = ~np.isin(years, list(DESIGN)) & np.array([(s, y) not in orig for s, y, _ in rows])
+        fd = d[fresh].mean()
+        print(f"  fresh held out    n={fresh.sum():4d}  policy-fixed60 {fd:+.1f} bps (paired t {tstat(d[fresh]):+.2f})")
+        ok = ok and np.sign(fd) == np.sign(hd)
     print(f"\nVERDICT: {'PASS' if ok else 'FAIL'}")
 
 

@@ -201,3 +201,14 @@ that run's top 25).
 PASS needs ALL: held-out mean (policy - fixed 60) >= +3 bps with paired
 t >= 2; the same sign in 2017-21; the same sign on the fresh held-out trades.
 Script: scripts/research/spike_exit_rl.py --wide.
+
+**Result: FAIL.** The top-25 rerun reproduces spike-exit-rl exactly (+2.2 / +1.9).
+Wide: n=5498 (2832 design / 2666 held out), 395 states with n >= 30, 98 learned "exit".
+Policy minus fixed 60 (gross): design +1.6 bps (t 3.00), held out -1.2 (t -1.52),
+fresh held out (n=1987) -0.9 (t -1.05). Sign flips out of sample.
+Held-out diff by year: 2022 -5.7, 2023 +1.6, 2024 +2.5, 2025 -3.5, 2026 -0.5.
+Fixed holds (gross bps), design / held out: 30 min +3.1 / +10.3, 60 +6.6 / +8.7,
+90 +1.7 / +9.9, 120 +1.3 / +10.8.
+Verdict: the learned exit is in-sample fitting; keep the fixed 60-min hold and
+close this line. Not gated, noted: the fixed-60 spike trade stays positive gross
+on the top 100 (+6.6 / +8.7 bps), weaker than on the top 25 (+11.6 / +10.4).

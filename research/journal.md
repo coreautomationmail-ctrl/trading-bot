@@ -187,3 +187,17 @@ in both periods, so the held-out edge of 30 min is noise, not a rule.
 Verdict: keep the fixed 60-min hold. The learned exit is a small, real-looking
 gain (+2 bps both periods), too weak to adopt; revisit once the 215 extra
 names (~4x trades) are cached; same rules, then a fresh held-out run.
+
+## 2026-11-04 spike-exit-rl-wide: the learned exit on the wider universe
+
+**Pre-registered** (revisit planned in spike-exit-rl). Identical rules, state
+grid, MIN_N, design/held-out split and PASS bar as spike-exit-rl; only the
+universe widens: the 62 + the 215 extra names (top-200 dollar volume in
+2017/2021/2025), top 100 by prior-year dollar volume (vs top 25), so ~4x trades.
+Policy learned on 2017-21 only, applied unchanged to 2022-26.
+The 2022-26 trades of the original top-25 run were already seen, so the
+held-out set is also reported without them ("fresh": a (name, year) not in
+that run's top 25).
+PASS needs ALL: held-out mean (policy - fixed 60) >= +3 bps with paired
+t >= 2; the same sign in 2017-21; the same sign on the fresh held-out trades.
+Script: scripts/research/spike_exit_rl.py --wide.

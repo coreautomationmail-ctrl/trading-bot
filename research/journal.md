@@ -212,3 +212,28 @@ share. t is per trade (trades in a week are correlated, so it flatters);
 also report t on weekly means. Spike-pod correlation: skipped (pod P&L not
 here). Caveat: survivor-only pool flatters the long (loser) leg.
 Script: scripts/research/short_term_reversal.py.
+
+**Result: FAIL.** 528 weeks, 2016-2026; 25,372 trades (design) / 24,850
+(held-out), half long, half short.
+
+| slice / leg | n | excess (net) | t (weekly t) | years+ | 16-20 / 21-26 |
+|---|---|---|---|---|---|
+| design, long+short | 25,372 | -4.9 bps | -0.99 (-0.56) | 4/11 | -7 / -3 |
+| design, long losers | 12,686 | -0.7 | -0.13 | 6/11 | -7 / +4 |
+| design, short winners | 12,686 | -9.2 | -1.09 | 4/11 | -7 / -11 |
+| held-out, long+short | 24,850 | +4.0 bps | +0.89 (+0.54) | 6/11 | +9 / 0 |
+| held-out, long losers | 12,425 | +1.7 | +0.26 | 5/11 | +17 / -11 |
+| held-out, short winners | 12,425 | +6.3 | +1.00 | 6/11 | 0 / +11 |
+
+Design win rate 49%, median -4.2 bps; top symbol 2% of P&L (broad);
+top-1% share meaningless with a negative total. Gross of the 10 bps round
+trip the design slice earns about +5 bps a week: the reversal exists but
+is far below cost, and the year signs flip (2021 -41, 2022 +17).
+Volatility split (idea 11, not gated): design low-vol half +9.8 bps (t 1.66,
+n 4,752) vs high-vol -8.3, which matches Wei & Yang's direction, but the
+held-out slice shows no such gap (low +2.5, high +4.3). Not a lead.
+Log: research/short_term_reversal.log.
+
+**Lesson:** weekly reversal in liquid US names is a few bps gross, well
+under swing costs. Idea 9 (reversal near 52-week high) and idea 11 build on
+the same weak base; skip them unless a cheaper-cost variant is pre-registered.

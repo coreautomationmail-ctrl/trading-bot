@@ -33,3 +33,13 @@ dates and pre-earnings run-up (2026-11-02, see journal).
 9. reversal-near-52wk-high: Quantpedia's #3 of 2021 combines 52-week-high
    proximity with short-term reversal; run as an interaction of ideas 1
    and 5 (losers that are near their 52wk high). Daily, excess vs pool.
+10. overnight-intraday-reversal: in the pool, names with the most extreme
+    overnight (close-to-open) return reverse during the next session's
+    day part; trade at the open, exit at the close. "Does Overnight News
+    Explain Overnight Returns?" (Glasserman, Krstovski, Laliberte &
+    Mamaysky, arXiv 2507.04481, 2025) and Lou, Polk & Skouras "A tug of war"
+    (JFE 2019). Daily open/close; 2-5 bps/side is the problem.
+11. reversal-by-volatility: Wei & Yang (SSRN) report large, low-volatility
+    stocks reverse while large, high-volatility stocks continue over a
+    week; run as a split of idea 1 by trailing 60-day volatility. Daily,
+    excess vs pool.

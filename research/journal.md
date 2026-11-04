@@ -292,3 +292,30 @@ correlation: skipped (pod P&L not here). Caveats: the first-bar open and
 15:59 close are trade prices, not the official auction prints; overnight
 holding also carries gap risk the gate doesn't price.
 Script: scripts/research/overnight_drift.py.
+
+**Result: FAIL.** Design: 62 names, 2,715 nights, 165,758 name-nights.
+Held-out: 180 distinct extra names (top 100 per year), 2017-2026, 239,339.
+
+| slice / version | n | mean | nightly t | years+ | 16-20 / 21-26 |
+|---|---|---|---|---|---|
+| design, overnight long, net (gated) | 165,758 | -2.35 bps | -1.49 | 4/11 | -0.5 / -4.0 |
+| design, overnight long, gross | 165,758 | +1.65 | +1.14 | 9/11 | +3.6 / 0.0 |
+| design, SPY-hedged, net | 165,758 | -5.39 | -8.59 | 0/11 | -3.7 / -6.8 |
+| design, day part long, net | 165,889 | -3.19 | -2.05 | 2/11 | -4.0 / -2.5 |
+| held-out, overnight long, net | 239,339 | -1.86 | -1.04 | 4/10 | +1.0 / -3.8 |
+| held-out, overnight long, gross | 239,339 | +2.14 | +1.28 | 9/10 | +5.0 / +0.2 |
+| held-out, SPY-hedged, net | 239,339 | -5.44 | -10.15 | 0/10 | -3.6 / -6.7 |
+
+Design win rate 50%, median +0.5 bps; AMD alone is 43% of the (negative)
+P&L, stocks-only is the same (-2.5 bps). The overnight share is real but
+tiny: about +2 bps gross a night, below the 4 bps round trip, and it
+vanished after 2020 (+0.0 / +0.2 gross in 2021-26, 2022 -11). Hedged
+against SPY's own overnight move it is negative every year, so the
+overnight gross is market beta, not a stock-level effect. The day part also
+loses net. Spike-pod correlation: skipped (pod P&L not here).
+Log: research/overnight_drift.log.
+
+**Lesson:** the "all returns come overnight" pattern in liquid names is a
+couple of bps a night and has faded since 2021; any once-a-day round trip at
+2 bps/side kills it. Overnight ideas need a cross-sectional signal (idea 10)
+that earns well over 4 bps, not the unconditional drift.

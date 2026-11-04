@@ -1,0 +1,31 @@
+
+=== design: the 62: 62 names, 2715 nights ===
+
+  overnight SPY-hedged, net: n=165,758  mean -5.39 bps (nightly t=-8.59, per-trade t=-9.59)  median -4.0  win 45%  years+ 0/11  16-20 -3.69 / 21-26 -6.84  top symbol 73% (AMD)  top-1% share -97%
+   by year: 2016:-2.9  2017:-3.3  2018:-5.0  2019:-3.4  2020:-3.9  2021:-2.5  2022:-8.3  2023:-5.2  2024:-14.3  2025:-4.4  2026:-6.3
+
+overnight long, net (gated): n=165,758  mean -2.35 bps (nightly t=-1.49, per-trade t=-4.00)  median +0.5  win 50%  years+ 4/11  16-20 -0.45 / 21-26 -3.99  top symbol 43% (AMD)  top-1% share -253%  -> FAIL
+   by year: 2016:-3.6  2017:+0.8  2018:-1.8  2019:+2.2  2020:+0.2  2021:+3.2  2022:-14.8  2023:-3.8  2024:-5.3  2025:-0.9  2026:-2.0
+
+  overnight long, gross: n=165,758  mean +1.65 bps (nightly t=+1.14, per-trade t=+2.80)  median +4.5  win 53%  years+ 9/11  16-20 +3.55 / 21-26 +0.01  top symbol 11% (AMD)  top-1% share 365%
+   by year: 2016:+0.4  2017:+4.8  2018:+2.2  2019:+6.2  2020:+4.2  2021:+7.2  2022:-10.8  2023:+0.2  2024:-1.3  2025:+3.1  2026:+2.0
+
+  day part 09:30->15:59 long, net (not gated): n=165,889  mean -3.19 bps (nightly t=-2.05, per-trade t=-8.14)  median -1.2  win 50%  years+ 2/11  16-20 -4.00 / 21-26 -2.50  top symbol 53% (AAPL)  top-1% share -193%
+   by year: 2016:-0.5  2017:-2.9  2018:-10.5  2019:+0.6  2020:-6.7  2021:-2.6  2022:-4.4  2023:+2.2  2024:-4.8  2025:-0.9  2026:-5.0
+
+  overnight long, net, stocks only (no ETFs): n=157,623  mean -2.48 bps (nightly t=-1.57, per-trade t=-4.02)  median +0.3  win 50%  years+ 4/11  16-20 -0.51 / 21-26 -4.17  top symbol 45% (AMD)  top-1% share -245%
+   by year: 2016:-3.6  2017:+0.8  2018:-1.9  2019:+2.2  2020:+0.1  2021:+3.2  2022:-15.1  2023:-3.9  2024:-5.9  2025:-0.9  2026:-2.1
+
+=== held-out: extra top 100: 180 names, 2462 nights ===
+
+  overnight SPY-hedged, net: n=239,339  mean -5.44 bps (nightly t=-10.15, per-trade t=-14.13)  median -4.0  win 47%  years+ 0/10  16-20 -3.58 / 21-26 -6.69  top symbol 21% (MU)  top-1% share -106%
+   by year: 2017:-2.8  2018:-5.4  2019:-4.9  2020:-1.3  2021:-2.9  2022:-8.9  2023:-5.4  2024:-9.3  2025:-7.0  2026:-6.6
+
+overnight long, net: n=239,339  mean -1.86 bps (nightly t=-1.04, per-trade t=-4.46)  median +1.6  win 51%  years+ 4/10  16-20 +0.99 / 21-26 -3.78  top symbol 10% (MU)  top-1% share -353%
+   by year: 2017:+1.2  2018:-2.1  2019:+0.8  2020:+3.9  2021:+2.7  2022:-15.5  2023:-3.8  2024:-0.3  2025:-3.2  2026:-2.3
+
+  overnight long, gross: n=239,339  mean +2.14 bps (nightly t=+1.28, per-trade t=+5.11)  median +5.6  win 54%  years+ 9/10  16-20 +4.99 / 21-26 +0.22  top symbol 5% (MU)  top-1% share 310%
+   by year: 2017:+5.2  2018:+1.9  2019:+4.8  2020:+7.9  2021:+6.7  2022:-11.5  2023:+0.2  2024:+3.7  2025:+0.8  2026:+1.7
+
+  day part 09:30->15:59 long, net (not gated): n=239,514  mean -4.28 bps (nightly t=-2.34, per-trade t=-10.90)  median -1.1  win 50%  years+ 2/10  16-20 -4.55 / 21-26 -4.10  top symbol 13% (FTNT)  top-1% share -174%
+   by year: 2017:-2.5  2018:-11.4  2019:+0.6  2020:-5.0  2021:-5.6  2022:-6.9  2023:+1.6  2024:-7.9  2025:-2.5  2026:-3.1

@@ -187,3 +187,28 @@ in both periods, so the held-out edge of 30 min is noise, not a rule.
 Verdict: keep the fixed 60-min hold. The learned exit is a small, real-looking
 gain (+2 bps both periods), too weak to adopt; revisit once the 215 extra
 names (~4x trades) are cached; same rules, then a fresh held-out run.
+
+## 2026-11-03 short-term-reversal: buy last week's losers, short its winners
+
+**Pre-registered.** Hypothesis: 1-week returns reverse (Lehmann 1990;
+Jegadeesh 1990), driven by liquidity provision and overreaction; recent
+work says the effect survives costs in large caps (De Groot, Huij & Zhou,
+JBF 2012). Data: pool daily SIP bars 2016-01..2026-10-02.
+Rules: formation every 5th session t (non-overlapping weeks). Eligible:
+close[t] >= $5, close[t-5], open[t+1], close[t+5] present. r5 =
+close[t]/close[t-5] - 1, information known at the close of t. Within the
+slice, long the bottom 5% by r5, short the top 5%. Enter at the open of
+t+1, exit at the close of t+5 (5 sessions). Each name-week is one trade.
+Costs 5 bps/side. Score: long excess = ret - pool5, short excess = pool5 -
+ret, minus 10 bps (pool5 = `pool_benchmark` hold 5 on the same entry day).
+Design slice: pool ranks 1-500 (Q1-2016 dollar volume); held-out: ranks
+501-1000, same rules, ranked within the held-out slice, reported
+regardless. PASS (design, longs+shorts pooled) needs ALL: n >= 300; mean
+excess >= 15 bps; t >= 2.5; positive in >= 70% of years 2016-2026; same
+sign 2016-20 and 2021-26; no symbol > 25% of P&L. Not gated, reported:
+long and short legs separately; split by trailing 60-day volatility
+(above/below the slice median at t; idea 11); win rate, median, top-1%
+share. t is per trade (trades in a week are correlated, so it flatters);
+also report t on weekly means. Spike-pod correlation: skipped (pod P&L not
+here). Caveat: survivor-only pool flatters the long (loser) leg.
+Script: scripts/research/short_term_reversal.py.

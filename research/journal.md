@@ -342,3 +342,47 @@ Log: research/overnight_drift.log.
 couple of bps a night and has faded since 2021; any once-a-day round trip at
 2 bps/side kills it. Overnight ideas need a cross-sectional signal (idea 10)
 that earns well over 4 bps, not the unconditional drift.
+
+## 2026-11-05 turn-of-month: long from the last session of the month through the 3rd
+
+**Pre-registered.** Hypothesis: stocks earn most of their return in a four-day
+window around the month turn (Lakonishok & Smidt 1988; McConnell & Xu, "Equity
+returns at the turn of the month", FAJ 2008). Recent work disputes it: Han, Han &
+Tian (Finance Research Letters 2025) say it vanished after 2001. Proposed reasons
+(month-end flows, liquidity needs, settlement) are contested.
+Data: 1-min SIP, all 11 years 2016-2026 cached for the 62 and the 215 extra names.
+Rules: calendar = SPY's sessions (known in advance). Each month with a full next
+month start: buy the 09:30 bar's open of the month's last session, sell the last
+bar's close of the 3rd session of the next month (4 sessions, half-days allowed).
+A name needs a 09:30 bar on entry and a bar on exit. Prices are unadjusted (as
+the cache holds them); SPY/QQQ/IWM ex-dividend days fall outside this window.
+Costs 5 bps/side (swing).
+
+The queue says SPY/QQQ, but 2 ETFs over ~128 months can't meet n >= 300 or
+"no symbol > 25%", so the gated slice is the 62 names (which include SPY, QQQ,
+IWM). SPY and QQQ are still reported on their own.
+
+**Official gate (research/agent.md, unchanged), the 62, score = ret - pool's
+same-window return (`pool_benchmark` hold 4, ends 2026-10-02) - 10 bps:** n >= 300;
+mean >= 15 bps; t >= 2.5; positive in >= 70% of years; same sign 2016-20 and
+2021-26; no symbol > 25% of P&L. t is on monthly means (names in a month are
+correlated; per-trade t also shown). The verdict comes from this gate.
+Known limit, stated now: the effect is market-wide, so subtracting the pool's
+same-window return removes most of it by construction. This score mainly asks
+whether the 62 beat the pool at the turn.
+
+**Second score, same thresholds, NOT the official gate:** timing = ret - 10 bps
+- the same name's same-year mean 4-session open-to-close return over windows
+that don't touch a turn-of-month session (gross: holding through needs no trade).
+This asks the actual question, whether the window beats ordinary days. If it clears
+the thresholds while the official gate fails, the verdict stays FAIL and it is
+flagged for the owner to decide, not treated as a pass.
+
+Held-out: the 215 extra names, each year the top 100 by PRIOR-year dollar volume
+(starts 2017), same rules and both scores, reported regardless.
+Not gated, reported: SPY and QQQ alone (raw net, both scores, also at 2 bps/side);
+a 7-session window (3rd-last session through the 3rd); win rate, median, top-1%
+share, by year. Spike-pod correlation: skipped (pod P&L not here). Caveats:
+survivor-biased names flatter longs; about 128 months is only 128 independent bets
+whatever n says, which is why t is monthly.
+Script: scripts/research/turn_of_month.py.

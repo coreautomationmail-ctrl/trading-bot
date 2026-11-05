@@ -55,3 +55,9 @@ dates and pre-earnings run-up (2026-11-02, see journal).
     intraday momentum); the paper notes it vanishes once the next open is
     included. Baltussen, Da et al., "End-of-day reversal" working paper
     (Notre Dame, ~2024). 1-min, the 62 (+215) names, exit at 15:59.
+14. factor-zoo-market-timing: lagged high-frequency cross-sectional returns
+    predict the market's next intraday return, with ETF trading profits after
+    costs reported. Aleti, Bollerslev & Siggaard, "Intraday Market Return
+    Predictability Culled from the Factor Zoo" (Management Science 2025). Crude
+    version: the 277 names' last-30-min returns, fit on past data only, predict
+    SPY's next 30 min. 1-min; we have no factor data, so stock returns stand in.

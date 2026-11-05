@@ -262,3 +262,27 @@ Log: research/short_term_reversal.log.
 **Lesson:** weekly reversal in liquid US names is a few bps gross, well
 under swing costs. Idea 9 (reversal near 52-week high) and idea 11 build on
 the same weak base; skip them unless a cheaper-cost variant is pre-registered.
+
+## 2026-11-04 spike-wide-universe: does the live signal work on more names?
+
+**Pre-registered.** spike_mom as live (vol >= 8x, move >= 5 sigma, signal
+13:00-14:54 ET, 1-bar delay, hold 60), SIP 1-min, on the 62 + the 215 extra
+names, 2017-2026. Test group: rank 26-100 by PRIOR-year dollar volume (rank
+1-25, the pod's pool, is reference only). Costs 2 bps/side.
+PASS (a case for adding names to the paper pod) needs ALL, on 2022-26 rank
+26-100: n >= 300; mean >= +5 bps net; t >= 2.5; positive in >= 4 of 5 years;
+top symbol <= 25% of positive gross bps; AND 2017-21 mean > 0.
+Reported, not gated: 4 bps/side, the pod's 4-position cap on rank 1-100.
+Not a clean first look: spike-exit-rl-wide's averages imply this group earned
+about +0.6 net in 2017-21 and +4 net in 2022-26, so the +5 bar was set after
+seeing those. Caveats: the extra names were picked by top-200 dollar volume in
+2017/2021/2025 (selection uses future lists); live IEX detection has about
+halved the edge; both flatter this test.
+Script: scripts/research/spike_wide.py.
+
+**Result: FAIL.** Rank 26-100 held out: n=2019, +3.3 bps net (t 1.28), positive 2 of 5 years
+(2022 -3.6, 2023 -3.8, 2024 -13.1, 2025 +23.2, 2026 +4.1); -0.7 at 4 bps/side. Design: n=2035, +0.4 (t 0.22).
+Reference rank 1-25: design +8.2 (t 3.45), held out +9.2 (t 1.85).
+With the pod's 4-position cap, pooling rank 1-100 takes 2035 of 2666 held-out trades at +0.1 net:
+total +193 net bps vs +5958 for top 25 alone, because the weaker names crowd out better ones.
+Verdict: keep the pod's 17 names. More names add trades, not edge. Log: research/spike_wide.log.

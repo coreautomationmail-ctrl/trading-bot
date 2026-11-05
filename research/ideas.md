@@ -43,3 +43,15 @@ dates and pre-earnings run-up (2026-11-02, see journal).
     stocks reverse while large, high-volatility stocks continue over a
     week; run as a split of idea 1 by trailing 60-day volatility. Daily,
     excess vs pool.
+12. half-hour-seasonality: a stock's return in a given half-hour of the
+    day predicts its return in the same half-hour on later days (continuation
+    at multiples of one day, lasting weeks). Heston, Korajczyk & Sadka,
+    "Intraday Patterns in the Cross-section of Stock Returns" (J. Finance
+    2010). Long/short the 62 (+215) names in each half-hour by their mean
+    same-half-hour return over the prior 20 days. 1-min; 2 bps/side vs
+    half-hour returns is the hurdle.
+13. end-of-day-reversal: a stock's return from the open to 15:30 predicts
+    a reversal in its last half hour (cross-sectional, opposite to index
+    intraday momentum); the paper notes it vanishes once the next open is
+    included. Baltussen, Da et al., "End-of-day reversal" working paper
+    (Notre Dame, ~2024). 1-min, the 62 (+215) names, exit at 15:59.

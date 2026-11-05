@@ -286,3 +286,59 @@ Reference rank 1-25: design +8.2 (t 3.45), held out +9.2 (t 1.85).
 With the pod's 4-position cap, pooling rank 1-100 takes 2035 of 2666 held-out trades at +0.1 net:
 total +193 net bps vs +5958 for top 25 alone, because the weaker names crowd out better ones.
 Verdict: keep the pod's 17 names. More names add trades, not edge. Log: research/spike_wide.log.
+## 2026-11-04 overnight-drift: hold the liquid names close-to-open only
+
+**Pre-registered.** Hypothesis: most US equity returns accrue overnight
+(close to next open) while the trading day earns about nothing (Lou, Polk &
+Skouras, "A tug of war", JFE 2019; Cliff, Cooper & Gulen 2008). Question: is
+the overnight share large enough to trade with MOC-in / MOO-out costs?
+Data: 1-min SIP, regular session, all 11 years 2016-2026 cached for the 62
+(`SYMBOLS + WIDE`) and the 215 extra names (checked: 277 files per year).
+Rules: every session d and name: buy at the close of the 15:59 bar of d
+(MOC proxy), sell at the open of the first bar (09:30) of the name's next
+session (MOO proxy). One trade per name-night, weekends/holidays included.
+Net = ln(open/close) - 2 x 2 bps. Only full sessions on both sides (a
+session with a 15:59 bar; the next session's first bar at 09:30).
+Design slice: the 62 names. Held-out: the 215 extra names, each year only
+the top 100 of them by PRIOR-year dollar volume (so held-out starts in
+2017; no 2015 data cached), same rules, reported regardless.
+PASS (design) needs ALL: n >= 300; mean net >= 3 bps; t >= 2.5 where t is
+on the nightly equal-weight means (names on one night are correlated, so a
+per-trade t would flatter; per-trade t also reported); positive in >= 70% of
+years; same sign 2016-20 and 2021-26; no symbol > 25% of P&L. Added
+(stricter, set now): the SPY-hedged version (stock overnight minus SPY's
+same-night overnight return, costs on the stock leg only) must also have
+mean > 0 with nightly t >= 2, so a pass isn't just overnight market beta.
+Not gated, reported: open-to-close (09:30 open -> 15:59 close) on the same
+names and costs; win rate, median, top-1% share; by year. Spike-pod
+correlation: skipped (pod P&L not here). Caveats: the first-bar open and
+15:59 close are trade prices, not the official auction prints; overnight
+holding also carries gap risk the gate doesn't price.
+Script: scripts/research/overnight_drift.py.
+
+**Result: FAIL.** Design: 62 names, 2,715 nights, 165,758 name-nights.
+Held-out: 180 distinct extra names (top 100 per year), 2017-2026, 239,339.
+
+| slice / version | n | mean | nightly t | years+ | 16-20 / 21-26 |
+|---|---|---|---|---|---|
+| design, overnight long, net (gated) | 165,758 | -2.35 bps | -1.49 | 4/11 | -0.5 / -4.0 |
+| design, overnight long, gross | 165,758 | +1.65 | +1.14 | 9/11 | +3.6 / 0.0 |
+| design, SPY-hedged, net | 165,758 | -5.39 | -8.59 | 0/11 | -3.7 / -6.8 |
+| design, day part long, net | 165,889 | -3.19 | -2.05 | 2/11 | -4.0 / -2.5 |
+| held-out, overnight long, net | 239,339 | -1.86 | -1.04 | 4/10 | +1.0 / -3.8 |
+| held-out, overnight long, gross | 239,339 | +2.14 | +1.28 | 9/10 | +5.0 / +0.2 |
+| held-out, SPY-hedged, net | 239,339 | -5.44 | -10.15 | 0/10 | -3.6 / -6.7 |
+
+Design win rate 50%, median +0.5 bps; AMD alone is 43% of the (negative)
+P&L, stocks-only is the same (-2.5 bps). The overnight share is real but
+tiny: about +2 bps gross a night, below the 4 bps round trip, and it
+vanished after 2020 (+0.0 / +0.2 gross in 2021-26, 2022 -11). Hedged
+against SPY's own overnight move it is negative every year, so the
+overnight gross is market beta, not a stock-level effect. The day part also
+loses net. Spike-pod correlation: skipped (pod P&L not here).
+Log: research/overnight_drift.log.
+
+**Lesson:** the "all returns come overnight" pattern in liquid names is a
+couple of bps a night and has faded since 2021; any once-a-day round trip at
+2 bps/side kills it. Overnight ideas need a cross-sectional signal (idea 10)
+that earns well over 4 bps, not the unconditional drift.

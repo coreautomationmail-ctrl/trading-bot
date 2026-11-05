@@ -386,3 +386,16 @@ share, by year. Spike-pod correlation: skipped (pod P&L not here). Caveats:
 survivor-biased names flatter longs; about 128 months is only 128 independent bets
 whatever n says, which is why t is monthly.
 Script: scripts/research/turn_of_month.py.
+
+**Correction after the first run (gates unchanged).** The first run failed the
+official gate at -0.3 bps with GE 53% of P&L, which exposed a data error: the
+1-min cache is unadjusted, so GE's 1:8 reverse split (2021-08-02) scored +682% and
+BKNG's 25:1 (2026-04-06) -96%. "Prices are unadjusted" above was wrong to accept.
+Fix: drop any window (traded or baseline) containing an overnight gap, open /
+previous close, above 1.45x or below 0.68x. These bounds target split ratios and
+were chosen after seeing the list of gaps, not the corrected results, but the first
+run's numbers were seen. Side effect: real gaps that large are dropped too, in both
+directions. Smaller splits and spin-offs can get through. Also reported, not gated:
+excess vs a pool benchmark with the same filter, because `pool_benchmark` is also
+on raw daily bars (it clips, but splits still reach it). The official score keeps
+`pool_benchmark` as written.

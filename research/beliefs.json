@@ -93,10 +93,10 @@
     "id": "mean-reversion-short-horizon",
     "claim": "Fading short-term moves pays: spike_fade, vwap_fade, RSI2, weekly reversal.",
     "status": "rejected",
-    "evidence": "Fades negative. RSI2 +6 bps excess is under 10 bps cost. Weekly reversal -4.9 excess, t -1.0; held out +4.0, t 0.9. Down spikes with no headline: -3.7 bps following the move, -15.9 in 2022-26, so a hint of reversal; a post-hoc cut, see spike-down-no-news.",
+    "evidence": "Fades negative. RSI2 +6 bps excess is under 10 bps cost. Weekly reversal -4.9 excess, t -1.0; held out +4.0, t 0.9. Down spikes with no headline: -3.7 bps following the move on rank 1-25, a post-hoc cut, but +1.9 (t 1.02, n=1785) on rank 26-100, so no reversal there.",
     "confidence": "high",
-    "reopen_if": "Split by news vs no news, which theory says matters (ideas.md 11 is a related volatility split).",
-    "journal": "2026-10 table; 2026-11-03 short-term-reversal",
+    "reopen_if": "A volatility split (ideas.md 11); the news split found nothing on rank 26-100.",
+    "journal": "2026-10 table; 2026-11-03 short-term-reversal; 2026-11-06 spike-down-no-news",
     "updated": "2026-11-06"
   },
   {
@@ -163,11 +163,11 @@
     "id": "price-only-research-exhausted",
     "claim": "New edge in these liquid names is more likely from new data (news, filings, flows, options) than from more price rules.",
     "status": "open",
-    "evidence": "11 straight FAILs, nearly all price patterns on the same data. A pattern, not a test; the news and filing tests will challenge it.",
+    "evidence": "11 straight FAILs, nearly all price patterns on the same data. A pattern, not a test; the news and filing tests will challenge it. So far the first two news tests also FAILED: spike-news and spike-down-no-news, both using only headline timing, not content.",
     "confidence": "low",
     "reopen_if": "New-data tests fail as often as price tests have: rethink the universe and horizon instead.",
-    "journal": "docs/stratton-revamp-plan.md",
-    "updated": "2026-11-05"
+    "journal": "docs/stratton-revamp-plan.md; 2026-11-06 spike-news; 2026-11-06 spike-down-no-news",
+    "updated": "2026-11-06"
   },
   {
     "id": "data-raw-bars-carry-splits",
@@ -183,20 +183,20 @@
     "id": "spike-news",
     "claim": "Spikes with a single-name headline in the prior 60 minutes run further than spikes without.",
     "status": "open",
-    "evidence": "Rank 1-25: news +15.9 net (t 2.98, n=321, 9/10 years), no news +6.5 (t 2.22, n=1123). Gap +9.4, t 1.54, under the t 2 gate: FAIL. The 15-minute window (-0.6) and since-close window (-5.4) disagree. Stocks only: t 1.14.",
+    "evidence": "Rank 1-25: news +15.9 net (t 2.98, n=321, 9/10 years), no news +6.5 (t 2.22, n=1123). Gap +9.4, t 1.54, under the t 2 gate: FAIL. The 15-minute window (-0.6) and since-close window (-5.4) disagree. Stocks only: t 1.14. The down-spike lead behind the gap didn't replicate on rank 26-100 (-0.9, t -0.11, n=116).",
     "confidence": "low",
-    "reopen_if": "spike-down-no-news passes, or forward shadow signals joined to recorded headlines show the same gap.",
-    "journal": "2026-11-06 spike-news",
+    "reopen_if": "Forward shadow signals joined to recorded headlines show the same gap.",
+    "journal": "2026-11-06 spike-news; 2026-11-06 spike-down-no-news",
     "updated": "2026-11-06"
   },
   {
     "id": "spike-down-no-news",
     "claim": "Down spikes with no headline don't continue, so the pod should skip them.",
-    "status": "open",
-    "evidence": "Rank 1-25: down + no news -3.7 (n=550), -15.9 (t -2.66) in 2022-26; down + news +16.1 (n=145); gap t 2.74; up spikes show no gap. Found by looking, one cut of several. Chan (2003) has the same shape, in monthly returns and mainly small illiquid stocks.",
-    "confidence": "low",
-    "reopen_if": "Tested next on rank 26-100 and on forward shadow signals; rank 1-25 can't confirm it.",
-    "journal": "2026-11-06 spike-news; ideas.md A",
+    "status": "rejected",
+    "evidence": "Found by looking on rank 1-25: down + no news -3.7 (n=550), down + news +16.1 (n=145), gap t 2.74. Pre-registered on rank 26-100: skipped n=1785 +1.9, kept n=2269 +1.8, improvement -0.03 bps, t -0.02, 2017-21 -2.99 and 2022-26 +2.55. Down + news minus down + no news -0.9, t -0.11, n=116, so the news half stays poorly measured. Doesn't test the pod's own names.",
+    "confidence": "medium",
+    "reopen_if": "Forward shadow signals in the pod's names, joined to recorded headlines, show down + no news losing over 30+ trades.",
+    "journal": "2026-11-06 spike-news; 2026-11-06 spike-down-no-news",
     "updated": "2026-11-06"
   }
 ]

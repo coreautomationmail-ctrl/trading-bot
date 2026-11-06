@@ -9,7 +9,7 @@ dates and pre-earnings run-up (2026-11-02, see journal).
 
 Revamp priorities (docs/stratton-revamp-plan.md), tested before anything below:
 
-A. spike-down-no-news: spike-news (2026-11-06) failed its gate, but its gap came
+A. DONE, FAIL 2026-11-06, see journal. spike-down-no-news: spike-news (2026-11-06) failed its gate, but its gap came
    entirely from down spikes: down with no headline -3.7 bps, down with a headline
    +16.1, up spikes no gap. That was found by looking, so rank 1-25 can't confirm
    it. Pre-register on rank 26-100 only, 2017-26, with the 60-minute single-name
@@ -79,3 +79,10 @@ C. spike-regime-filter: retrain monthly on all earlier data, take or skip each
     Predictability Culled from the Factor Zoo" (Management Science 2025). Crude
     version: the 277 names' last-30-min returns, fit on past data only, predict
     SPY's next 30 min. 1-min; we have no factor data, so stock returns stand in.
+15. etf-jump-news-split: in intraday ETF data, jumps with no macro news reverse for
+    at least 60 minutes, jumps on scheduled news also reverse and jumps on
+    unscheduled news continue. Xiao, Yin & Zhao, "Jumps, News, and Subsequent Return
+    Dynamics: An Intraday Study" (J. Financial Research, 2020); seen in a search
+    summary only, read the paper first, and it reports no after-cost figures. Test on
+    SPY/QQQ: spike_mom's signal, faded and followed, split by a fixed macro calendar
+    (shares that calendar with idea B). 1-min; few signals, so n >= 300 may fail.

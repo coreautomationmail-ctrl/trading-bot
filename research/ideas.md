@@ -9,7 +9,7 @@ dates and pre-earnings run-up (2026-11-02, see journal).
 
 Revamp priorities (docs/stratton-revamp-plan.md), tested before anything below:
 
-A. spike-down-no-news: spike-news (2026-11-06) failed its gate, but its gap came
+A. DONE, FAIL 2026-11-06, see journal. spike-down-no-news: spike-news (2026-11-06) failed its gate, but its gap came
    entirely from down spikes: down with no headline -3.7 bps, down with a headline
    +16.1, up spikes no gap. That was found by looking, so rank 1-25 can't confirm
    it. Pre-register on rank 26-100 only, 2017-26, with the 60-minute single-name

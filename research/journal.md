@@ -527,3 +527,24 @@ and spike_news.log has a rank 26-100 news vs no-news line that I did not open; t
 Caveats that flatter the test: the extra names were picked with lists from 2017/2021/2025, and live IEX
 detection about halved the edge. Shorting costs and borrow are not modelled.
 Script: scripts/research/spike_down_no_news.py.
+
+**Result: FAIL, 7 of 10 checks.** Rank 26-100, 2017-26. All n=4054, +1.8 net (t 1.18, by day 0.37). Kept
+n=2269, +1.8 (t 0.76, by day 0.21), positive 6 of 10 years, win 45%, median -4.0, top symbol C 6%. Skipped
+n=1785, +1.9 (t 1.02, by day 0.64). Improvement -0.03 bps (needed +3); kept minus skipped -0.06, Welch t -0.02,
+clustered by day -0.01 (needed 2). Improvement by period: -2.99 in 2017-21, +2.55 in 2022-26, -0.62 in 2017-20,
++0.36 in 2021-26. Not loosened. Rank 101+ not scored, as pre-registered. Log: research/spike_down_no_news.log.
+The pooled +1.8 matches the +0.4 and +3.3 from spike-wide-universe weighted by n.
+
+- The lead doesn't replicate. Down + no news was -3.7 on rank 1-25 and is +1.9 here, so no sign of reversal. The
+  gap between down + news and down + no news was +19.7 (t 2.74) there and is -0.9 (t -0.11, n=116 vs 1785) here.
+- The news half stays unsettled, as flagged: 116 news-tagged down spikes give a wide range. Skipping ALL down
+  spikes does the same as the news rule (+0.01), so nothing here separates them.
+- Top-1% shares of 243-401% mean a few trades are the whole total; the groups are near zero and those shares
+  are noisy. At 4 bps/side both all and kept are -2.2.
+- With the 4-position cap, kept is worse than all: n=1849, -2.7, sum -5077, vs n=3290, -0.2, sum -635. Not gated.
+- Daily P&L correlation with rank 1-25: all +0.87, kept +0.82. So this group is largely the same market days,
+  and adds little diversification.
+
+Limit on the conclusion: rank 1-25 can still be different from these names, and the pod trades rank 1-25. The
+test says the pattern doesn't carry to other names, not that it is false in the pod's own names. Only forward
+shadow signals can check that.

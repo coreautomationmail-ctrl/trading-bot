@@ -441,3 +441,30 @@ That is arithmetic, not a rerun, and it stays under the +3 bar, so that FAIL sta
 Future overnight or multi-day tests on 1-min bars must filter splits. Tests that enter
 and exit within a session don't hold across the split; whether a split distorts their
 signal features was not checked here.
+
+
+## 2026-11-06 spike-news: do spikes with a headline run further than spikes without?
+
+**Pre-registered, before any news was joined to any trade.** spike_mom as live
+(vol >= 8x, move >= 5 sigma, signal 13:00-14:54 ET, 1-bar delay, hold 60), SIP
+1-min, 2017-2026, rank 1-25 by PRIOR-year dollar volume. Costs 2 bps/side.
+News = at least one Benzinga headline on that name with created_at in the 60
+minutes before the signal bar opens. A headline carried by 5+ of the 277 names is
+a market recap and doesn't count.
+PASS (a case for a news filter on the paper pod, which still has to go through
+shadow) needs ALL, on the news group: n >= 300; mean >= +3 net; t >= 2.5; positive
+in >= 70% of years; same sign in 2017-21 and 2022-26; top symbol <= 25% of P&L;
+AND news minus no-news >= +3 bps, t >= 2, same sign in both periods.
+Reported, not gated: 15-minute and since-prior-close windows, recaps included,
+headlines during the signal bar, up vs down spikes, rank 26-100, a same-name
+same-year comparison, by-day t.
+Citation checked: Chan (JFE 70(2), 2003) is about monthly returns, finds strong
+drift after bad news and reversal after no-news moves, and says both are mainly in
+smaller, illiquid stocks. So this test stretches it to 60 minutes in the most
+liquid names, and a null result would not contradict the paper.
+Not a clean first look: the pooled rank 1-25 result is known (+8.2 design, +9.2
+held out, spike-wide-universe), so only the split is new. Headline counts double
+from 2016 to 2025 and mega-caps are nearly always in the news, so the share with
+news is reported by year and name. If no-news beats news, that is a new idea to
+pre-register, not a pass.
+Script: scripts/research/spike_news.py.

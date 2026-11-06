@@ -50,10 +50,10 @@ def collect() -> pd.DataFrame:
                 if i <= busy or j >= len(f) or dates[j] != dates[i] or hm[j] > 959:
                     continue
                 bps = side[i] * np.log(closes[j] / opens[i + 1 + DELAY]) * 1e4
-                rows.append((sym, y, f.index[i + 1 + DELAY], f.index[j], bps))
+                rows.append((sym, y, f.index[i + 1 + DELAY], f.index[j], bps, int(side[i])))
                 busy = j
         print(f"done {sym}", flush=True)
-    t = pd.DataFrame(rows, columns=["sym", "year", "entry", "exit", "bps"])
+    t = pd.DataFrame(rows, columns=["sym", "year", "entry", "exit", "bps", "side"])
     rank = {}
     for y in YEARS:
         prev = sorted(((dv[(s, y - 1)], s) for s in names if (s, y - 1) in dv), reverse=True)

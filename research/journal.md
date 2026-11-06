@@ -342,3 +342,102 @@ Log: research/overnight_drift.log.
 couple of bps a night and has faded since 2021; any once-a-day round trip at
 2 bps/side kills it. Overnight ideas need a cross-sectional signal (idea 10)
 that earns well over 4 bps, not the unconditional drift.
+
+## 2026-11-05 turn-of-month: long from the last session of the month through the 3rd
+
+**Pre-registered.** Hypothesis: stocks earn most of their return in a four-day
+window around the month turn (Lakonishok & Smidt 1988; McConnell & Xu, "Equity
+returns at the turn of the month", FAJ 2008). Recent work disputes it: Han, Han &
+Tian (Finance Research Letters 2025) say it vanished after 2001. Proposed reasons
+(month-end flows, liquidity needs, settlement) are contested.
+Data: 1-min SIP, all 11 years 2016-2026 cached for the 62 and the 215 extra names.
+Rules: calendar = SPY's sessions (known in advance). Each month with a full next
+month start: buy the 09:30 bar's open of the month's last session, sell the last
+bar's close of the 3rd session of the next month (4 sessions, half-days allowed).
+A name needs a 09:30 bar on entry and a bar on exit. Prices are unadjusted (as
+the cache holds them); SPY/QQQ/IWM ex-dividend days fall outside this window.
+Costs 5 bps/side (swing).
+
+The queue says SPY/QQQ, but 2 ETFs over ~128 months can't meet n >= 300 or
+"no symbol > 25%", so the gated slice is the 62 names (which include SPY, QQQ,
+IWM). SPY and QQQ are still reported on their own.
+
+**Official gate (research/agent.md, unchanged), the 62, score = ret - pool's
+same-window return (`pool_benchmark` hold 4, ends 2026-10-02) - 10 bps:** n >= 300;
+mean >= 15 bps; t >= 2.5; positive in >= 70% of years; same sign 2016-20 and
+2021-26; no symbol > 25% of P&L. t is on monthly means (names in a month are
+correlated; per-trade t also shown). The verdict comes from this gate.
+Known limit, stated now: the effect is market-wide, so subtracting the pool's
+same-window return removes most of it by construction. This score mainly asks
+whether the 62 beat the pool at the turn.
+
+**Second score, same thresholds, NOT the official gate:** timing = ret - 10 bps
+- the same name's same-year mean 4-session open-to-close return over windows
+that don't touch a turn-of-month session (gross: holding through needs no trade).
+This asks the actual question, whether the window beats ordinary days. If it clears
+the thresholds while the official gate fails, the verdict stays FAIL and it is
+flagged for the owner to decide, not treated as a pass.
+
+Held-out: the 215 extra names, each year the top 100 by PRIOR-year dollar volume
+(starts 2017), same rules and both scores, reported regardless.
+Not gated, reported: SPY and QQQ alone (raw net, both scores, also at 2 bps/side);
+a 7-session window (3rd-last session through the 3rd); win rate, median, top-1%
+share, by year. Spike-pod correlation: skipped (pod P&L not here). Caveats:
+survivor-biased names flatter longs; about 128 months is only 128 independent bets
+whatever n says, which is why t is monthly.
+Script: scripts/research/turn_of_month.py.
+
+**Correction after the first run (gates unchanged).** The first run failed the
+official gate at -0.3 bps with GE 53% of P&L, which exposed a data error: the
+1-min cache is unadjusted, so GE's 1:8 reverse split (2021-08-02) scored +682% and
+BKNG's 25:1 (2026-04-06) -96%. "Prices are unadjusted" above was wrong to accept.
+Fix: drop any window (traded or baseline) containing an overnight gap, open /
+previous close, above 1.45x or below 0.68x. These bounds target split ratios and
+were chosen after seeing the list of gaps, not the corrected results, but the first
+run's numbers were seen. Side effect: real gaps that large are dropped too, in both
+directions. Smaller splits and spin-offs can get through. Also reported, not gated:
+excess vs a pool benchmark with the same filter, because `pool_benchmark` is also
+on raw daily bars (it clips, but splits still reach it). The official score keeps
+`pool_benchmark` as written.
+
+**Result: FAIL (official gate), and the second score fails too.** 129 month turns,
+2016-01..2026-09; the excess scores lose the last one (pool data ends 2026-10-02).
+4-session window, after the split filter, all net of 10 bps; t is monthly:
+
+| slice / score | n | mean | t | years+ | 16-20 / 21-26 | win | median |
+|---|---|---|---|---|---|---|---|
+| the 62, excess vs pool (OFFICIAL) | 7,857 | -7.2 bps | -1.04 | 4/11 | -6.0 / -8.3 | 48% | -13.1 |
+| the 62, excess vs filtered pool | 7,857 | -5.4 | -0.77 | 4/11 | -6.2 / -4.6 | 48% | -12.0 |
+| the 62, timing (second score) | 7,919 | +8.3 | +0.46 | 5/11 | +19.7 / -1.7 | 50% | +2.6 |
+| the 62, raw long | 7,919 | +22.4 | +1.27 | 8/11 | +28.8 / +16.8 | 53% | +20.4 |
+| SPY raw long | 129 | +22.5 | +1.29 | 9/11 | +27.8 / +17.8 | 58% | +39.0 |
+| SPY timing | 129 | +10.3 | +0.58 | 4/11 | +19.9 / +2.0 | 53% | +21.9 |
+| QQQ raw long | 129 | +27.4 | +1.22 | 7/11 | +36.6 / +19.4 | 56% | +41.4 |
+| QQQ timing | 129 | +7.4 | +0.33 | 3/11 | +16.4 / -0.5 | 55% | +23.8 |
+| held-out, excess vs pool | 11,358 | -4.2 | -0.55 | 6/10 | +1.1 / -7.9 | 48% | -13.1 |
+| held-out, timing | 11,458 | +13.9 | +0.62 | 5/10 | +26.7 / +5.2 | 51% | +8.8 |
+
+Official gate: top symbol 12% (AMGN), so concentration is no longer the problem;
+top-1% share -188% (meaningless with a negative total). The timing score fails on
+mean, t, years and same-sign, and is driven by 2020 (+182, the COVID rebound). At
+2 bps/side SPY timing is still only +16.3 (t 0.92). The 7-session window is not
+gated: the 62's timing +24.2 (t 1.10, 7/11 years) but +49.6 in 2016-20 vs +2.2 in
+2021-26; SPY raw long +45.1 (t 2.15) still includes the market's own rise and
+SPY timing is +32.8 (t 1.49). No sign of a window that holds up.
+The per-trade t values look better (timing +1.88 design, +3.15 held-out), but they
+count correlated names in one month as separate bets; the monthly t is the honest one.
+The first run's numbers (official -0.3, timing +16.6) were inflated by the GE split.
+Spike-pod correlation: skipped (pod P&L not here). Log: research/turn_of_month.log.
+
+**Lesson:** the turn of the month adds a few bps over ordinary days at most, with
+nothing like a significant t in 129 months, and looks weaker since 2021, in line with
+Han, Han & Tian. Not worth a pod.
+
+**Data warning for earlier work:** the 1-min cache is unadjusted, so any test holding
+across an overnight sees splits. overnight-drift (2026-11-04) did not filter them.
+Summing the 15 split-like gaps in the 62 gives about -1.4 bps per name-night, so its
+design result is understated: roughly +3.1 gross / -0.9 net instead of +1.65 / -2.35.
+That is arithmetic, not a rerun, and it stays under the +3 bar, so that FAIL stands.
+Future overnight or multi-day tests on 1-min bars must filter splits. Tests that enter
+and exit within a session don't hold across the split; whether a split distorts their
+signal features was not checked here.

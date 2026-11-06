@@ -1,0 +1,134 @@
+calendar 2016-01-04..2026-10-27, 129 month ends, 277 names
+C:\Users\Silvine Raza\projects\vision-worktrees\trading-bot-task57\scripts\research\turn_of_month.py:88: RuntimeWarning: Mean of empty slice
+  return pd.Series(np.nanmean(r, axis=1), index=o.index)
+C:\Users\Silvine Raza\projects\vision-worktrees\trading-bot-task57\scripts\research\turn_of_month.py:88: RuntimeWarning: Mean of empty slice
+  return pd.Series(np.nanmean(r, axis=1), index=o.index)
+pool benchmark, hold 4: raw mean +17.6 bps, split-filtered +16.9 bps, largest gap 78 bps
+
+########## window 4 sessions (last -> 3rd) ##########
+
+=== design: the 62, 62 names, 129 months ===
+
+excess vs pool, net (OFFICIAL gate): n=7,857  mean -7.2 bps (monthly t=-1.04, per-trade t=-1.90)  median -13.1  win 48%  years+ 4/11  16-20 -6.0 / 21-26 -8.3  top symbol 12% (AMGN)  top-1% share -188%  -> FAIL
+   by year: 2016:-30  2017:+15  2018:-34  2019:-1  2020:+20  2021:-16  2022:-15  2023:+10  2024:+22  2025:-39  2026:-13
+
+  excess vs split-filtered pool, net: n=7,857  mean -5.4 bps (monthly t=-0.77, per-trade t=-1.41)  median -12.0  win 48%  years+ 4/11  16-20 -6.2 / 21-26 -4.6  top symbol 11% (AMGN)  top-1% share -255%
+   by year: 2016:-27  2017:+15  2018:-34  2019:-1  2020:+17  2021:-6  2022:-12  2023:+9  2024:+25  2025:-34  2026:-11
+
+timing, net (second score, same thresholds): n=7,919  mean +8.3 bps (monthly t=+0.46, per-trade t=+1.88)  median +2.6  win 50%  years+ 5/11  16-20 +19.7 / 21-26 -1.7  top symbol 9% (BIIB)  top-1% share 183%  -> FAIL
+   by year: 2016:-30  2017:-6  2018:-34  2019:-15  2020:+182  2021:+6  2022:+62  2023:+8  2024:-96  2025:-39  2026:+65
+
+  raw long, net: n=7,919  mean +22.4 bps (monthly t=+1.27, per-trade t=+5.17)  median +20.4  win 53%  years+ 8/11  16-20 +28.8 / 21-26 +16.8  top symbol 5% (AMGN)  top-1% share 68%
+   by year: 2016:-9  2017:+18  2018:-61  2019:+24  2020:+171  2021:+34  2022:+39  2023:+24  2024:-69  2025:+20  2026:+64
+
+--- SPY alone ---
+
+  SPY raw long, net 5 bps/side: n=129  mean +22.5 bps (monthly t=+1.29, per-trade t=+1.29)  median +39.0  win 58%  years+ 9/11  16-20 +27.8 / 21-26 +17.8  top symbol 100% (SPY)  top-1% share 29%
+   by year: 2016:+2  2017:+22  2018:-53  2019:+14  2020:+154  2021:+9  2022:+18  2023:+25  2024:-31  2025:+3  2026:+104
+
+  SPY timing, net 5 bps/side: n=129  mean +10.3 bps (monthly t=+0.58, per-trade t=+0.58)  median +21.9  win 53%  years+ 4/11  16-20 +19.9 / 21-26 +2.0  top symbol 100% (SPY)  top-1% share 63%
+   by year: 2016:-12  2017:-1  2018:-26  2019:-26  2020:+164  2021:-23  2022:+56  2023:+6  2024:-66  2025:-45  2026:+110
+
+  SPY excess vs pool, net 5 bps/side: n=128  mean -8.4 bps (monthly t=-0.93, per-trade t=-0.93)  median -6.8  win 47%  years+ 5/11  16-20 -6.5 / 21-26 -10.1  top symbol nan% (SPY)  top-1% share -25%
+   by year: 2016:-18  2017:+19  2018:-27  2019:-10  2020:+3  2021:-41  2022:-35  2023:+9  2024:+59  2025:-57  2026:+12
+
+  SPY raw long, net 2 bps/side: n=129  mean +28.5 bps (monthly t=+1.63, per-trade t=+1.63)  median +45.0  win 59%  years+ 9/11  16-20 +33.8 / 21-26 +23.8  top symbol 100% (SPY)  top-1% share 23%
+   by year: 2016:+8  2017:+28  2018:-47  2019:+20  2020:+160  2021:+15  2022:+24  2023:+31  2024:-25  2025:+9  2026:+110
+
+  SPY timing, net 2 bps/side: n=129  mean +16.3 bps (monthly t=+0.92, per-trade t=+0.92)  median +27.9  win 54%  years+ 5/11  16-20 +25.9 / 21-26 +8.0  top symbol 100% (SPY)  top-1% share 40%
+   by year: 2016:-6  2017:+5  2018:-20  2019:-20  2020:+170  2021:-17  2022:+62  2023:+12  2024:-60  2025:-39  2026:+116
+
+--- QQQ alone ---
+
+  QQQ raw long, net 5 bps/side: n=129  mean +27.4 bps (monthly t=+1.22, per-trade t=+1.22)  median +41.4  win 56%  years+ 7/11  16-20 +36.6 / 21-26 +19.4  top symbol 100% (QQQ)  top-1% share 27%
+   by year: 2016:-13  2017:+24  2018:-32  2019:+34  2020:+171  2021:-24  2022:+0  2023:+39  2024:-8  2025:+16  2026:+118
+
+  QQQ timing, net 5 bps/side: n=129  mean +7.4 bps (monthly t=+0.33, per-trade t=+0.33)  median +23.8  win 55%  years+ 3/11  16-20 +16.4 / 21-26 -0.5  top symbol 100% (QQQ)  top-1% share 99%
+   by year: 2016:-31  2017:-10  2018:-9  2019:-19  2020:+150  2021:-63  2022:+64  2023:-14  2024:-45  2025:-35  2026:+121
+
+  QQQ excess vs pool, net 5 bps/side: n=128  mean -4.3 bps (monthly t=-0.28, per-trade t=-0.28)  median -2.3  win 49%  years+ 6/11  16-20 +2.3 / 21-26 -10.1  top symbol nan% (QQQ)  top-1% share -68%
+   by year: 2016:-34  2017:+21  2018:-5  2019:+9  2020:+20  2021:-74  2022:-53  2023:+23  2024:+81  2025:-44  2026:+15
+
+  QQQ raw long, net 2 bps/side: n=129  mean +33.4 bps (monthly t=+1.49, per-trade t=+1.49)  median +47.4  win 58%  years+ 7/11  16-20 +42.6 / 21-26 +25.4  top symbol 100% (QQQ)  top-1% share 22%
+   by year: 2016:-7  2017:+30  2018:-26  2019:+40  2020:+177  2021:-18  2022:+6  2023:+45  2024:-2  2025:+22  2026:+124
+
+  QQQ timing, net 2 bps/side: n=129  mean +13.4 bps (monthly t=+0.59, per-trade t=+0.59)  median +29.8  win 55%  years+ 3/11  16-20 +22.4 / 21-26 +5.5  top symbol 100% (QQQ)  top-1% share 55%
+   by year: 2016:-25  2017:-4  2018:-3  2019:-13  2020:+156  2021:-57  2022:+70  2023:-8  2024:-39  2025:-29  2026:+127
+
+=== held-out: extra top 100, 180 names, 117 months ===
+
+excess vs pool, net: n=11,358  mean -4.2 bps (monthly t=-0.55, per-trade t=-1.07)  median -13.1  win 48%  years+ 6/10  16-20 +1.1 / 21-26 -7.9  top symbol 6% (MU)  top-1% share -407%
+   by year: 2017:+23  2018:-27  2019:-17  2020:+25  2021:-58  2022:+2  2023:-18  2024:+25  2025:+1  2026:+4
+
+  excess vs split-filtered pool, net: n=11,358  mean -2.3 bps (monthly t=-0.32, per-trade t=-0.60)  median -12.0  win 48%  years+ 6/10  16-20 +0.2 / 21-26 -4.1  top symbol 6% (MU)  top-1% share -729%
+   by year: 2017:+22  2018:-27  2019:-17  2020:+22  2021:-47  2022:+5  2023:-19  2024:+29  2025:+6  2026:+6
+
+timing, net: n=11,458  mean +13.9 bps (monthly t=+0.62, per-trade t=+3.15)  median +8.8  win 51%  years+ 5/10  16-20 +26.7 / 21-26 +5.2  top symbol 4% (W)  top-1% share 132%
+   by year: 2017:+1  2018:-30  2019:-36  2020:+169  2021:-38  2022:+99  2023:-21  2024:-96  2025:+14  2026:+93
+
+  raw long, net: n=11,458  mean +28.1 bps (monthly t=+1.28, per-trade t=+6.41)  median +21.8  win 52%  years+ 6/10  16-20 +39.2 / 21-26 +20.5  top symbol 3% (MU)  top-1% share 66%
+   by year: 2017:+26  2018:-53  2019:+7  2020:+175  2021:-8  2022:+57  2023:-2  2024:-65  2025:+60  2026:+99
+
+########## window 7 sessions (3rd-last -> 3rd) ##########
+
+=== design: the 62, 62 names, 129 months ===
+
+excess vs pool, net: n=7,861  mean -4.5 bps (monthly t=-0.56, per-trade t=-0.87)  median -17.8  win 48%  years+ 6/11  16-20 -8.2 / 21-26 -1.2  top symbol 15% (META)  top-1% share -428%
+   by year: 2016:-55  2017:+17  2018:-0  2019:-4  2020:+1  2021:+4  2022:-39  2023:+20  2024:+0  2025:-20  2026:+43
+
+  excess vs split-filtered pool, net: n=7,861  mean -2.2 bps (monthly t=-0.28, per-trade t=-0.42)  median -17.0  win 48%  years+ 5/11  16-20 -9.5 / 21-26 +4.3  top symbol 15% (META)  top-1% share -881%
+   by year: 2016:-54  2017:+16  2018:-1  2019:-4  2020:-3  2021:+15  2022:-31  2023:+17  2024:+3  2025:-10  2026:+44
+
+timing, net: n=7,923  mean +24.2 bps (monthly t=+1.10, per-trade t=+4.10)  median +13.8  win 51%  years+ 7/11  16-20 +49.6 / 21-26 +2.2  top symbol 9% (META)  top-1% share 89%
+   by year: 2016:-10  2017:+29  2018:+80  2019:-37  2020:+186  2021:+45  2022:+114  2023:+48  2024:-63  2025:-192  2026:+82
+
+  raw long, net: n=7,923  mean +43.2 bps (monthly t=+2.05, per-trade t=+7.55)  median +34.9  win 54%  years+ 9/11  16-20 +60.4 / 21-26 +28.2  top symbol 6% (META)  top-1% share 50%
+   by year: 2016:+41  2017:+62  2018:+14  2019:+61  2020:+124  2021:+60  2022:+77  2023:+68  2024:-17  2025:-79  2026:+73
+
+--- SPY alone ---
+
+  SPY raw long, net 5 bps/side: n=129  mean +45.1 bps (monthly t=+2.15, per-trade t=+2.15)  median +60.4  win 64%  years+ 8/11  16-20 +61.9 / 21-26 +30.5  top symbol 100% (SPY)  top-1% share 9%
+   by year: 2016:+53  2017:+64  2018:-2  2019:+61  2020:+132  2021:+32  2022:+89  2023:+78  2024:-14  2025:-89  2026:+107
+
+  SPY timing, net 5 bps/side: n=129  mean +32.8 bps (monthly t=+1.49, per-trade t=+1.49)  median +42.7  win 57%  years+ 7/11  16-20 +55.0 / 21-26 +13.5  top symbol 100% (SPY)  top-1% share 14%
+   by year: 2016:+23  2017:+39  2018:+58  2019:-32  2020:+187  2021:-4  2022:+160  2023:+58  2024:-66  2025:-166  2026:+128
+
+  SPY excess vs pool, net 5 bps/side: n=128  mean -4.1 bps (monthly t=-0.40, per-trade t=-0.40)  median -1.9  win 49%  years+ 5/11  16-20 -6.4 / 21-26 -2.1  top symbol nan% (SPY)  top-1% share -64%
+   by year: 2016:-43  2017:+19  2018:-15  2019:-3  2020:+10  2021:-24  2022:-28  2023:+29  2024:+2  2025:-29  2026:+57
+
+  SPY raw long, net 2 bps/side: n=129  mean +51.1 bps (monthly t=+2.43, per-trade t=+2.43)  median +66.4  win 64%  years+ 9/11  16-20 +67.9 / 21-26 +36.5  top symbol 100% (SPY)  top-1% share 8%
+   by year: 2016:+59  2017:+70  2018:+4  2019:+67  2020:+138  2021:+38  2022:+95  2023:+84  2024:-8  2025:-83  2026:+113
+
+  SPY timing, net 2 bps/side: n=129  mean +38.8 bps (monthly t=+1.76, per-trade t=+1.76)  median +48.7  win 58%  years+ 8/11  16-20 +61.0 / 21-26 +19.5  top symbol 100% (SPY)  top-1% share 12%
+   by year: 2016:+29  2017:+45  2018:+64  2019:-26  2020:+193  2021:+2  2022:+166  2023:+64  2024:-60  2025:-160  2026:+134
+
+--- QQQ alone ---
+
+  QQQ raw long, net 5 bps/side: n=129  mean +58.2 bps (monthly t=+2.07, per-trade t=+2.07)  median +69.4  win 64%  years+ 8/11  16-20 +79.7 / 21-26 +39.4  top symbol 100% (QQQ)  top-1% share 11%
+   by year: 2016:+40  2017:+88  2018:-3  2019:+65  2020:+209  2021:+13  2022:+110  2023:+133  2024:-34  2025:-92  2026:+129
+
+  QQQ timing, net 5 bps/side: n=129  mean +22.6 bps (monthly t=+0.78, per-trade t=+0.78)  median +35.2  win 55%  years+ 6/11  16-20 +39.5 / 21-26 +7.9  top symbol 100% (QQQ)  top-1% share 32%
+   by year: 2016:-8  2017:+37  2018:+52  2019:-55  2020:+172  2021:-56  2022:+206  2023:+46  2024:-89  2025:-174  2026:+148
+
+  QQQ excess vs pool, net 5 bps/side: n=128  mean +8.1 bps (monthly t=+0.42, per-trade t=+0.42)  median +2.4  win 52%  years+ 5/11  16-20 +11.5 / 21-26 +5.1  top symbol 100% (QQQ)  top-1% share 47%
+   by year: 2016:-56  2017:+43  2018:-17  2019:+1  2020:+86  2021:-43  2022:-6  2023:+84  2024:-18  2025:-32  2026:+68
+
+  QQQ raw long, net 2 bps/side: n=129  mean +64.2 bps (monthly t=+2.28, per-trade t=+2.28)  median +75.4  win 64%  years+ 9/11  16-20 +85.7 / 21-26 +45.4  top symbol 100% (QQQ)  top-1% share 10%
+   by year: 2016:+46  2017:+94  2018:+3  2019:+71  2020:+215  2021:+19  2022:+116  2023:+139  2024:-28  2025:-86  2026:+135
+
+  QQQ timing, net 2 bps/side: n=129  mean +28.6 bps (monthly t=+0.99, per-trade t=+0.99)  median +41.2  win 57%  years+ 6/11  16-20 +45.5 / 21-26 +13.9  top symbol 100% (QQQ)  top-1% share 25%
+   by year: 2016:-2  2017:+43  2018:+58  2019:-49  2020:+178  2021:-50  2022:+212  2023:+52  2024:-83  2025:-168  2026:+154
+
+=== held-out: extra top 100, 180 names, 117 months ===
+
+excess vs pool, net: n=11,341  mean -6.5 bps (monthly t=-0.67, per-trade t=-1.22)  median -12.2  win 49%  years+ 4/10  16-20 +2.9 / 21-26 -12.9  top symbol 5% (LLY)  top-1% share -363%
+   by year: 2017:+21  2018:-32  2019:-11  2020:+33  2021:-61  2022:+29  2023:-14  2024:-20  2025:-14  2026:+10
+
+  excess vs split-filtered pool, net: n=11,341  mean -4.0 bps (monthly t=-0.42, per-trade t=-0.75)  median -9.4  win 49%  years+ 4/10  16-20 +1.0 / 21-26 -7.4  top symbol 5% (LLY)  top-1% share -593%
+   by year: 2017:+19  2018:-33  2019:-12  2020:+28  2021:-50  2022:+37  2023:-16  2024:-16  2025:-4  2026:+11
+
+timing, net: n=11,441  mean +18.7 bps (monthly t=+0.69, per-trade t=+3.13)  median +11.8  win 51%  years+ 6/10  16-20 +47.3 / 21-26 -0.8  top symbol 4% (NVAX)  top-1% share 136%
+   by year: 2017:+34  2018:+14  2019:-49  2020:+188  2021:-49  2022:+233  2023:+12  2024:-72  2025:-173  2026:+59
+
+  raw long, net: n=11,441  mean +38.4 bps (monthly t=+1.48, per-trade t=+6.61)  median +37.0  win 53%  years+ 6/10  16-20 +63.7 / 21-26 +21.1  top symbol 3% (MELI)  top-1% share 65%
+   by year: 2017:+65  2018:-21  2019:+53  2020:+157  2021:-4  2022:+145  2023:+35  2024:-37  2025:-73  2026:+74

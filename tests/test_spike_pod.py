@@ -274,3 +274,54 @@ def test_world_recorder_summaries():
     assert s["trades"] == 1 and s["signals"] == 1 and 0.7 < s["capital_time_pct"] < 0.85
     assert wr.compact_option({"latestQuote": {"bp": 1.0, "ap": 1.2}, "impliedVolatility": 0.2,
                               "greeks": {"delta": 0.5}}) == {"bid": 1.0, "ask": 1.2, "iv": 0.2, "delta": 0.5}
+
+
+def _world(ret=-4.34):
+    return {"market_SPY": {"close": 733.43, "ret_1d_pct": ret, "above_50d": False, "vol_20d_pct": 20.2},
+            "options_SPY": {"SPY261218C00733000": {"iv": 0.30}, "SPY261218P00733000": {"iv": 0.34},
+                            "SPY261218C00800000": {"iv": 0.99}, "SPY261112C00733000": {"iv": 0.99}},
+            "news": [{"symbols": ["AMD", "NVDA"], "headline": "Chip stocks fall"}] * 12, "errors": {}}
+
+
+def test_atm_iv_uses_the_money_in_the_first_expiry_far_enough_out():
+    from datetime import date
+    import world_recorder as wr
+    assert abs(wr.atm_iv(_world()["options_SPY"], 733.43, date(2026, 11, 6)) - 0.32) < 1e-9
+    assert wr.atm_iv({}, 733.43, date(2026, 11, 6)) is None
+
+
+def test_calendar_line():
+    from datetime import date
+    import world_recorder as wr
+    assert "next FOMC Dec 9 (33 days)" in wr.calendar_line(date(2026, 11, 6))
+    assert "FOMC decision today" in wr.calendar_line(date(2026, 12, 9))
+    assert "expiry today" in wr.calendar_line(date(2026, 11, 20))
+    assert "need updating" in wr.calendar_line(date(2027, 1, 4))
+
+
+def test_brief_notices_stress_and_stays_quiet_otherwise():
+    from datetime import date
+    import world_recorder as wr
+    text = wr.brief(_world(), date(2026, 11, 6))
+    assert "SPY moved -4.3%" in text and "AMD 12" in text and "AMD: Chip stocks fall" in text
+    calm = {**_world(0.2), "options_SPY": {}, "news": []}
+    assert "Worth noticing" not in wr.brief(calm, date(2026, 11, 6))
+
+
+def test_review_folds_in_the_missed_report(tmp_path, monkeypatch):
+    from datetime import date
+    import world_recorder as wr
+    monkeypatch.setattr(wr, "MISSED_DIR", str(tmp_path))
+    data = {**_world(), "pod": {"trades": 1, "bps": [121.17], "signals": 1, "capital_time_pct": 0.78}}
+    assert "No missed-opportunity report" in wr.review(data, date(2026, 11, 5))
+    (tmp_path / "2026-11-05.md").write_text("Biggest 10 moves")
+    text = wr.review(data, date(2026, 11, 5))
+    assert "+121" in text and "Biggest 10 moves" in text and len(text) <= wr.TELEGRAM_MAX
+
+
+def test_missed_report_ignores_the_closing_auction_bar():
+    import missed_report as mr
+    bars = [{"t": f"2026-11-05T20:{m:02d}:00Z", "o": 100.0, "c": 100.0 + (0.01 if m % 2 else -0.01), "v": 1000}
+            for m in range(30, 60)]
+    bars.append({"t": "2026-11-05T21:00:00Z", "o": 100.0, "c": 110.0, "v": 900000})     # 16:00 ET
+    assert mr.first_signal(bars) is None

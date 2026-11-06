@@ -1,0 +1,182 @@
+[
+  {
+    "id": "spike-momentum-afternoon",
+    "claim": "A 1-min spike (volume >= 8x, move >= 5 sigma) in top-dollar-volume names keeps running for the next hour in the afternoon.",
+    "status": "live",
+    "evidence": "SIP 2022-26 top 25: +15.8 bps, t 2.7. IEX detection keeps about half (+7..10 gross). All years +7.1 net, t 3.08, n=1485. Live pod since 2026-10-30, too few trades to judge.",
+    "confidence": "medium",
+    "reopen_if": "Live plus shadow evidence averages under the pause rule after 30+ trades.",
+    "journal": "2026-10 table; pods/spike",
+    "updated": "2026-11-05"
+  },
+  {
+    "id": "spike-tail-driven",
+    "claim": "Spike P&L comes from a small share of trades; the median trade loses a little.",
+    "status": "open",
+    "evidence": "Median -0.8 bps, win rate 48%, top 1% of trades = 45-63% of P&L. Never split by event days.",
+    "confidence": "high",
+    "reopen_if": "Tested next as spike-events.",
+    "journal": "project notes 2026-10-29; ideas.md B",
+    "updated": "2026-11-05"
+  },
+  {
+    "id": "spike-wider-universe",
+    "claim": "Adding names beyond the top 25 by dollar volume improves the spike pod.",
+    "status": "rejected",
+    "evidence": "Rank 26-100 held out +3.3 bps net, t 1.28, 2 of 5 years. With the 4-position cap, weak names crowd out better ones.",
+    "confidence": "high",
+    "reopen_if": "A filter separates the good signals among those names.",
+    "journal": "2026-11-04 spike-wide-universe",
+    "updated": "2026-11-05"
+  },
+  {
+    "id": "spike-size-effect",
+    "claim": "Bigger spikes (sigma or volume) run further.",
+    "status": "rejected",
+    "evidence": "Design big-small +17.3 bps (t 3.29), held out -1.2. The biggest-volume third is the worst held out.",
+    "confidence": "medium",
+    "reopen_if": "News or event conditioning changes what size means.",
+    "journal": "2026-11-02 spike-size-bucket",
+    "updated": "2026-11-05"
+  },
+  {
+    "id": "spike-learned-exit",
+    "claim": "A learned exit beats the fixed 60-minute hold.",
+    "status": "rejected",
+    "evidence": "Top 25: +1.9 bps held out, t 1.35. Wider names: -1.2 held out, -0.9 fresh. In-sample fitting.",
+    "confidence": "high",
+    "reopen_if": "New inputs (news, regime) exist that the first tests lacked.",
+    "journal": "2026-11-03 spike-exit-rl; 2026-11-04 spike-exit-rl-wide",
+    "updated": "2026-11-05"
+  },
+  {
+    "id": "kronos-forecasts",
+    "claim": "Kronos-small adds tradable information, alone or as a filter.",
+    "status": "rejected",
+    "evidence": "Standalone best +3.1 bps gross. As a spike filter, disagreeing beat agreeing by about 11 bps in both windows, t < 2.",
+    "confidence": "high",
+    "reopen_if": "The disagreement effect is tested and pre-registered as its own idea.",
+    "journal": "2026-11-02 kronos-spike-filter",
+    "updated": "2026-11-05"
+  },
+  {
+    "id": "orb",
+    "claim": "Opening-range breakouts have an edge at real costs, fixed list or stocks in play.",
+    "status": "rejected",
+    "evidence": "A few bps gross. Live since 9/14, paused 11/02.",
+    "confidence": "high",
+    "reopen_if": "A regime or news filter passes on it as a pre-registered test.",
+    "journal": "2026-10 table",
+    "updated": "2026-11-05"
+  },
+  {
+    "id": "gap-and-go",
+    "claim": "Gap continuation, including SSR-filtered short gaps, pays at real costs.",
+    "status": "rejected",
+    "evidence": "Best +0.13R at 5 bps, 3 of 5 windows. Rerun at lower costs doesn't flip it.",
+    "confidence": "medium",
+    "reopen_if": "Gap cause (news type) can be separated.",
+    "journal": "2026-10 table; 2026-11-02 low-cost-rerun",
+    "updated": "2026-11-05"
+  },
+  {
+    "id": "index-intraday-momentum",
+    "claim": "The first half hour predicts the index's last half hour after costs.",
+    "status": "rejected",
+    "evidence": "No edge at real costs, including 0.5 bps.",
+    "confidence": "medium",
+    "reopen_if": "Only with a new conditioning variable.",
+    "journal": "2026-10 table; 2026-11-02 low-cost-rerun",
+    "updated": "2026-11-05"
+  },
+  {
+    "id": "mean-reversion-short-horizon",
+    "claim": "Fading short-term moves pays: spike_fade, vwap_fade, RSI2, weekly reversal.",
+    "status": "rejected",
+    "evidence": "Fades negative. RSI2 +6 bps excess is under 10 bps cost. Weekly reversal -4.9 excess, t -1.0; held out +4.0, t 0.9.",
+    "confidence": "high",
+    "reopen_if": "Split by news vs no news, which theory says matters (ideas.md 11 is a related volatility split).",
+    "journal": "2026-10 table; 2026-11-03 short-term-reversal",
+    "updated": "2026-11-05"
+  },
+  {
+    "id": "earnings-timing",
+    "claim": "Earnings dates give a daily-bar edge: post-earnings drift or pre-earnings run-up.",
+    "status": "rejected",
+    "evidence": "PEAD on real 8-K dates: excess -29..+13 bps, no t > 2.5. Run-up -14 bps, t -4.7, held out the same.",
+    "confidence": "high",
+    "reopen_if": "Earnings surprise size or text is available, since dates alone carried nothing.",
+    "journal": "2026-11-02 pead-real-dates; pre-earnings-runup",
+    "updated": "2026-11-05"
+  },
+  {
+    "id": "event-drift-any-big-move",
+    "claim": "Any big move on heavy volume drifts afterwards.",
+    "status": "rejected",
+    "evidence": "No excess vs the pool. Event drifts in liquid names price in within a session.",
+    "confidence": "high",
+    "reopen_if": "Never on price alone.",
+    "journal": "2026-10 table",
+    "updated": "2026-11-05"
+  },
+  {
+    "id": "overnight-drift",
+    "claim": "Holding liquid names close-to-open only earns enough to trade.",
+    "status": "rejected",
+    "evidence": "About +2 bps gross a night vs 4 bps round trip, faded since 2021, negative every year hedged against SPY.",
+    "confidence": "high",
+    "reopen_if": "A cross-sectional signal earns well over 4 bps (ideas.md 10).",
+    "journal": "2026-11-04 overnight-drift",
+    "updated": "2026-11-05"
+  },
+  {
+    "id": "turn-of-month",
+    "claim": "Stocks earn outsized returns around the month turn, tradably.",
+    "status": "rejected",
+    "evidence": "The 62 excess -7.2 bps, t -1.04. Timing +8.3, t 0.46, driven by 2020.",
+    "confidence": "high",
+    "reopen_if": "Not expected.",
+    "journal": "2026-11-05 turn-of-month",
+    "updated": "2026-11-05"
+  },
+  {
+    "id": "low-cost-rescues-signals",
+    "claim": "The near-misses only fail because of costs.",
+    "status": "rejected",
+    "evidence": "Rerun with limit-order costs: nothing flips. The signals themselves are weak.",
+    "confidence": "high",
+    "reopen_if": "Never on costs alone.",
+    "journal": "2026-11-02 low-cost-rerun",
+    "updated": "2026-11-05"
+  },
+  {
+    "id": "pod-allocation-inverse-vol",
+    "claim": "Inverse-volatility weighting beats equal weight across pods.",
+    "status": "open",
+    "evidence": "Spike vs sleeve 2018-26: Sharpe 1.01, max drawdown -6.9% vs 0.94, -16.9%. Only two streams.",
+    "confidence": "low",
+    "reopen_if": "Retest when three pods are live.",
+    "journal": "2026-10 table",
+    "updated": "2026-11-05"
+  },
+  {
+    "id": "price-only-research-exhausted",
+    "claim": "New edge in these liquid names is more likely from new data (news, filings, flows, options) than from more price rules.",
+    "status": "open",
+    "evidence": "11 straight FAILs, nearly all price patterns on the same data. A pattern, not a test; the news and filing tests will challenge it.",
+    "confidence": "low",
+    "reopen_if": "New-data tests fail as often as price tests have: rethink the universe and horizon instead.",
+    "journal": "docs/stratton-revamp-plan.md",
+    "updated": "2026-11-05"
+  },
+  {
+    "id": "data-raw-bars-carry-splits",
+    "claim": "The 1-min cache is unadjusted, so tests held across an overnight must filter splits.",
+    "status": "fact",
+    "evidence": "GE's 1:8 reverse split scored +682% in the first turn-of-month run. Overnight-drift wasn't filtered; about -1.4 bps a name-night, verdict unchanged.",
+    "confidence": "high",
+    "reopen_if": "The cache gets adjusted bars.",
+    "journal": "2026-11-05 turn-of-month",
+    "updated": "2026-11-05"
+  }
+]

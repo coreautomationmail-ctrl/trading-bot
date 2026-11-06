@@ -7,6 +7,20 @@ momentum, spike_fade, vwap_fade, event drift on any big move, RSI2, Kronos
 standalone, spike_mom (PASS, live as the spike pod), PEAD on real earnings
 dates and pre-earnings run-up (2026-11-02, see journal).
 
+Revamp priorities (docs/stratton-revamp-plan.md), tested before anything below:
+
+A. spike-news: do spike_mom signals with a headline on that name shortly before
+   the signal bar run further than those without (Chan, "Stock price reaction to
+   news and no-news", JFE 2003: drift after news, reversal without; check the
+   citation)? Needs `.cache/news`; if it isn't filled yet, record BLOCKED and go
+   to B. Pre-register the look-back window. Hindsight check: created_at must be
+   before the signal bar.
+B. spike-events: is the spike edge concentrated on event days (FOMC decision
+   days, top-1% tails)? Report the edge with and without them.
+C. spike-regime-filter: retrain monthly on all earlier data, take or skip each
+   signal using market trend, realized volatility, time of day, sector. Scored
+   only on later months. Must beat the fixed rule by a pre-registered margin.
+
 1. short-term-reversal: each week buy the pool's 5% worst 5-day performers
    and short the 5% best, hold 5 sessions (Lehmann 1990). Daily. Excess vs
    pool.

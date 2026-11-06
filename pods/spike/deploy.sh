@@ -19,9 +19,10 @@ docker run -d --name stratton-spike --restart unless-stopped --memory 192m \
   --env-file .env -v /opt/stratton-spike/data:/data stratton-spike
 sleep 5
 docker logs --tail 5 stratton-spike
-# Missed-opportunity report: its own container after the close (21:40 UTC is 16:40 or 17:40 ET).
+# Missed-opportunity report: its own container after the close. It reaches Telegram inside the
+# after-close review (world_recorder, ten minutes later), so the owner gets one message.
 cat > /etc/cron.d/stratton-missed <<'EOF'
-40 22 * * 1-5 root docker run --rm --memory 192m --env-file /opt/stratton-spike/.env -v /opt/stratton-spike/data:/data stratton-spike python missed_report.py >> /opt/stratton-spike/data/missed.log 2>&1
+40 22 * * 1-5 root docker run --rm --memory 192m --env-file /opt/stratton-spike/.env -v /opt/stratton-spike/data:/data stratton-spike python missed_report.py --no-send >> /opt/stratton-spike/data/missed.log 2>&1
 EOF
 # World recorder: before the open and after the close. The VPS is on Berlin time; 14:20 stays
 # pre-open and 22:50 post-close through the weeks when US and EU clocks change on different dates.

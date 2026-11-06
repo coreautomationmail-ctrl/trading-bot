@@ -83,7 +83,7 @@ def movers(daily: dict, day: str, n: int = TOP_N) -> list:
 def first_signal(bars: list):
     """The spike rule (same code as the pod) over one session: the first signal with its
     backtest-style outcome (enter the open two bars later, exit the close 60 bars after that), or None."""
-    st = pod.SymState(0, 24 * 60)
+    st = pod.SymState(0, 15 * 60 + 59)   # the 16:00 bar is the closing auction, not a tradable spike
     for i, b in enumerate(bars):
         ts = datetime.fromisoformat(b["t"].replace("Z", "+00:00")).astimezone(pod.ET)
         side = st.update(ts, b["o"], b["c"], b["v"])

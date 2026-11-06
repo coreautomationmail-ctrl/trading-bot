@@ -319,6 +319,21 @@ def shadow_settle(state: dict, recent: dict):
     state["shadow"] = keep
 
 
+def shadow_finish(state: dict, recent: dict, now: datetime):
+    """A 14:58 signal's exit bar completes just as the market closes, after the open-market
+    loop's last fetch, so pending signals get settled from here. Never stops the pod."""
+    pending = state.get("shadow")
+    if not pending:
+        return
+    try:
+        for sym, bars in fetch_bars(now - timedelta(minutes=10), sorted({s["symbol"] for s in pending})).items():
+            for b in bars:
+                recent.setdefault(sym, {})[b["t"]] = b
+        shadow_settle(state, recent)
+    except Exception as e:
+        print(f"shadow: {e}", flush=True)
+
+
 # ---------- daily IEX archive ----------
 
 ARCHIVE_DIR = os.path.join(STATE_DIR, "iex")
@@ -355,7 +370,8 @@ def maybe_send_scorecard(state: dict):
     if now.weekday() != 5 or now.hour < 16 or state.get("scorecard_week") == week:
         return
     control, note = spike_scorecard.decide(spike_scorecard.load(TRADES_CSV),
-                                           spike_scorecard.load_control(CONTROL_FILE), now.date())
+                                           spike_scorecard.load_control(CONTROL_FILE), now.date(),
+                                           spike_scorecard.load(SHADOW_CSV))
     spike_scorecard.save_control(CONTROL_FILE, control)
     send_telegram(spike_scorecard.build(TRADES_CSV, now.strftime("%b %d %Y"), note)
                   + "\n\n" + spike_scorecard.shadow_summary(SHADOW_CSV))
@@ -379,6 +395,7 @@ def main():
             clock = api("GET", "/v2/clock")
             now = datetime.now(ET)
             if not clock["is_open"]:
+                shadow_finish(state, recent, now)
                 maybe_archive(state, datetime.now(ET))
                 maybe_send_scorecard(state)
                 save_state(state)

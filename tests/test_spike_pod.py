@@ -142,6 +142,52 @@ def test_control_grows_size_on_proven_edge_once_a_month():
     assert c4["size_mult"] == 3.0                                 # capped
 
 
+def _shadow(n, bps, et="13:30"):
+    return [{"symbol": "GE", "signal_bar": str(i), "et": et, "bps": str(bps)} for i in range(n)]
+
+
+def test_growth_counts_afternoon_shadow_evidence():
+    from datetime import date
+    import spike_scorecard as sc
+    fresh, today = {"paused": False, "size_mult": 1.0}, date(2026, 11, 7)
+    pod_rows = _rows([100, -80] * 10)                             # 20 trades, +10 bps, t well under 2
+    assert sc.decide(pod_rows, fresh, today)[0]["size_mult"] == 1.0
+    assert sc.decide(pod_rows, fresh, today, _shadow(80, 8))[0]["size_mult"] == 1.5
+    assert sc.decide(pod_rows, fresh, today, _shadow(80, 2))[0]["size_mult"] == 1.0    # mean under the bar
+    assert sc.decide(pod_rows, fresh, today, _shadow(80, 8, "10:00"))[0]["size_mult"] == 1.0   # morning isn't the pod
+    assert sc.decide(_rows([-100, 80] * 10), fresh, today, _shadow(80, 30))[0]["size_mult"] == 1.0   # pod must make money
+
+
+def test_growth_does_not_double_count_a_signal_the_pod_took():
+    import spike_scorecard as sc
+    pod_rows = [{"symbol": "GE", "signal_bar": "0", "bps": "5"}]
+    assert sc.evidence_bps(pod_rows, _shadow(2, 9)) == [5.0, 9.0]
+
+
+def test_shadow_signal_settles_after_the_close(tmp_path, monkeypatch):
+    """A 14:58 signal exits on the 15:59 bar, which only exists once the market has closed."""
+    from datetime import datetime, timedelta
+    monkeypatch.setattr(pod, "SHADOW_CSV", str(tmp_path / "s.csv"))
+    t0 = datetime.now(pod.ZoneInfo("UTC")).replace(second=0, microsecond=0) - timedelta(minutes=70)
+    key = lambda m: (t0 + timedelta(minutes=m)).strftime("%Y-%m-%dT%H:%M:00Z")
+    state = {"shadow": [{"symbol": "BIDU", "signal_bar": key(0), "et": "14:58", "side": 1, "entry_px": 100.0}]}
+    monkeypatch.setattr(pod, "fetch_bars", lambda start, syms: {"BIDU": [{"t": key(61), "o": 101.0, "c": 101.0}]})
+    pod.shadow_finish(state, {}, datetime.now(pod.ET))
+    assert state["shadow"] == [] and (tmp_path / "s.csv").exists()
+
+
+def test_shadow_finish_survives_a_data_error(monkeypatch):
+    from datetime import datetime
+
+    def boom(*a):
+        raise RuntimeError("timeout")
+
+    monkeypatch.setattr(pod, "fetch_bars", boom)
+    state = {"shadow": [{"symbol": "BIDU"}]}
+    pod.shadow_finish(state, {}, datetime.now(pod.ET))
+    assert state["shadow"] == [{"symbol": "BIDU"}]
+
+
 def test_paused_pod_does_not_enter(tmp_path, monkeypatch):
     from datetime import datetime
     import spike_scorecard as sc
@@ -213,3 +259,18 @@ def test_archive_saves_the_session_once(tmp_path, monkeypatch):
     assert len(calls) == 1 and calls[0][1].hour == 16 and state["archived"] == "2026-11-02"
     lines = gzip.open(tmp_path / "iex" / "2026-11-02.csv.gz", "rt").read().splitlines()
     assert lines[0] == "symbol,t,o,h,l,c,v,n,vw" and lines[1].startswith("GE,2026-11-02T14:30:00Z")
+
+
+def test_world_recorder_summaries():
+    import world_recorder as wr
+    m = wr.market([100 + i for i in range(60)])
+    assert m["close"] == 159 and m["above_50d"] is True and m["ret_1d_pct"] > 0
+    trades = [{"entry_time": "2026-11-05T14:42:04-05:00", "exit_time": "2026-11-05T15:44:04-05:00",
+               "qty": "29", "entry_px": "168.46", "bps": "121.17"},
+              {"entry_time": "2026-11-04T14:42:04-05:00", "exit_time": "2026-11-04T15:44:04-05:00",
+               "qty": "29", "entry_px": "168.46", "bps": "1"}]
+    shadow = [{"date": "2026-11-05", "bps": "135.8"}, {"date": "2026-11-04", "bps": "1"}]
+    s = wr.pod_day("2026-11-05", trades, shadow)
+    assert s["trades"] == 1 and s["signals"] == 1 and 0.7 < s["capital_time_pct"] < 0.85
+    assert wr.compact_option({"latestQuote": {"bp": 1.0, "ap": 1.2}, "impliedVolatility": 0.2,
+                              "greeks": {"delta": 0.5}}) == {"bid": 1.0, "ask": 1.2, "iv": 0.2, "delta": 0.5}

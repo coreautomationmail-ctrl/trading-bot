@@ -12,8 +12,13 @@ STATE_DIR/spike_control.json, which the pod reads before every entry.
   - pause when live trading clearly runs below the backtest (live mean bps
     at least 2 standard errors under EXPECTED_BPS, from JUDGE_AFTER trades)
     or the drawdown limit is hit; only the owner resumes it
-  - grow size x GROW_STEP (to MAX_MULT) when the go-live checks all pass,
-    at most once per GROW_EVERY_DAYS, so live evidence sizes the pod
+  - grow size x GROW_STEP (to MAX_MULT) at most once per GROW_EVERY_DAYS when
+    the pod is net profitable and its trades plus the afternoon shadow signals
+    (same rule, more names) average at least GROW_MIN_BPS over GROW_MIN_N. The
+    go-live checks stay stricter: t >= 2 at 100 trades needs about +18 bps a
+    trade (per-trade sd about 89 bps), over twice the backtest, so growth could
+    never fire on them. This paper-size rule can wrongly fire on a zero edge
+    (about 1 check in 4), which is why going live keeps its own bar.
 Settings are fixed rules, never tuned from live results.
 """
 import csv
@@ -31,6 +36,8 @@ EXPECTED_BPS = 8.0      # IEX replay of the afternoon edge, 2025-26 (+7..10 bps 
 JUDGE_AFTER = 30        # trades before live results can pause the pod
 PAUSE_Z = -2.0
 GROW_STEP, MAX_MULT, GROW_EVERY_DAYS = 1.5, 3.0, 28
+GROW_MIN_N, GROW_MIN_BPS = 100, 6.0   # gross: a 2 bps/side cost leaves +2 net
+POD_FIRST, POD_LAST = "13:00", "14:54"   # the pod's signal window, ET
 
 
 def load(path: str) -> list[dict]:
@@ -97,7 +104,15 @@ def save_control(path: str, control: dict):
     os.replace(tmp, path)
 
 
-def decide(rows: list[dict], control: dict, today: date) -> tuple[dict, str]:
+def evidence_bps(rows: list[dict], shadow: list[dict]) -> list[float]:
+    """Gross bps of the pod's trades plus the afternoon shadow signals it didn't take itself."""
+    taken = {(r.get("symbol"), r.get("signal_bar")) for r in rows}
+    return [float(r["bps"]) for r in rows] + [
+        float(r["bps"]) for r in shadow
+        if r.get("bps") and POD_FIRST <= r["et"] <= POD_LAST and (r["symbol"], r["signal_bar"]) not in taken]
+
+
+def decide(rows: list[dict], control: dict, today: date, shadow: list[dict] = ()) -> tuple[dict, str]:
     """This week's control for the pod and a one-line reason."""
     control = dict(control)
     if control.get("paused"):
@@ -117,7 +132,8 @@ def decide(rows: list[dict], control: dict, today: date) -> tuple[dict, str]:
         return control, f"PAUSING new entries: {reason}"
     last = control.get("grown")
     due = not last or today - date.fromisoformat(last) >= timedelta(days=GROW_EVERY_DAYS)
-    if (s["n"] >= MIN_TRADES and s["net"] > 0 and s["t"] >= MIN_T and due
+    evidence = evidence_bps(rows, shadow)
+    if (len(evidence) >= GROW_MIN_N and sum(evidence) / len(evidence) >= GROW_MIN_BPS and s["net"] > 0 and due
             and control["size_mult"] < MAX_MULT):
         control.update(size_mult=round(min(MAX_MULT, control["size_mult"] * GROW_STEP), 2),
                        grown=today.isoformat())

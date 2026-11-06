@@ -1,6 +1,6 @@
 #!/bin/sh
 # Deploy/refresh the STRATTON spike pod on the VPS (run from this folder):
-#   ssh postiz 'mkdir -p /opt/stratton-spike/data' && scp Dockerfile spike_pod.py spike_scorecard.py missed_report.py missed_universe.json postiz:/opt/stratton-spike/ && ssh postiz 'sh -s' < deploy.sh
+#   ssh postiz 'mkdir -p /opt/stratton-spike/data' && scp Dockerfile spike_pod.py spike_scorecard.py missed_report.py missed_universe.json world_recorder.py postiz:/opt/stratton-spike/ && ssh postiz 'sh -s' < deploy.sh
 # Trades its own paper account (keys in /opt/stratton-spike/keys.env as
 # SPIKE_ALPACA_API_KEY / SPIKE_ALPACA_SECRET_KEY, written by the user), so its
 # positions and P&L never mix with the ORB bot's. Base URL + Telegram come
@@ -22,4 +22,10 @@ docker logs --tail 5 stratton-spike
 # Missed-opportunity report: its own container after the close (21:40 UTC is 16:40 or 17:40 ET).
 cat > /etc/cron.d/stratton-missed <<'EOF'
 40 22 * * 1-5 root docker run --rm --memory 192m --env-file /opt/stratton-spike/.env -v /opt/stratton-spike/data:/data stratton-spike python missed_report.py >> /opt/stratton-spike/data/missed.log 2>&1
+EOF
+# World recorder: before the open and after the close. The VPS is on Berlin time; 14:20 stays
+# pre-open and 22:50 post-close through the weeks when US and EU clocks change on different dates.
+cat > /etc/cron.d/stratton-world <<'EOF'
+20 14 * * 1-5 root docker run --rm --memory 192m --env-file /opt/stratton-spike/.env -v /opt/stratton-spike/data:/data stratton-spike python world_recorder.py pre >> /opt/stratton-spike/data/world.log 2>&1
+50 22 * * 1-5 root docker run --rm --memory 192m --env-file /opt/stratton-spike/.env -v /opt/stratton-spike/data:/data stratton-spike python world_recorder.py post >> /opt/stratton-spike/data/world.log 2>&1
 EOF

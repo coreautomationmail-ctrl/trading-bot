@@ -1,6 +1,6 @@
 # STRATTON revamp plan
 
-Draft, 2026-11-05. Paper only, $0 budget. Nothing here is built yet.
+Approved 2026-11-05. Paper only, $0 budget. Phases 0 and 1 are live; see the build order for the rest.
 
 ## The goal
 
@@ -23,7 +23,7 @@ ask why it did something and get a true answer.
 | Learning in the pod | Only pause or grow. Growing needs about +18 bps a trade at 100 trades, the backtest is +8 | Nothing changes what it trades, and it will probably never grow |
 | Research desk | 10 of 10 journal tests failed. One idea a day, nearly all price patterns | Honest, but looking in one place |
 | Path to trading | A PASS stops at "candidate", then waits for a person | Even a success changes nothing by itself |
-| Biggest movers | 25 of the 30 biggest movers 11/3-11/5 had no signal at all (hindsight list) | The rule can't see most of what moves. A source of questions, not proof |
+| Biggest movers | 27 of the 30 biggest movers 11/3-11/5 had no signal at all (hindsight list) | The rule can't see most of what moves. A source of questions, not proof |
 | What it reads | Prices and earnings dates | It never sees news, filings, flows or the calendar |
 
 Shadow log check: the replay found 7 signals and the log has 5. One came before

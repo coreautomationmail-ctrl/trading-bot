@@ -21,5 +21,5 @@ sleep 5
 docker logs --tail 5 stratton-spike
 # Missed-opportunity report: its own container after the close (21:40 UTC is 16:40 or 17:40 ET).
 cat > /etc/cron.d/stratton-missed <<'EOF'
-40 21 * * 1-5 root docker run --rm --memory 192m --env-file /opt/stratton-spike/.env -v /opt/stratton-spike/data:/data stratton-spike python missed_report.py >> /opt/stratton-spike/data/missed.log 2>&1
+40 22 * * 1-5 root docker run --rm --memory 192m --env-file /opt/stratton-spike/.env -v /opt/stratton-spike/data:/data stratton-spike python missed_report.py >> /opt/stratton-spike/data/missed.log 2>&1
 EOF

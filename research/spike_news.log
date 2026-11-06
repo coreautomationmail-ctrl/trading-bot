@@ -1,0 +1,91 @@
+trades 20700; names without a news file, left out: []
+
+share of rank 1-25 signals with news, by year: 2017:9%  2018:18%  2019:19%  2020:19%  2021:25%  2022:28%  2023:25%  2024:31%  2025:26%  2026:28%
+by name: SPY:83%/119  QQQ:10%/118  BA:20%/80  IWM:10%/79  GOOGL:34%/70  AAPL:38%/63  INTC:8%/63  GOOG:33%/58  BAC:9%/53  AMZN:42%/52  META:7%/45  GE:5%/42  TSLA:31%/39  DIS:31%/39  MSFT:22%/37  JPM:22%/32  NVDA:19%/31  C:10%/30  AMD:7%/30  T:4%/27  MU:8%/25  V:9%/23  XOM:9%/23  AVGO:0%/21  CRM:10%/20
+
+== PRIMARY rank 1-25, single-name headline in the prior 60 min
+  news, all years                    n=  321 net  +15.9 (t +2.98, by day +1.79) years+ 9/10 win 50% med +0.2 top1% +25%
+  no news, all years                 n= 1123 net   +6.5 (t +2.22, by day +1.05) years+ 5/10 win 47% med -3.1 top1% +84%
+  news, 2017-21                      n=  143 net  +10.7 (t +2.11, by day +1.75) years+ 4/5 win 50% med -0.5 top1% +24%
+  no news, 2017-21                   n=  654 net   +7.6 (t +2.86, by day +1.69) years+ 3/5 win 48% med -1.4 top1% +47%
+  news, 2022-26                      n=  178 net  +20.1 (t +2.31, by day +1.32) years+ 5/5 win 51% med +1.1 top1% +12%
+  no news, 2022-26                   n=  469 net   +5.1 (t +0.84, by day +0.37) years+ 2/5 win 46% med -5.9 top1% +141%
+  news minus no news +9.4 bps (t +1.54)
+
+== same-name, same-year check (each trade minus its symbol-year mean)
+  news +7.3, no news -2.1, gap +9.4 bps
+
+== reported only: rank 1-25, prior 15 min
+  news, all years                    n=  119 net   +8.0 (t +1.45, by day +1.36) years+ 7/10 win 50% med +0.3 top1% +29%
+  no news, all years                 n= 1325 net   +8.7 (t +3.13, by day +1.27) years+ 6/10 win 48% med -2.6 top1% +62%
+  news, 2017-21                      n=   64 net   +4.5 (t +0.67, by day +0.64) years+ 3/5 win 50% med -0.1 top1% +66%
+  no news, 2017-21                   n=  733 net   +8.5 (t +3.39, by day +1.84) years+ 3/5 win 48% med -1.2 top1% +44%
+  news, 2022-26                      n=   55 net  +12.2 (t +1.33, by day +1.22) years+ 4/5 win 51% med +3.6 top1% +41%
+  no news, 2022-26                   n=  592 net   +8.9 (t +1.66, by day +0.63) years+ 3/5 win 47% med -4.8 top1% +72%
+  news minus no news -0.6 bps (t -0.10)
+
+== reported only: rank 1-25, since the prior close
+  news, all years                    n=  952 net   +6.8 (t +2.18, by day +0.98) years+ 6/10 win 49% med -1.0 top1% +65%
+  no news, all years                 n=  492 net  +12.2 (t +2.63, by day +1.55) years+ 7/10 win 46% med -3.1 top1% +47%
+  news, 2017-21                      n=  439 net  +10.7 (t +3.57, by day +2.23) years+ 4/5 win 51% med +1.2 top1% +26%
+  no news, 2017-21                   n=  358 net   +5.1 (t +1.35, by day +0.88) years+ 2/5 win 45% med -5.1 top1% +77%
+  news, 2022-26                      n=  513 net   +3.5 (t +0.67, by day +0.28) years+ 2/5 win 46% med -5.5 top1% +156%
+  no news, 2022-26                   n=  134 net  +31.2 (t +2.30, by day +1.28) years+ 5/5 win 51% med +0.7 top1% +23%
+  news minus no news -5.4 bps (t -0.97)
+
+== reported only: rank 1-25, 60 min, recaps included
+  news, all years                    n=  438 net  +11.4 (t +2.48, by day +1.29) years+ 7/10 win 50% med -0.1 top1% +32%
+  no news, all years                 n= 1006 net   +7.4 (t +2.37, by day +1.19) years+ 5/10 win 47% med -3.1 top1% +78%
+  news, 2017-21                      n=  153 net  +12.9 (t +2.46, by day +1.97) years+ 4/5 win 50% med -0.5 top1% +18%
+  no news, 2017-21                   n=  644 net   +7.0 (t +2.66, by day +1.59) years+ 3/5 win 48% med -1.4 top1% +52%
+  news, 2022-26                      n=  285 net  +10.6 (t +1.64, by day +0.81) years+ 3/5 win 50% med -0.1 top1% +29%
+  no news, 2022-26                   n=  362 net   +8.1 (t +1.11, by day +0.52) years+ 2/5 win 45% med -6.4 top1% +100%
+  news minus no news +4.0 bps (t +0.72)
+
+== reported only: rank 1-25, 60 min or during the signal bar
+  news, all years                    n=  349 net  +14.6 (t +2.93, by day +1.74) years+ 8/10 win 52% med +1.3 top1% +25%
+  no news, all years                 n= 1095 net   +6.7 (t +2.23, by day +1.06) years+ 5/10 win 47% med -3.5 top1% +80%
+  news, 2017-21                      n=  153 net   +9.8 (t +2.06, by day +1.70) years+ 4/5 win 50% med +0.2 top1% +24%
+  no news, 2017-21                   n=  644 net   +7.8 (t +2.88, by day +1.70) years+ 3/5 win 48% med -1.5 top1% +47%
+  news, 2022-26                      n=  196 net  +18.3 (t +2.27, by day +1.29) years+ 4/5 win 53% med +2.6 top1% +12%
+  no news, 2022-26                   n=  451 net   +5.2 (t +0.84, by day +0.38) years+ 2/5 win 45% med -6.4 top1% +142%
+  news minus no news +7.9 bps (t +1.35)
+
+== reported only: rank 1-25, up spikes
+  news, all years                    n=  176 net  +15.8 (t +1.93, by day +1.07) years+ 7/10 win 54% med +3.2 top1% +16%
+  no news, all years                 n=  573 net  +16.4 (t +3.36, by day +1.49) years+ 8/10 win 52% med +1.4 top1% +41%
+  news, 2017-21                      n=   77 net   +7.9 (t +1.45, by day +1.26) years+ 3/5 win 57% med +7.8 top1% +27%
+  no news, 2017-21                   n=  294 net  +13.5 (t +3.60, by day +2.28) years+ 4/5 win 53% med +2.3 top1% +19%
+  news, 2022-26                      n=   99 net  +21.9 (t +1.58, by day +0.85) years+ 4/5 win 52% med +2.5 top1% +21%
+  no news, 2022-26                   n=  279 net  +19.4 (t +2.11, by day +0.89) years+ 4/5 win 51% med +0.1 top1% +38%
+  news minus no news -0.6 bps (t -0.06)
+
+== reported only: rank 1-25, down spikes
+  news, all years                    n=  145 net  +16.1 (t +2.49, by day +1.93) years+ 6/10 win 46% med -1.7 top1% +16%
+  no news, all years                 n=  550 net   -3.7 (t -1.14, by day -0.65) years+ 4/10 win 42% med -8.6 top1% -95%
+  news, 2017-21                      n=   66 net  +13.9 (t +1.55, by day +1.25) years+ 3/5 win 41% med -4.5 top1% +39%
+  no news, 2017-21                   n=  360 net   +2.8 (t +0.75, by day +0.42) years+ 2/5 win 44% med -5.9 top1% +131%
+  news, 2022-26                      n=   79 net  +17.8 (t +1.94, by day +1.47) years+ 3/5 win 51% med +0.1 top1% +26%
+  no news, 2022-26                   n=  190 net  -15.9 (t -2.66, by day -1.51) years+ 2/5 win 38% med -18.3 top1% -10%
+  news minus no news +19.7 bps (t +2.74)
+
+== reported only: rank 26-100
+  news, all years                    n=  263 net   -1.4 (t -0.16, by day -0.12) years+ 4/10 win 43% med -7.2 top1% -471%
+  no news, all years                 n= 3791 net   +2.1 (t +1.33, by day +0.44) years+ 6/10 win 44% med -5.1 top1% +295%
+  news, 2017-21                      n=   94 net  -25.6 (t -1.62, by day -1.61) years+ 1/5 win 38% med -12.7 top1% -16%
+  no news, 2017-21                   n= 1941 net   +1.7 (t +0.99, by day +0.64) years+ 4/5 win 43% med -5.4 top1% +272%
+  news, 2022-26                      n=  169 net  +12.0 (t +1.19, by day +0.73) years+ 3/5 win 46% med -2.9 top1% +56%
+  no news, 2022-26                   n= 1850 net   +2.5 (t +0.94, by day +0.27) years+ 2/5 win 45% med -4.7 top1% +285%
+  news minus no news -3.5 bps (t -0.40)
+
+top symbol GOOG 16%; gap 2017-21 +3.1, 2022-26 +15.1
+  ok   n >= 300
+  ok   mean net >= 3
+  ok   t >= 2.5
+  ok   years+ >= 70%
+  ok   same sign 2017-21 and 2022-26
+  ok   top symbol <= 25%
+  ok   gap >= +3
+  FAIL gap t >= 2
+  ok   gap same sign both periods
+PRIMARY verdict: FAIL

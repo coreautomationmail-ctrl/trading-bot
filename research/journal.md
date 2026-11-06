@@ -468,3 +468,30 @@ from 2016 to 2025 and mega-caps are nearly always in the news, so the share with
 news is reported by year and name. If no-news beats news, that is a new idea to
 pre-register, not a pass.
 Script: scripts/research/spike_news.py.
+
+**Result: FAIL, on one gate.** Rank 1-25, 2017-26. News n=321, +15.9 net (t 2.98), positive 9 of 10
+years, +10.7 / +20.1 by period, top symbol GOOG 16%, top-1% share 25%. No news n=1123, +6.5 (t 2.22),
+5 of 10 years, top-1% share 84%. Gap +9.4 bps, t 1.54 (needed 2), +3.1 / +15.1 by period. The news group
+meets every other check, but the filter's reason to exist is the gap. Not loosened.
+Log: research/spike_news.log. The first run scored 0% news because of a timestamp unit bug (seconds vs
+nanoseconds); fixed before any gated number was read, and the rules did not change.
+
+Why I don't trust the +9.4 yet:
+- Windows disagree. 15 minutes: gap -0.6 (t -0.10). Since the prior close: -5.4 (t -0.97), and in 2022-26
+  no-news is the better group (+31.2 vs +3.5). A real effect shouldn't flip with a wider window.
+- SPY is 99 of the 321 and 83% of its signals have "news", so that tag says little for it. Stocks only
+  (not gated): gap +9.5, t 1.14.
+- Same-name same-year gap is also +9.4, so it isn't simply that newsier names do better.
+
+**Lead, seen after the fact (not evidence):** the whole gap comes from down spikes. Down + news +16.1
+(n=145); down + no news -3.7 (n=550), and -15.9 (t -2.66) in 2022-26. Gap +19.7, t 2.74. Up spikes show no
+gap (-0.6). This is the shape Chan describes (drift after bad news, reversal without), but one cut of
+several, so it needs its own pre-registered test on other data. Queued as spike-down-no-news.
+
+**Bigger finding: the pod's t is overstated.** Signals cluster on the same days (730 days for 1,444 trades,
+up to 22 in a day), so they aren't independent. Rank 1-25 +8.6 net: t 3.34 per trade, 1.33 on summed daily
+P&L, 0.34 if each day counts equally. The largest days are macro: best 2025-04-09 (+5561 summed bps), 2022-11-30
+(+4247), 2019-08-01, 2021-03-17; worst 2022-11-02 (-3218), 2024-09-18 (-2122), 2022-09-21 (-1739). Several of
+these are Fed days. The usual day looks close to zero, which makes spike-events the key test. These sums
+ignore the pod's 4-position cap, so they are not the pod's own P&L. The earlier t 3.08 has the same
+weakness. Spike-pod correlation: skipped.

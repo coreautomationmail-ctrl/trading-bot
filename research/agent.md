@@ -88,6 +88,8 @@ FAIL is a good run. Never loosen a gate after seeing results.
 - PASS needs ALL of: n >= 300 trades; mean net >= 3 bps (intraday) or >= 15
   bps (swing) per trade; t >= 2.5; positive in >= 70% of years; same sign
   in 2016-20 and 2021-26; no single symbol > 25% of P&L.
+- Also report t on summed daily P&L: trades on the same day aren't independent,
+  so per-trade t can overstate (spike_mom: 3.34 vs 1.33).
 - Also report: win rate, median, the share of P&L from the top 1% of
   trades, and correlation of daily P&L with the spike pod if easy.
 

@@ -9,14 +9,18 @@ dates and pre-earnings run-up (2026-11-02, see journal).
 
 Revamp priorities (docs/stratton-revamp-plan.md), tested before anything below:
 
-A. spike-news: do spike_mom signals with a headline on that name shortly before
-   the signal bar run further than those without (Chan, "Stock price reaction to
-   news and no-news", JFE 2003: drift after news, reversal without; check the
-   citation)? Needs `.cache/news`; if it isn't filled yet, record BLOCKED and go
-   to B. Pre-register the look-back window. Hindsight check: created_at must be
-   before the signal bar.
+A. spike-down-no-news: spike-news (2026-11-06) failed its gate, but its gap came
+   entirely from down spikes: down with no headline -3.7 bps, down with a headline
+   +16.1, up spikes no gap. That was found by looking, so rank 1-25 can't confirm
+   it. Pre-register on rank 26-100 only, 2017-26, with the 60-minute single-name
+   rule from scripts/research/spike_news.py (.cache/spike_news_scored.csv has
+   n60 and side per trade): does skipping down + no-news improve the group by at
+   least +3 bps, t >= 2, same sign in 2017-21 and 2022-26? News-tagged down spikes
+   there are few, so report n and say if it can't settle the question.
 B. spike-events: is the spike edge concentrated on event days (FOMC decision
-   days, top-1% tails)? Report the edge with and without them.
+   days, top-1% tails)? Report the edge with and without them. Score it on daily
+   P&L too: per-trade t 3.34 is only 1.33 by day, and the biggest days look macro.
+   Define event days from a fixed calendar, never from which days had many signals.
 C. spike-regime-filter: retrain monthly on all earlier data, take or skip each
    signal using market trend, realized volatility, time of day, sector. Scored
    only on later months. Must beat the fixed rule by a pre-registered margin.

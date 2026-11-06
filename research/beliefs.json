@@ -3,21 +3,21 @@
     "id": "spike-momentum-afternoon",
     "claim": "A 1-min spike (volume >= 8x, move >= 5 sigma) in top-dollar-volume names keeps running for the next hour in the afternoon.",
     "status": "live",
-    "evidence": "SIP 2022-26 top 25: +15.8 bps, t 2.7. IEX detection keeps about half (+7..10 gross). All years +7.1 net, t 3.08, n=1485. Live pod since 2026-10-30, too few trades to judge.",
-    "confidence": "medium",
+    "evidence": "SIP 2022-26 top 25: +15.8 bps, t 2.7. IEX detection keeps about half (+7..10 gross). All years +7.1 net, t 3.08, n=1485. Live pod since 2026-10-30, too few trades to judge. Signals cluster on the same days: rank 1-25 +8.6 net is t 3.34 per trade but 1.33 on summed daily P&L and 0.34 with days weighted equally (2026-11-06).",
+    "confidence": "low",
     "reopen_if": "Live plus shadow evidence averages under the pause rule after 30+ trades.",
     "journal": "2026-10 table; pods/spike",
-    "updated": "2026-11-05"
+    "updated": "2026-11-06"
   },
   {
     "id": "spike-tail-driven",
     "claim": "Spike P&L comes from a small share of trades; the median trade loses a little.",
     "status": "open",
-    "evidence": "Median -0.8 bps, win rate 48%, top 1% of trades = 45-63% of P&L. Never split by event days.",
+    "evidence": "Median -0.8 bps, win rate 48%, top 1% of trades = 45-63% of P&L. Never split by event days. The biggest days are macro, several of them Fed days (2025-04-09, 2022-11-30, 2022-11-02, 2024-09-18); splitting by event day is still to do.",
     "confidence": "high",
     "reopen_if": "Tested next as spike-events.",
     "journal": "project notes 2026-10-29; ideas.md B",
-    "updated": "2026-11-05"
+    "updated": "2026-11-06"
   },
   {
     "id": "spike-wider-universe",
@@ -93,11 +93,11 @@
     "id": "mean-reversion-short-horizon",
     "claim": "Fading short-term moves pays: spike_fade, vwap_fade, RSI2, weekly reversal.",
     "status": "rejected",
-    "evidence": "Fades negative. RSI2 +6 bps excess is under 10 bps cost. Weekly reversal -4.9 excess, t -1.0; held out +4.0, t 0.9.",
+    "evidence": "Fades negative. RSI2 +6 bps excess is under 10 bps cost. Weekly reversal -4.9 excess, t -1.0; held out +4.0, t 0.9. Down spikes with no headline: -3.7 bps following the move, -15.9 in 2022-26, so a hint of reversal; a post-hoc cut, see spike-down-no-news.",
     "confidence": "high",
     "reopen_if": "Split by news vs no news, which theory says matters (ideas.md 11 is a related volatility split).",
     "journal": "2026-10 table; 2026-11-03 short-term-reversal",
-    "updated": "2026-11-05"
+    "updated": "2026-11-06"
   },
   {
     "id": "earnings-timing",
@@ -178,5 +178,25 @@
     "reopen_if": "The cache gets adjusted bars.",
     "journal": "2026-11-05 turn-of-month",
     "updated": "2026-11-05"
+  },
+  {
+    "id": "spike-news",
+    "claim": "Spikes with a single-name headline in the prior 60 minutes run further than spikes without.",
+    "status": "open",
+    "evidence": "Rank 1-25: news +15.9 net (t 2.98, n=321, 9/10 years), no news +6.5 (t 2.22, n=1123). Gap +9.4, t 1.54, under the t 2 gate: FAIL. The 15-minute window (-0.6) and since-close window (-5.4) disagree. Stocks only: t 1.14.",
+    "confidence": "low",
+    "reopen_if": "spike-down-no-news passes, or forward shadow signals joined to recorded headlines show the same gap.",
+    "journal": "2026-11-06 spike-news",
+    "updated": "2026-11-06"
+  },
+  {
+    "id": "spike-down-no-news",
+    "claim": "Down spikes with no headline don't continue, so the pod should skip them.",
+    "status": "open",
+    "evidence": "Rank 1-25: down + no news -3.7 (n=550), -15.9 (t -2.66) in 2022-26; down + news +16.1 (n=145); gap t 2.74; up spikes show no gap. Found by looking, one cut of several. Chan (2003) has the same shape, in monthly returns and mainly small illiquid stocks.",
+    "confidence": "low",
+    "reopen_if": "Tested next on rank 26-100 and on forward shadow signals; rank 1-25 can't confirm it.",
+    "journal": "2026-11-06 spike-news; ideas.md A",
+    "updated": "2026-11-06"
   }
 ]

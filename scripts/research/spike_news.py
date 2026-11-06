@@ -42,8 +42,8 @@ def load_news() -> dict:
         tags.update(rows[sym])
     single, every = {}, {}
     for sym, items in rows.items():
-        every[sym] = np.sort(pd.to_datetime([c for c, _ in items], utc=True).asi8)
-        single[sym] = np.sort(pd.to_datetime([c for c, h in items if tags[(c, h)] < RECAP_NAMES], utc=True).asi8)
+        every[sym] = np.sort(pd.to_datetime([c for c, _ in items], utc=True).as_unit("ns").asi8)
+        single[sym] = np.sort(pd.to_datetime([c for c, h in items if tags[(c, h)] < RECAP_NAMES], utc=True).as_unit("ns").asi8)
     return single, every
 
 

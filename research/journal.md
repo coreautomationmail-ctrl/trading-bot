@@ -495,3 +495,35 @@ P&L, 0.34 if each day counts equally. The largest days are macro: best 2025-04-0
 these are Fed days. The usual day looks close to zero, which makes spike-events the key test. These sums
 ignore the pod's 4-position cap, so they are not the pod's own P&L. The earlier t 3.08 has the same
 weakness. Spike-pod correlation: skipped.
+
+## 2026-11-06 spike-down-no-news: does skipping down spikes with no headline help on other names?
+
+**Pre-registered, before any outcome on this cut was read.** Hypothesis (Chan 2003 shape, seen after the
+fact on rank 1-25 in spike-news): a down spike with no headline doesn't continue, so skipping it improves
+the group. Rank 1-25 found the lead and can't confirm it, so it is not tested here.
+Rules: spike_mom as live (vol >= 8x, move >= 5 sigma, signal 13:00-14:54 ET, 1-bar delay, hold 60), SIP
+1-min, 2017-2026, rank 26-100 by PRIOR-year dollar volume, trades and news tags taken unchanged from
+.cache/spike_news_scored.csv (n=4054). No news = n60 == 0: no single-name Benzinga headline in the 60
+minutes before the signal bar opens, 5+ name recaps not counted. Skipped = side -1 and no news. Kept =
+everything else. Costs 2 bps/side.
+PASS needs ALL of:
+- Filter: mean(kept) minus mean(all) >= +3 bps; Welch t of kept vs skipped >= 2 (the improvement is that
+  gap times the skipped share, so it has the same t); improvement positive in 2017-21 and 2022-26, and
+  in 2017-20 and 2021-26 (the standard gate's split, with no 2016 because rank needs a prior year).
+- Standard gate on kept: n >= 300; mean net >= +3; t >= 2.5; positive in >= 70% of years; same sign in
+  2017-20 and 2021-26; top symbol <= 25% of P&L.
+If PASS: same rules on the held-out rank 101+ (ranked names only), reported alongside. Still only a
+candidate for the paper pod's shadow log, not deployed.
+Reported, not gated: t by summed daily P&L; the gap's t with same-day trades clustered; win rate, median,
+top-1% share; each of the four cells (up/down, news/no news); down + news minus down + no news; the rule
+"skip ALL down spikes" for comparison; 4 bps/side; the 4-position cap; correlation of daily P&L with rank
+1-25 (not the pod's own P&L, which is on the VPS).
+Can't settle the news half: checked counts only, no returns. Headlines are rare here, 3-11% of signals
+by year, so down + news is n=116 and skipped is 94% of down spikes (1785 of 1901). This test is close to
+"are down spikes worse than up spikes here". If the skip-all rule does as well as the news rule, a pass
+says nothing about news, and the journal entry must say so.
+Not a clean first look: the pooled group is known (+0.4 net 2017-21, +3.3 net 2022-26, spike-wide-universe),
+and spike_news.log has a rank 26-100 news vs no-news line that I did not open; that line has no down split.
+Caveats that flatter the test: the extra names were picked with lists from 2017/2021/2025, and live IEX
+detection about halved the edge. Shorting costs and borrow are not modelled.
+Script: scripts/research/spike_down_no_news.py.

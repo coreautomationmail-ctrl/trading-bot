@@ -79,3 +79,10 @@ C. spike-regime-filter: retrain monthly on all earlier data, take or skip each
     Predictability Culled from the Factor Zoo" (Management Science 2025). Crude
     version: the 277 names' last-30-min returns, fit on past data only, predict
     SPY's next 30 min. 1-min; we have no factor data, so stock returns stand in.
+15. etf-jump-news-split: in intraday ETF data, jumps with no macro news reverse for
+    at least 60 minutes, jumps on scheduled news also reverse and jumps on
+    unscheduled news continue. Xiao, Yin & Zhao, "Jumps, News, and Subsequent Return
+    Dynamics: An Intraday Study" (J. Financial Research, 2020); seen in a search
+    summary only, read the paper first, and it reports no after-cost figures. Test on
+    SPY/QQQ: spike_mom's signal, faded and followed, split by a fixed macro calendar
+    (shares that calendar with idea B). 1-min; few signals, so n >= 300 may fail.

@@ -17,7 +17,7 @@ A. DONE, FAIL 2026-11-06, see journal. spike-down-no-news: spike-news (2026-11-0
    n60 and side per trade): does skipping down + no-news improve the group by at
    least +3 bps, t >= 2, same sign in 2017-21 and 2022-26? News-tagged down spikes
    there are few, so report n and say if it can't settle the question.
-B. spike-events: is the spike edge concentrated on event days (FOMC decision
+B. DONE, FAIL 2026-11-07, see journal. spike-events: is the spike edge concentrated on event days (FOMC decision
    days, top-1% tails)? Report the edge with and without them. Score it on daily
    P&L too: per-trade t 3.34 is only 1.33 by day, and the biggest days look macro.
    Define event days from a fixed calendar, never from which days had many signals.

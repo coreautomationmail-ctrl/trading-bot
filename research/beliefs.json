@@ -3,21 +3,21 @@
     "id": "spike-momentum-afternoon",
     "claim": "A 1-min spike (volume >= 8x, move >= 5 sigma) in top-dollar-volume names keeps running for the next hour in the afternoon.",
     "status": "live",
-    "evidence": "SIP 2022-26 top 25: +15.8 bps, t 2.7. IEX detection keeps about half (+7..10 gross). All years +7.1 net, t 3.08, n=1485. Live pod since 2026-10-30, too few trades to judge. Signals cluster on the same days: rank 1-25 +8.6 net is t 3.34 per trade but 1.33 on summed daily P&L and 0.34 with days weighted equally (2026-11-06).",
+    "evidence": "SIP 2022-26 top 25: +15.8 bps, t 2.7. IEX detection keeps about half (+7..10 gross). All years +7.1 net, t 3.08, n=1485. Live pod since 2026-10-30, too few trades to judge. Signals cluster on the same days: rank 1-25 +8.6 net is t 3.34 per trade but 1.33 on summed daily P&L and 0.34 with days weighted equally (2026-11-06). Without its 3 best days, none of them FOMC days and all picked after the fact, rank 1-25 is +0.2 net (t 0.11, n=1403); with the 4-position cap +2.0 (t 0.86), and those days' 13 trades are 65% of capped P&L (2026-11-07).",
     "confidence": "low",
     "reopen_if": "Live plus shadow evidence averages under the pause rule after 30+ trades.",
-    "journal": "2026-10 table; pods/spike",
-    "updated": "2026-11-06"
+    "journal": "2026-10 table; pods/spike; 2026-11-07 spike-events",
+    "updated": "2026-11-07"
   },
   {
     "id": "spike-tail-driven",
     "claim": "Spike P&L comes from a small share of trades; the median trade loses a little.",
     "status": "open",
-    "evidence": "Median -0.8 bps, win rate 48%, top 1% of trades = 45-63% of P&L. Never split by event days. The biggest days are macro, several of them Fed days (2025-04-09, 2022-11-30, 2022-11-02, 2024-09-18); splitting by event day is still to do.",
+    "evidence": "Median -0.8 bps, win rate 48%, top 1% of trades = 45-63% of P&L. Split by FOMC days: not the source. Three non-FOMC days (2025-04-09, 2022-11-30, 2019-08-01; 41 of 1,444 trades) are +12,139 of the +12,463 summed bps on rank 1-25; without them +0.2 net, t 0.11. Those days were picked after the fact, and dropping the 3 worst days too (all FOMC, -7,079) leaves +5.5, so the total rests on about 6 days either way.",
     "confidence": "high",
-    "reopen_if": "Tested next as spike-events.",
-    "journal": "project notes 2026-10-29; ideas.md B",
-    "updated": "2026-11-06"
+    "reopen_if": "A fixed calendar or a rule known at entry identifies these shock days in advance; CPI and jobs days aren't split yet.",
+    "journal": "project notes 2026-10-29; 2026-11-07 spike-events",
+    "updated": "2026-11-07"
   },
   {
     "id": "spike-wider-universe",
@@ -198,5 +198,15 @@
     "reopen_if": "Forward shadow signals in the pod's names, joined to recorded headlines, show down + no news losing over 30+ trades.",
     "journal": "2026-11-06 spike-news; 2026-11-06 spike-down-no-news",
     "updated": "2026-11-06"
+  },
+  {
+    "id": "spike-events",
+    "claim": "The spike edge is concentrated on scheduled FOMC decision days.",
+    "status": "rejected",
+    "evidence": "Rank 1-25, 2017-26: event n=308 -3.0 net (t -0.52, by day -0.18), 6/10 years; ordinary n=1136 +11.8 (t 4.09, by day 1.70). Gap -14.8, clustered t -0.83; +17.0 in 2017-21, -45.1 in 2022-26. Rank 26-100 agrees: -12.7 vs +4.0, gap clustered t -1.01. Skipping FOMC days isn't supported either: with the 4-position cap they are +8.3 vs +5.3, t 1.00.",
+    "confidence": "medium",
+    "reopen_if": "Only for a different event calendar (CPI, jobs) or a pre-registered 14:30 press-conference exit; the FOMC sign flip between periods is not a rule by itself.",
+    "journal": "2026-11-07 spike-events",
+    "updated": "2026-11-07"
   }
 ]

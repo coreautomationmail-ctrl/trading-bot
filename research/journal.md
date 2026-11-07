@@ -579,3 +579,36 @@ Caveats that flatter the event group: 2 bps/side at 14:00 on a Fed day is optimi
 simultaneous signals. Shorting costs are not modelled. Spike-pod correlation can't be computed from here (the live log
 is on the VPS); correlation with rank 1-25 is the stand-in.
 Script: scripts/research/spike_events.py.
+
+**Result: FAIL, 8 of 10 checks.** Rank 1-25, 2017-26. Event n=308, -3.0 net (t -0.52, by day -0.18), positive 6 of 10
+years, win 52%, median +1.5, top symbol BAC 21%. Ordinary n=1136, +11.8 (t 4.09, by day 1.70), 6 of 10 years, win 47%,
+median -2.6, top-1% share 48%. Gap -14.8, clustered t -0.83; 2017-21 +17.0, 2022-26 -45.1. The hypothesis is wrong:
+FOMC days add nothing to the pooled total, which goes from +12,463 summed bps to +13,388 without them. Not loosened.
+Held-out step not run, since it applies only to a PASS; rank 26-100 was reported anyway.
+Log: research/spike_events.log. A first version of the added diagnostics had a syntax error, so nothing printed; gates
+and calendar did not change.
+
+- Rank 26-100 agrees on the headline: event n=519 -12.7 (by day -0.76), ordinary n=3535 +4.0 (by day 0.78), gap -16.6,
+  clustered t -1.01. Its daily P&L correlates +0.87 with rank 1-25, so it is partly the same market days, not fully
+  independent evidence.
+- FOMC days flip sign: +22.1 in 2017-21, -24.2 in 2022-26 (t -2.64, by day -0.85), and 2025-26 is positive again. Too
+  unstable to use as a skip rule, and the 4-position cap reverses it: capped event n=167 +8.3 (t 1.00), capped ordinary
+  n=970 +5.3 (t 1.91, by day 1.42).
+- At 4 bps/side: event -7.0, ordinary +7.8.
+
+**Bigger finding, after the fact (not pre-registered, not evidence of a rule):** the total rests on very few days.
+Three non-FOMC days hold +12,139 of the +12,463 summed bps, on 41 of 1,444 trades: 2025-04-09 (+5561, 11 up trades, all
+entered 13:21), 2022-11-30 (+4247, 20 up, all 13:32), 2019-08-01 (+2331, 10 down, 13:28-14:28). Without them: n=1403,
++0.2 (t 0.11, by day 0.06). With the cap: those days are 13 trades and +4,266 of +6,516; the rest +2.0 (t 0.86, by day
+0.66). The news behind them is my recollection, not checked here: tariff pause, Powell's speech, tariff tweet. All three
+look like an unscheduled shock landing just before or in the window.
+That trim flatters the bad reading, because dropping any strategy's best days hurts it. The 3 worst days, all FOMC
+(2022-11-02, 2024-09-18, 2022-09-21), total -7,079. Dropping best 3 and worst 3 leaves n=1347, +5.5 (t 2.76, by day
+1.84), 6 of 10 years. Rank 26-100 on the same trim is -1.1 (t -0.84), so that residue doesn't carry over.
+So about 6 days in ten years decide the sign. Nothing here identifies them in advance, and live, the pod's outcome will
+mostly depend on whether such a day occurs while it's running.
+Reported cuts that looked strong were single days: minutes days +63.5 falls to -9.1 without 2025-04-09 (a minutes day by
+coincidence), and day-after +44.5 falls to +8.2 without 2019-08-01.
+Untested lead, a story and not a result: the hold from a 14:00 signal spans the 14:30 press conference, which could
+explain FOMC whipsaws. Not queued, because it would need FOMC-only trades, about 300 in ten years.
+Not done: CPI and jobs days (no fixed calendar in the cache). Spike-pod correlation: not computable here.

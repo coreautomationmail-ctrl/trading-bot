@@ -548,3 +548,34 @@ The pooled +1.8 matches the +0.4 and +3.3 from spike-wide-universe weighted by n
 Limit on the conclusion: rank 1-25 can still be different from these names, and the pod trades rank 1-25. The
 test says the pattern doesn't carry to other names, not that it is false in the pod's own names. Only forward
 shadow signals can check that.
+
+## 2026-11-07 spike-events: is the spike edge concentrated on FOMC decision days?
+
+**Pre-registered, before any return was split by event day.** Hypothesis: the rank 1-25 edge comes mostly from
+scheduled Fed decision days, when a 14:00 ET statement lands inside the signal window, and the usual day is near zero.
+Rules: spike_mom as live (vol >= 8x, move >= 5 sigma, signal 13:00-14:54 ET, 1-bar delay, hold 60), SIP 1-min,
+2017-2026 (data ends 2026-10-27), rank 1-25 by PRIOR-year dollar volume, trades unchanged from
+.cache/spike_news_scored.csv. Costs 2 bps/side. Event day = date in a fixed list of 77 scheduled decision days,
+2017-02-01 to 2026-09-16, in the script. Emergency moves (2020-03-03, 2020-03-15) are not on it and count as ordinary.
+Never defined from which days had signals.
+Calendar check, no returns read: written from memory of the Fed's calendars; search results confirmed only 2023, 2025,
+2026 and most of 2022, and the rest could not be confirmed online. SPY volume in 14:00-14:04 vs 13:30-13:59 has median
+6.3x on the 77 days vs 1.23x on all days, lowest 1.42x (2020-11-05). A wrong date would look like an ordinary day, and
+none does, though this can't catch a date that happens to be a minutes day.
+PASS (a case for restricting or sizing the pod by the calendar, through shadow first) needs ALL, on the event group:
+- n >= 300; mean net >= +3; t >= 2.5; positive in >= 70% of years; same sign in 2017-20 and 2021-26 (no 2016, since
+  rank needs a prior year); top symbol <= 25% of P&L.
+- t on summed daily P&L >= 2 (added because per-trade t is known to overstate here; stricter than the standard gate).
+- Event minus ordinary >= +3 bps; t with same-day trades clustered >= 2; same sign in 2017-21 and 2022-26.
+Reported whatever the verdict, not gated: rank 26-100 with the same split, as the replication; the ordinary group's own
+numbers and t by day (the "without them" half of the question); top-1% trades removed from each group; signals before
+vs from 14:00 on event days; up vs down; SPY/QQQ vs stocks; FOMC minutes days (decision + 21 calendar days) and the day
+after a decision; 4 bps/side; the 4-position cap; share of P&L from the 5 best days; win rate, median, top-1% share.
+Not a clean first look: pooled rank 1-25 is known, and spike-news listed some big days by date, a few of them Fed days
+of both signs. Counts were checked, no returns: event group n=308 on 55 days of 1,444 trades on 730 days, so n >= 300
+passes by only 8; rank 26-100 n=519 on 68 days. FOMC days are the only events tested. Big unscheduled macro days
+(2025-04-09, 2022-11-30) stay in ordinary, so "ordinary" doesn't mean quiet.
+Caveats that flatter the event group: 2 bps/side at 14:00 on a Fed day is optimistic, and the pod could not take many
+simultaneous signals. Shorting costs are not modelled. Spike-pod correlation can't be computed from here (the live log
+is on the VPS); correlation with rank 1-25 is the stand-in.
+Script: scripts/research/spike_events.py.

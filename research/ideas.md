@@ -86,3 +86,8 @@ C. spike-regime-filter: retrain monthly on all earlier data, take or skip each
     summary only, read the paper first, and it reports no after-cost figures. Test on
     SPY/QQQ: spike_mom's signal, faded and followed, split by a fixed macro calendar
     (shares that calendar with idea B). 1-min; few signals, so n >= 300 may fail.
+16. anomalies-on-news-days: anomaly returns are reported as about 2x higher on corporate news days and 7x on earnings
+    days. "Anomalies and News" (Engelberg, McLean & Pontiff, 2015 working paper; seen in an Alpha Architect recap,
+    read the paper first; returns reported are gross, long-horizon sample 1979-2013). Test: short-term reversal and
+    momentum ranks on the 277 names, entered only after a headline day from .cache/news. Daily, excess vs pool; 5
+    bps/side is the hurdle.

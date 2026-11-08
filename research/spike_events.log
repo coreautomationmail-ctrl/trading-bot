@@ -1,0 +1,104 @@
+trades 20700; last day 2026-10-27; calendar days 77; overlap minutes/decision 0, after/decision 0
+
+== PRIMARY rank 1-25
+  all                              n= 1444 net   +8.6 (t +3.34, by day +1.33) years+ 6/10 win 48% med -1.7 top1% +60%
+  event                            n=  308 net   -3.0 (t -0.52, by day -0.18) years+ 6/10 win 52% med +1.5 top1% -97%
+  ordinary                         n= 1136 net  +11.8 (t +4.09, by day +1.70) years+ 6/10 win 47% med -2.6 top1% +48%
+  event, top 1% removed            n=  305 net   -6.0 (t -1.07, by day -0.36) years+ 6/10 win 51% med +0.7 top1% -43%
+  ordinary, top 1% removed         n= 1125 net   +6.2 (t +2.76, by day +1.27) years+ 5/10 win 46% med -2.9 top1% +54%
+  event, 2017-21                   n=  141 net  +22.1 (t +3.73, by day +1.69) years+ 4/5 win 64% med +14.9 top1% +10%
+  ordinary, 2017-21                n=  656 net   +5.2 (t +2.02, by day +1.11) years+ 2/5 win 45% med -3.9 top1% +71%
+  event, 2022-26                   n=  167 net  -24.2 (t -2.64, by day -0.85) years+ 2/5 win 41% med -19.1 top1% -8%
+  ordinary, 2022-26                n=  480 net  +20.8 (t +3.57, by day +1.38) years+ 4/5 win 49% med -0.6 top1% +34%
+  event, signal before 14:00       n=   17 net   -2.4 (t -0.20, by day -0.19) years+ 3/8 win 47% med -1.9 top1% -310%
+  event, signal from 14:00         n=  291 net   -3.0 (t -0.50, by day -0.17) years+ 7/10 win 52% med +1.7 top1% -69%
+  event, up                        n=  190 net   -0.4 (t -0.05, by day -0.02) years+ 7/10 win 55% med +10.2 top1% -384%
+  ordinary, up                     n=  559 net  +21.9 (t +4.46, by day +1.69) years+ 6/10 win 51% med +0.8 top1% +31%
+  event, down                      n=  118 net   -7.2 (t -0.86, by day -0.35) years+ 5/10 win 46% med -7.2 top1% -36%
+  ordinary, down                   n=  577 net   +2.0 (t +0.66, by day +0.38) years+ 4/10 win 42% med -6.4 top1% +177%
+  event, ETFs                      n=   96 net   +6.1 (t +0.64, by day +0.43) years+ 6/10 win 50% med -0.0 top1% +49%
+  event, stocks                    n=  212 net   -7.1 (t -0.99, by day -0.37) years+ 7/10 win 52% med +1.9 top1% -40%
+  ordinary, ETFs                   n=  220 net  +10.4 (t +2.65, by day +1.63) years+ 6/10 win 46% med -2.7 top1% +34%
+  ordinary, stocks                 n=  916 net  +12.1 (t +3.52, by day +1.67) years+ 7/10 win 47% med -2.6 top1% +50%
+  minutes days                     n=   78 net  +63.5 (t +2.55, by day +0.88) years+ 3/10 win 47% med -2.9 top1% +22%
+  day after a decision             n=   62 net  +44.5 (t +2.58, by day +1.14) years+ 4/9 win 55% med +4.8 top1% +18%
+  rest, no event/minutes/after     n=  996 net   +5.7 (t +2.41, by day +1.14) years+ 6/10 win 46% med -2.9 top1% +58%
+  event by year: 2017:+17.0  2018:+28.9  2019:+31.0  2020:-7.5  2021:+16.7  2022:-92.6  2023:-3.9  2024:-9.4  2025:+43.0  2026:+53.0
+  ordinary by year: 2017:-5.1  2018:-13.4  2019:+10.5  2020:+27.8  2021:-2.0  2022:+41.9  2023:+2.3  2024:-0.2  2025:+36.0  2026:+18.6
+  event days: sum -925, 5 best days +4640; best 2021-03-17:+1139 2023-12-13:+1104 2019-01-30:+860 2018-12-19:+786 2024-12-18:+752; worst 2022-09-21:-1739 2024-09-18:-2122 2022-11-02:-3218
+  ordinary days: sum +13388, 5 best days +13431; best 2025-04-09:+5561 2022-11-30:+4247 2019-08-01:+2331 2019-06-06:+713 2021-04-22:+580; worst 2019-11-13:-405 2025-06-30:-407 2022-03-18:-440
+  at 4 bps/side: event -7.0, ordinary +7.8
+  4-position cap: event n=167 +8.3 sum +1386 (t +1.00, by day +0.58); ordinary n=970 +5.3 sum +5130 (t +1.91, by day +1.42)
+
+  top symbol BAC 21%; gap -14.8, clustered t -0.83; 2017-21 +17.0, 2022-26 -45.1; event 2017-20 +24.9, 2021-26 -15.1; event by-day t -0.18
+  ok   n >= 300
+  FAIL mean net >= 3
+  FAIL t >= 2.5
+  FAIL years+ >= 70%
+  FAIL same sign 2017-20 and 2021-26
+  ok   top symbol <= 25%
+  FAIL by-day t >= 2
+  FAIL gap >= +3
+  FAIL gap clustered t >= 2
+  FAIL gap same sign both periods
+PRIMARY verdict: FAIL
+
+== REPLICATION rank 26-100, reported whatever the verdict
+  all                              n= 4054 net   +1.8 (t +1.18, by day +0.37) years+ 6/10 win 43% med -5.2 top1% +340%
+  event                            n=  519 net  -12.7 (t -3.00, by day -0.76) years+ 6/10 win 44% med -12.5 top1% -28%
+  ordinary                         n= 3535 net   +4.0 (t +2.36, by day +0.78) years+ 5/10 win 43% med -4.9 top1% +166%
+  event, top 1% removed            n=  514 net  -16.4 (t -4.22, by day -0.97) years+ 5/10 win 44% med -13.1 top1% -13%
+  ordinary, top 1% removed         n= 3500 net   -2.6 (t -2.16, by day -1.07) years+ 1/10 win 43% med -5.2 top1% -119%
+  event, 2017-21                   n=  217 net  +15.9 (t +3.53, by day +1.38) years+ 4/5 win 57% med +8.1 top1% +15%
+  ordinary, 2017-21                n= 1818 net   -1.5 (t -0.77, by day -0.59) years+ 2/5 win 41% med -6.5 top1% -321%
+  event, 2022-26                   n=  302 net  -33.2 (t -5.33, by day -1.22) years+ 2/5 win 35% med -33.1 top1% -13%
+  ordinary, 2022-26                n= 1717 net   +9.7 (t +3.45, by day +0.96) years+ 3/5 win 46% med -2.5 top1% +80%
+  event, signal before 14:00       n=   69 net  -20.3 (t -1.72, by day -1.81) years+ 2/10 win 36% med -19.1 top1% -28%
+  event, signal from 14:00         n=  450 net  -11.5 (t -2.54, by day -0.59) years+ 6/10 win 45% med -11.1 top1% -28%
+  event, up                        n=  285 net  -23.5 (t -3.99, by day -0.82) years+ 4/10 win 46% med -12.1 top1% -8%
+  ordinary, up                     n= 1868 net   +5.7 (t +2.11, by day +0.60) years+ 5/10 win 45% med -3.8 top1% +135%
+  event, down                      n=  234 net   +0.5 (t +0.09, by day +0.04) years+ 5/10 win 42% med -12.7 top1% +792%
+  ordinary, down                   n= 1667 net   +2.0 (t +1.08, by day +0.78) years+ 6/10 win 42% med -6.1 top1% +224%
+  event, ETFs                      n=    0
+  event, stocks                    n=  519 net  -12.7 (t -3.00, by day -0.76) years+ 6/10 win 44% med -12.5 top1% -28%
+  ordinary, ETFs                   n=    0
+  ordinary, stocks                 n= 3535 net   +4.0 (t +2.36, by day +0.78) years+ 5/10 win 43% med -4.9 top1% +166%
+  minutes days                     n=  150 net  +96.8 (t +4.25, by day +0.94) years+ 4/10 win 49% med -1.8 top1% +9%
+  day after a decision             n=  152 net   +7.7 (t +0.83, by day +0.42) years+ 5/10 win 48% med -0.9 top1% +49%
+  rest, no event/minutes/after     n= 3233 net   -0.5 (t -0.36, by day -0.18) years+ 4/10 win 43% med -5.1 top1% -880%
+  event by year: 2017:+28.1  2018:+32.9  2019:+36.2  2020:+11.8  2021:-12.3  2022:-68.4  2023:-20.9  2024:-50.1  2025:+29.7  2026:+20.2
+  ordinary by year: 2017:-1.3  2018:+1.7  2019:-3.2  2020:+3.1  2021:-4.8  2022:+28.9  2023:-0.3  2024:-4.8  2025:+22.7  2026:+2.9
+  event days: sum -6573, 5 best days +5189; best 2019-01-30:+1824 2018-12-19:+967 2019-03-20:+855 2025-03-19:+788 2022-12-14:+755; worst 2022-09-21:-2120 2024-09-18:-4502 2022-11-02:-6251
+  ordinary days: sum +14064, 5 best days +26862; best 2025-04-09:+15393 2022-11-30:+6644 2019-08-01:+2435 2017-08-24:+1233 2026-08-13:+1158; worst 2021-01-28:-1192 2021-06-07:-1226 2025-04-08:-3398
+  at 4 bps/side: event -16.7, ordinary -0.0
+  4-position cap: event n=218 +8.1 sum +1758 (t +1.16, by day +0.84); ordinary n=3072 -0.8 sum -2393 (t -0.51, by day -0.44)
+
+  rank 26-100 gap -16.6, clustered t -1.01
+  daily P&L correlation rank 26-100 vs rank 1-25: +0.87
+  rank 1-25 daily sum: all +12463 over 730 days; without FOMC +13388 over 675
+
+== after the fact: not pre-registered
+ rank 1-25
+  2019-08-01: n=10 up 0 sum +2331 mean +233.1 max +510 entries 13:28-14:28
+  2022-11-30: n=20 up 20 sum +4247 mean +212.3 max +350 entries 13:32-13:32
+  2025-04-09: n=11 up 11 sum +5561 mean +505.5 max +1077 entries 13:21-13:21
+  without the 3 days               n= 1403 net   +0.2 (t +0.11, by day +0.06) years+ 5/10 win 46% med -3.5 top1% +1426%
+  ordinary without the 3 days      n= 1095 net   +1.1 (t +0.55, by day +0.44) years+ 4/10 win 45% med -4.7 top1% +276%
+  event without its 3 worst days   n=  252 net  +24.4 (t +4.48, by day +2.22) years+ 8/10 win 63% med +16.9 top1% +10%
+  without the 3 best and 3 worst   n= 1347 net   +5.5 (t +2.76, by day +1.84) years+ 6/10 win 48% med -1.3 top1% +59%
+  minutes without 2025-04-09       n=   67 net   -9.1 (t -1.21, by day -0.86) years+ 2/10 win 39% med -10.2 top1% -41%
+  day after without 2019-08-01     n=   52 net   +8.2 (t +0.65, by day +0.60) years+ 4/9 win 48% med -4.0 top1% +104%
+  without the 3 days by year: 2017:-2.1  2018:-5.3  2019:+6.2  2020:+25.6  2021:+4.5  2022:-52.7  2023:+0.2  2024:-3.2  2025:-0.4  2026:+21.6
+  4-position cap: all n=1137 sum +6516; the 3 days n=13 sum +4266; without them +2.0 (t +0.86, by day +0.66)
+ rank 26-100
+  2019-08-01: n=13 up 0 sum +2435 mean +187.3 max +574 entries 13:12-13:41
+  2022-11-30: n=45 up 45 sum +6644 mean +147.6 max +399 entries 13:27-13:32
+  2025-04-09: n=38 up 37 sum +15393 mean +405.1 max +1305 entries 13:03-13:21
+  without the 3 days               n= 3958 net   -4.3 (t -3.35, by day -1.60) years+ 4/10 win 42% med -6.1 top1% -97%
+  ordinary without the 3 days      n= 3439 net   -3.0 (t -2.28, by day -1.70) years+ 3/10 win 42% med -5.8 top1% -141%
+  event without its 3 worst days   n=  403 net  +15.6 (t +3.81, by day +1.96) years+ 8/10 win 57% med +9.0 top1% +25%
+  without the 3 best and 3 worst   n= 3842 net   -1.1 (t -0.84, by day -0.59) years+ 5/10 win 44% med -4.9 top1% -396%
+  minutes without 2025-04-09       n=  112 net   -7.8 (t -1.25, by day -0.99) years+ 4/10 win 40% med -9.2 top1% -25%
+  day after without 2019-08-01     n=  139 net   -9.1 (t -1.13, by day -0.94) years+ 4/10 win 44% med -5.5 top1% -20%
+  without the 3 days by year: 2017:+0.9  2018:+4.6  2019:-2.8  2020:+3.5  2021:-6.3  2022:-29.2  2023:-3.8  2024:-13.1  2025:-5.8  2026:+4.1
+  4-position cap: all n=3290 sum -635; the 3 days n=12 sum +4436; without them -1.5 (t -1.11, by day -0.98)

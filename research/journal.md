@@ -548,3 +548,67 @@ The pooled +1.8 matches the +0.4 and +3.3 from spike-wide-universe weighted by n
 Limit on the conclusion: rank 1-25 can still be different from these names, and the pod trades rank 1-25. The
 test says the pattern doesn't carry to other names, not that it is false in the pod's own names. Only forward
 shadow signals can check that.
+
+## 2026-11-07 spike-events: is the spike edge concentrated on FOMC decision days?
+
+**Pre-registered, before any return was split by event day.** Hypothesis: the rank 1-25 edge comes mostly from
+scheduled Fed decision days, when a 14:00 ET statement lands inside the signal window, and the usual day is near zero.
+Rules: spike_mom as live (vol >= 8x, move >= 5 sigma, signal 13:00-14:54 ET, 1-bar delay, hold 60), SIP 1-min,
+2017-2026 (data ends 2026-10-27), rank 1-25 by PRIOR-year dollar volume, trades unchanged from
+.cache/spike_news_scored.csv. Costs 2 bps/side. Event day = date in a fixed list of 77 scheduled decision days,
+2017-02-01 to 2026-09-16, in the script. Emergency moves (2020-03-03, 2020-03-15) are not on it and count as ordinary.
+Never defined from which days had signals.
+Calendar check, no returns read: written from memory of the Fed's calendars; search results confirmed only 2023, 2025,
+2026 and most of 2022, and the rest could not be confirmed online. SPY volume in 14:00-14:04 vs 13:30-13:59 has median
+6.3x on the 77 days vs 1.23x on all days, lowest 1.42x (2020-11-05). A wrong date would look like an ordinary day, and
+none does, though this can't catch a date that happens to be a minutes day.
+PASS (a case for restricting or sizing the pod by the calendar, through shadow first) needs ALL, on the event group:
+- n >= 300; mean net >= +3; t >= 2.5; positive in >= 70% of years; same sign in 2017-20 and 2021-26 (no 2016, since
+  rank needs a prior year); top symbol <= 25% of P&L.
+- t on summed daily P&L >= 2 (added because per-trade t is known to overstate here; stricter than the standard gate).
+- Event minus ordinary >= +3 bps; t with same-day trades clustered >= 2; same sign in 2017-21 and 2022-26.
+Reported whatever the verdict, not gated: rank 26-100 with the same split, as the replication; the ordinary group's own
+numbers and t by day (the "without them" half of the question); top-1% trades removed from each group; signals before
+vs from 14:00 on event days; up vs down; SPY/QQQ vs stocks; FOMC minutes days (decision + 21 calendar days) and the day
+after a decision; 4 bps/side; the 4-position cap; share of P&L from the 5 best days; win rate, median, top-1% share.
+Not a clean first look: pooled rank 1-25 is known, and spike-news listed some big days by date, a few of them Fed days
+of both signs. Counts were checked, no returns: event group n=308 on 55 days of 1,444 trades on 730 days, so n >= 300
+passes by only 8; rank 26-100 n=519 on 68 days. FOMC days are the only events tested. Big unscheduled macro days
+(2025-04-09, 2022-11-30) stay in ordinary, so "ordinary" doesn't mean quiet.
+Caveats that flatter the event group: 2 bps/side at 14:00 on a Fed day is optimistic, and the pod could not take many
+simultaneous signals. Shorting costs are not modelled. Spike-pod correlation can't be computed from here (the live log
+is on the VPS); correlation with rank 1-25 is the stand-in.
+Script: scripts/research/spike_events.py.
+
+**Result: FAIL, 8 of 10 checks.** Rank 1-25, 2017-26. Event n=308, -3.0 net (t -0.52, by day -0.18), positive 6 of 10
+years, win 52%, median +1.5, top symbol BAC 21%. Ordinary n=1136, +11.8 (t 4.09, by day 1.70), 6 of 10 years, win 47%,
+median -2.6, top-1% share 48%. Gap -14.8, clustered t -0.83; 2017-21 +17.0, 2022-26 -45.1. The hypothesis is wrong:
+FOMC days add nothing to the pooled total, which goes from +12,463 summed bps to +13,388 without them. Not loosened.
+Held-out step not run, since it applies only to a PASS; rank 26-100 was reported anyway.
+Log: research/spike_events.log. A first version of the added diagnostics had a syntax error, so nothing printed; gates
+and calendar did not change.
+
+- Rank 26-100 agrees on the headline: event n=519 -12.7 (by day -0.76), ordinary n=3535 +4.0 (by day 0.78), gap -16.6,
+  clustered t -1.01. Its daily P&L correlates +0.87 with rank 1-25, so it is partly the same market days, not fully
+  independent evidence.
+- FOMC days flip sign: +22.1 in 2017-21, -24.2 in 2022-26 (t -2.64, by day -0.85), and 2025-26 is positive again. Too
+  unstable to use as a skip rule, and the 4-position cap reverses it: capped event n=167 +8.3 (t 1.00), capped ordinary
+  n=970 +5.3 (t 1.91, by day 1.42).
+- At 4 bps/side: event -7.0, ordinary +7.8.
+
+**Bigger finding, after the fact (not pre-registered, not evidence of a rule):** the total rests on very few days.
+Three non-FOMC days hold +12,139 of the +12,463 summed bps, on 41 of 1,444 trades: 2025-04-09 (+5561, 11 up trades, all
+entered 13:21), 2022-11-30 (+4247, 20 up, all 13:32), 2019-08-01 (+2331, 10 down, 13:28-14:28). Without them: n=1403,
++0.2 (t 0.11, by day 0.06). With the cap: those days are 13 trades and +4,266 of +6,516; the rest +2.0 (t 0.86, by day
+0.66). The news behind them is my recollection, not checked here: tariff pause, Powell's speech, tariff tweet. All three
+look like an unscheduled shock landing just before or in the window.
+That trim flatters the bad reading, because dropping any strategy's best days hurts it. The 3 worst days, all FOMC
+(2022-11-02, 2024-09-18, 2022-09-21), total -7,079. Dropping best 3 and worst 3 leaves n=1347, +5.5 (t 2.76, by day
+1.84), 6 of 10 years. Rank 26-100 on the same trim is -1.1 (t -0.84), so that residue doesn't carry over.
+So about 6 days in ten years decide the sign. Nothing here identifies them in advance, and live, the pod's outcome will
+mostly depend on whether such a day occurs while it's running.
+Reported cuts that looked strong were single days: minutes days +63.5 falls to -9.1 without 2025-04-09 (a minutes day by
+coincidence), and day-after +44.5 falls to +8.2 without 2019-08-01.
+Untested lead, a story and not a result: the hold from a 14:00 signal spans the 14:30 press conference, which could
+explain FOMC whipsaws. Not queued, because it would need FOMC-only trades, about 300 in ten years.
+Not done: CPI and jobs days (no fixed calendar in the cache). Spike-pod correlation: not computable here.

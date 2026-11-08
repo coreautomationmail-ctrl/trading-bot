@@ -17,7 +17,7 @@ A. DONE, FAIL 2026-11-06, see journal. spike-down-no-news: spike-news (2026-11-0
    n60 and side per trade): does skipping down + no-news improve the group by at
    least +3 bps, t >= 2, same sign in 2017-21 and 2022-26? News-tagged down spikes
    there are few, so report n and say if it can't settle the question.
-B. spike-events: is the spike edge concentrated on event days (FOMC decision
+B. DONE, FAIL 2026-11-07, see journal. spike-events: is the spike edge concentrated on event days (FOMC decision
    days, top-1% tails)? Report the edge with and without them. Score it on daily
    P&L too: per-trade t 3.34 is only 1.33 by day, and the biggest days look macro.
    Define event days from a fixed calendar, never from which days had many signals.
@@ -86,3 +86,8 @@ C. spike-regime-filter: retrain monthly on all earlier data, take or skip each
     summary only, read the paper first, and it reports no after-cost figures. Test on
     SPY/QQQ: spike_mom's signal, faded and followed, split by a fixed macro calendar
     (shares that calendar with idea B). 1-min; few signals, so n >= 300 may fail.
+16. anomalies-on-news-days: anomaly returns are reported as about 2x higher on corporate news days and 7x on earnings
+    days. "Anomalies and News" (Engelberg, McLean & Pontiff, 2015 working paper; seen in an Alpha Architect recap,
+    read the paper first; returns reported are gross, long-horizon sample 1979-2013). Test: short-term reversal and
+    momentum ranks on the 277 names, entered only after a headline day from .cache/news. Daily, excess vs pool; 5
+    bps/side is the hurdle.

@@ -9,6 +9,16 @@ watch-only. The live spike pod stays on its own script until a replay match. Dec
 auto-promotion on paper YES (ladder.py rules); crypto and options IN scope, traded only
 if they pass; thesis pod waits for the engine.
 
+Update 2026-11-07 late (council review of the API-budget plan, owner approved):
+- Real money needs the go-live checks in pods/bench/golive.py. At the spike pod's ~0.6 trades a day,
+  300 forward trades take about 500 trading days, so a real-money decision before 2027 needs a NEW pass
+  that trades across the 277 names. Live-money machinery isn't built until something passes.
+- Multiple testing: the headline family is pre-registered as 3 tests under one combined bar
+  (t >= 2.9, journal 2026-11-07), scored first with a free word list. Claude labels only if they beat
+  the word list on months after the model's training data. If nothing passes, no more API money for
+  trading signals; the desk continues free.
+- No tuning on live results: no spike-pod variants picked from live P&L.
+
 ## The goal
 
 Turn STRATTON from one rule that waits for a signal into a fund that each day

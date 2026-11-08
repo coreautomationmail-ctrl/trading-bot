@@ -26,14 +26,10 @@ come first now, then the last Phase 2 question (C). Crypto and options are in sc
 if they can make money. Near-misses go to the shadow bench (pods/bench) as watch-only;
 a fresh PASS here is what puts a rule on it with real ladder stages.
 
-D. news-drift: trade the headline itself, not a spike filtered by it. Chan (2003),
-   "Stock price reaction to news and no-news" (JFE): drift after news (check the
-   paper before pre-registering). Every single-name headline (tagged to fewer than 5
-   names, as spike_news.py) created 09:45-14:50 ET on the 277 names: take the 1-min
-   return of the first bar that opens after created_at, minus SPY's same bar; if it
-   is at least 3 trailing-30-bar sds, enter that direction at the next bar's open,
-   hold 60 min (primary; also report 30). 2 bps/side. Rank 1-100 by prior-year dollar
-   volume is the primary group; report 101-277 as held out.
+D. headline-family: PRE-REGISTERED in research/journal.md (2026-11-07 PRE-REGISTRATION
+   headline-family). Run T1, T2 and T3 with scorer S1 (the cached word list) exactly as written there,
+   and append the results to that entry. Don't add tests to the family. S2 (Claude labels) only under
+   that entry's rule, never by the desk.
 E. steady-movers: plan question 4. Most missed movers rise steadily, never spiking.
    At 12:00 ET (primary; report 11:00 and 13:00), among the 277 names: return since
    the 09:30 open in the top or bottom decile AND efficiency ratio (|net move since

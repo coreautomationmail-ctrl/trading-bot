@@ -629,3 +629,47 @@ open-window fades on volume, and every one reversed after 2020. Full table: rese
 Lesson: plain price-and-volume triggers on liquid names, at 1-60 minute holds, carry no edge after
 2 bps/side, consistent with the 11 earlier price-pattern FAILs. The next families should add
 information prices don't have (headline direction, filings, the calendar), not more price shapes.
+
+## 2026-11-07 PRE-REGISTRATION headline-family: 3 tests under one combined bar (check-in; the desk runs it)
+
+Why now: a council review of the plan for the new API budget. With 15/15 desk FAILs and 0/432 grammar
+rules, more tests mostly add false-pass risk. So this family is fixed in advance and is the last paid
+trading-signal step unless something in it passes.
+
+Scorers:
+- S1 word list (free): Loughran-McDonald Master Dictionary 1993-2025, cached at
+  .cache/lexicon/lm_master_1993-2025.csv (free for non-commercial research; a lexicon rule going to real
+  money would need a license or a different scorer). Headline score = positive minus negative words
+  (tokens = runs of A-Z after uppercasing). Above 0 good, below 0 bad, 0 neutral and skipped.
+- S2 Claude (paid, only under the rule below): Haiku 5.5 labels good / bad / neutral from the headline
+  text alone.
+
+Headlines: single-name (tagged to fewer than 5 of the 277 names, as scripts/research/spike_news.py),
+created_at strictly before the signal bar opens.
+
+Tests (all 277 names, 2016-2026 1-min SIP, 2 bps a side):
+- T1 news-direction: headline created 09:45-14:50 ET. Enter at the open of the 2nd bar that starts after
+  created_at, in the headline's direction; exit 60 bars later, same day. First headline per name per 60
+  minutes; no overlapping trades per name.
+- T2 spike-agreement: spike_mom signals (volume >= 8x, |move| >= 5 sd, 09:35-14:58, backtest_scalp's
+  1-bar delay, hold 60) with a scored single-name headline in the prior 60 minutes; trade only when the
+  spike's direction matches the headline's sign. Report the disagreeing group too (not a test).
+- T3 earnings-open: 8-K item 2.02 filed between 16:00 the previous day and 09:25 ET
+  (backtest_pead.earnings_filings). Sign = sum of that name's headline scores from 1 hour before the
+  filing to 09:25. Enter at the 10:00 open in that direction, exit at 15:55.
+
+Combined bar: at most 6 tests (3 x 2 scorers), so each needs t >= 2.9 on summed daily net P&L
+(Bonferroni, 0.05/6 two-sided), plus the desk gate: n >= 300, mean net >= 3 bps, >= 70% of years
+positive, same sign in 2016-20 and 2021-26, no symbol over 25% of P&L. Held out: names ranked 101-277 by
+prior-year dollar volume, reported separately; a pass also needs the same sign there with t >= 2.
+
+Claude-label rule (decided before any result): after S1's results, Vision labels headlines from
+2025-07-01 on with Haiku (about $0.60). S1 and S2 are compared on T1 trades from 2026-07-01 on, after the
+model's training data (taken as ending June 2026), so S2 can't know what happened next. The full labelling
+(about $5) and S2's runs of T1-T3 happen only if S2 beats S1 there by >= 3 bps per trade on the same
+trades. The bar stays t >= 2.9 either way.
+
+Stop rule: if nothing passes, no more API money goes to trading signals. The desk keeps testing free
+ideas on the subscription, and STRATTON's real-money decision waits for a pass on free data.
+
+Results: (the desk appends them here, S1 first.)

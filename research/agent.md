@@ -45,6 +45,8 @@ FAIL is a good run. Never loosen a gate after seeing results.
   created_at, headline; 2016 on, filled by scripts/fill_news_cache.py). Check
   coverage by year before testing, because early years are thinner. Only a
   headline whose created_at is BEFORE the signal bar may be used.
+- `.cache/lexicon/lm_master_1993-2025.csv`: the Loughran-McDonald financial word list
+  (columns Word, Negative, Positive, ...; nonzero = in that list). Free scorer for headline tests.
 - `.cache/crypto/m1_<BASE>_<YEAR>.pkl`: Alpaca 1-min crypto bars (BTC, ETH, SOL,
   DOGE, LTC, AVAX, LINK; 2021 on; UTC, all hours). Same columns as `load_year`;
   read them with `pandas.read_pickle`. Crypto costs are Alpaca's fees, not 2 bps:

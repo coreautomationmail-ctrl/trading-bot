@@ -26,7 +26,7 @@ come first now, then the last Phase 2 question (C). Crypto and options are in sc
 if they can make money. Near-misses go to the shadow bench (pods/bench) as watch-only;
 a fresh PASS here is what puts a rule on it with real ladder stages.
 
-D. headline-family: PRE-REGISTERED in research/journal.md (2026-11-07 PRE-REGISTRATION
+D. S1 DONE, all 3 FAIL 2026-11-08, see journal; S2 is Vision's step. headline-family: PRE-REGISTERED in research/journal.md (2026-11-07 PRE-REGISTRATION
    headline-family). Run T1, T2 and T3 with scorer S1 (the cached word list) exactly as written there,
    and append the results to that entry. Don't add tests to the family. S2 (Claude labels) only under
    that entry's rule, never by the desk.

@@ -673,3 +673,24 @@ Stop rule: if nothing passes, no more API money goes to trading signals. The des
 ideas on the subscription, and STRATTON's real-money decision waits for a pass on free data.
 
 Results: (the desk appends them here, S1 first.)
+
+**Desk run plan, 2026-11-08, written before any T1-T3 outcome was computed.** Scorer S1 only. The rules
+above stand; these are the readings of points they leave open, fixed now:
+- Data: all 277 names, every year 2016-2026 is cached (data ends 2026-10-27). Headlines from .cache/news.
+  8-K filings from .cache/edgar only (no SEC calls; a name with no cached CIK is left out of T3 and listed).
+- Single-name = the (created_at, headline) pair appears in fewer than 5 of the 277 files. Headlines with the
+  same name and timestamp are summed into one score.
+- T1: "first headline per 60 minutes" is among non-neutral headlines: a scored headline triggers only if no
+  scored headline on that name was taken in the prior 60 minutes, and only if its entry is after the name's
+  previous exit. Entry = open of the 2nd bar whose start is after created_at; exit = close of the 60th bar
+  (entry bar included), same day, by bar count.
+- T2: spike rule as scripts/research/spike_wide.py but window 09:35-14:58; score = sum of single-name
+  headline scores with created_at in [signal bar open - 60 min, signal bar open). Sum 0 = no trade.
+- T3: "previous day" = previous trading day in the name's bars. One trade per name-day. Entry = 10:00 bar
+  open, exit = 15:55 bar open. Score window [first filing in the window - 1 h, 09:25 ET of the trade day).
+- Day t = per-test daily sum of net bps across names. Top-symbol share = biggest symbol's net sum over the sum
+  of positive symbol sums. Years: 2016-26 (11). Held out = trades in names ranked 101-277 by prior-year dollar
+  volume within the 277, so 2017-26 only; it is a subset of the main sample, as written above.
+- Reported, not gated: per-trade t, win rate, median, top-1% share, the T2 disagreeing group, daily P&L
+  correlation with spike_mom rank 1-25 trades from .cache/spike_wide_trades.csv (a stand-in for the pod).
+Script: scripts/research/headline_family.py.

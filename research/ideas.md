@@ -129,3 +129,10 @@ C. spike-regime-filter: retrain monthly on all earlier data, take or skip each
     read the paper first; returns reported are gross, long-horizon sample 1979-2013). Test: short-term reversal and
     momentum ranks on the 277 names, entered only after a headline day from .cache/news. Daily, excess vs pool; 5
     bps/side is the hurdle.
+17. spy-noise-boundary: SPY goes long (short) when price leaves a "noise area" above (below) the open, the band
+    being the average absolute move from the open at that time of day over the prior 14 sessions; checked every
+    30 minutes, trailing stop at the band or VWAP, flat at the close. Reported net of commissions and slippage,
+    2007-2024, Sharpe 1.33. Zarattini, Aziz & Barbon, "Beat the Market: An Effective Intraday Momentum Strategy
+    for S&P500 ETF (SPY)" (SSRN / Swiss Finance Institute RP 24-97, 2024-25); seen in search summaries only, read
+    the paper first. Differs from the rejected first-half-hour rule: the trigger is a time-of-day volatility band.
+    SPY/QQQ 1-min 2016-26; one trade a day at most, so n >= 300 needs both ETFs or all years.

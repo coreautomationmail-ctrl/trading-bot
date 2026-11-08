@@ -612,3 +612,20 @@ coincidence), and day-after +44.5 falls to +8.2 without 2019-08-01.
 Untested lead, a story and not a result: the hold from a 14:00 signal spans the 14:30 press conference, which could
 explain FOMC whipsaws. Not queued, because it would need FOMC-only trades, about 300 in ten years.
 Not done: CPI and jobs days (no fixed calendar in the cache). Spike-pod correlation: not computable here.
+
+## 2026-11-07 grammar-zmove: 432 intraday move rules at once (check-in, not the desk)
+
+Pre-registered in scripts/research/grammar.py before the run: every combination of a 5/15/30-minute
+move (raw or minus SPY) at |z| >= 3 or 4 of the trailing 1-min sd, optional volume >= 3x, follow or
+fade, three windows (09:45-10:59, 11:00-13:29, 13:30-15:00), hold 15/30/60. All 277 names, 2 bps/side.
+Design 2016-20 needed n >= 1000, mean >= 3 bps, day t >= 3.5 (for 432 tries); held-out 2021-26 the
+same sign, mean >= 2, day t >= 2, 4 of 6 years positive.
+
+Result: FAIL, 0 of 432. No rule reached day t 3.5 in design (best 2.23: fade a market-relative 15-min
+|z| >= 4 move on 3x volume at the open, +10.7 bps, n 885), and that one lost in held-out (-4.7, t -1.23).
+Only 1 rule cleared t 2 in design; none cleared t 2 held out. The strongest-looking cells are all
+open-window fades on volume, and every one reversed after 2020. Full table: research/grammar_zmove.csv.
+
+Lesson: plain price-and-volume triggers on liquid names, at 1-60 minute holds, carry no edge after
+2 bps/side, consistent with the 11 earlier price-pattern FAILs. The next families should add
+information prices don't have (headline direction, filings, the calendar), not more price shapes.

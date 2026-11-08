@@ -208,5 +208,15 @@
     "reopen_if": "Only for a different event calendar (CPI, jobs) or a pre-registered 14:30 press-conference exit; the FOMC sign flip between periods is not a rule by itself.",
     "journal": "2026-11-07 spike-events",
     "updated": "2026-11-07"
+  },
+  {
+    "id": "price-triggers-no-edge",
+    "claim": "Simple intraday price/volume move triggers (follow or fade, 1-60 min holds) on the 277 liquid names have no edge after 2 bps/side.",
+    "status": "rejected",
+    "evidence": "grammar-zmove 2026-11-07: 0 of 432 rules passed; best design day t 2.23 (needed 3.5) and it reversed held out (-4.7 bps, t -1.23). No rule had held-out t >= 2.",
+    "confidence": "high",
+    "reopen_if": "A new information source (headline direction, filings) changes which moves are taken; test that as its own family.",
+    "journal": "2026-11-07 grammar-zmove",
+    "updated": "2026-11-07"
   }
 ]

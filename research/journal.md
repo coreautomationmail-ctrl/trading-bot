@@ -694,3 +694,20 @@ above stand; these are the readings of points they leave open, fixed now:
 - Reported, not gated: per-trade t, win rate, median, top-1% share, the T2 disagreeing group, daily P&L
   correlation with spike_mom rank 1-25 trades from .cache/spike_wide_trades.csv (a stand-in for the pod).
 Script: scripts/research/headline_family.py.
+
+**S1 results, 2026-11-08: all three FAIL.** 277 names, 2016-26, 2 bps/side, day t = summed daily net. Log:
+research/headline_family.log; trades in .cache/headline_family_s1_trades.csv. Of 690,145 single-name headlines,
+S1 scores 11% good, 17% bad, 73% neutral (skipped). No T3 filings for 12 names (ETFs and foreign filers, listed in the log).
+- T1 news-direction: n=56,217, -3.41 net (gross +0.6), day t -7.51, 1 of 11 years positive; held out rank 101-277
+  -2.17, day t -1.56. FAIL 4/8. The word-list direction carries about nothing; the cost is the whole loss.
+- T2 spike-agreement: n=301, +12.3 net, day t 1.53 (needed 2.9), per-trade t 1.69, 8 of 11 years, +8.0 / +15.5 by
+  period, top symbol NVAX 10%; held out n=86, +20.6, day t 1.56. FAIL 6/8, on both t checks.
+- T3 earnings-open: n=1,956, -4.85 net, day t -0.79, 5 of 11 years; held out -2.72, day t -0.27. FAIL 4/8.
+- Reported only: T2 disagreeing (spike against the headline) n=278, +21.0 net, day t 2.44, so agreement does
+  not help; it is worse. Together that is the spike-news result again: spikes with any headline run, and the
+  word list's sign adds nothing. T3 split (not evidence): good-scored names long -11.8 (n=1,328), bad-scored short
+  +9.9 (n=628), i.e. the open-to-close move went against the headline tone after 10:00.
+- Daily P&L correlation with spike_mom rank 1-25: T1 -0.13, T2 +0.34, T3 +0.02.
+Verdict: no S1 test passes. Not loosened. Under the pre-registered rule, the S2 (Claude label) comparison is
+Vision's step, not the desk's, and was not run here. If S2 doesn't qualify, the stop rule applies: no more API
+money on trading signals.

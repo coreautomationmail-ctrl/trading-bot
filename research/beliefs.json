@@ -163,11 +163,11 @@
     "id": "price-only-research-exhausted",
     "claim": "New edge in these liquid names is more likely from new data (news, filings, flows, options) than from more price rules.",
     "status": "open",
-    "evidence": "11 straight FAILs, nearly all price patterns on the same data. A pattern, not a test; the news and filing tests will challenge it. So far the first two news tests also FAILED: spike-news and spike-down-no-news, both using only headline timing, not content.",
+    "evidence": "11 straight FAILs, nearly all price patterns on the same data. A pattern, not a test; the news and filing tests will challenge it. So far the first two news tests also FAILED: spike-news and spike-down-no-news, both using only headline timing, not content. headline-family S1 (2026-11-08): headline CONTENT by word list also failed all three tests (T1 -3.4 net, day t -7.5, n=56,217; T2 day t 1.53; T3 -4.9).",
     "confidence": "low",
     "reopen_if": "New-data tests fail as often as price tests have: rethink the universe and horizon instead.",
-    "journal": "docs/stratton-revamp-plan.md; 2026-11-06 spike-news; 2026-11-06 spike-down-no-news",
-    "updated": "2026-11-06"
+    "journal": "docs/stratton-revamp-plan.md; 2026-11-06 spike-news; 2026-11-06 spike-down-no-news; 2026-11-07 headline-family",
+    "updated": "2026-11-08"
   },
   {
     "id": "data-raw-bars-carry-splits",
@@ -183,11 +183,11 @@
     "id": "spike-news",
     "claim": "Spikes with a single-name headline in the prior 60 minutes run further than spikes without.",
     "status": "open",
-    "evidence": "Rank 1-25: news +15.9 net (t 2.98, n=321, 9/10 years), no news +6.5 (t 2.22, n=1123). Gap +9.4, t 1.54, under the t 2 gate: FAIL. The 15-minute window (-0.6) and since-close window (-5.4) disagree. Stocks only: t 1.14. The down-spike lead behind the gap didn't replicate on rank 26-100 (-0.9, t -0.11, n=116).",
+    "evidence": "Rank 1-25: news +15.9 net (t 2.98, n=321, 9/10 years), no news +6.5 (t 2.22, n=1123). Gap +9.4, t 1.54, under the t 2 gate: FAIL. The 15-minute window (-0.6) and since-close window (-5.4) disagree. Stocks only: t 1.14. The down-spike lead behind the gap didn't replicate on rank 26-100 (-0.9, t -0.11, n=116). Headline-family T2 (2026-11-08, all 277 names, 09:35-14:58): spikes whose headline tone agrees +12.3 net (day t 1.53, n=301), disagreeing +21.0 (day t 2.44, n=278), so a headline helps regardless of its word-list sign.",
     "confidence": "low",
     "reopen_if": "Forward shadow signals joined to recorded headlines show the same gap.",
-    "journal": "2026-11-06 spike-news; 2026-11-06 spike-down-no-news",
-    "updated": "2026-11-06"
+    "journal": "2026-11-06 spike-news; 2026-11-06 spike-down-no-news; 2026-11-07 headline-family",
+    "updated": "2026-11-08"
   },
   {
     "id": "spike-down-no-news",
@@ -218,5 +218,15 @@
     "reopen_if": "A new information source (headline direction, filings) changes which moves are taken; test that as its own family.",
     "journal": "2026-11-07 grammar-zmove",
     "updated": "2026-11-07"
+  },
+  {
+    "id": "headline-tone-wordlist",
+    "claim": "The Loughran-McDonald word-list tone of single-name headlines gives a tradable intraday direction (after a headline, with a spike, or on earnings mornings).",
+    "status": "rejected",
+    "evidence": "Pre-registered family, 277 names 2016-26, 2 bps/side, bar day t >= 2.9. T1 follow the headline 60 min: n=56,217, -3.41 net (gross +0.6), day t -7.51. T2 spike agrees with tone: n=301, +12.3, day t 1.53; held out +20.6, day t 1.56; disagreeing +21.0. T3 earnings 10:00-15:55 in the tone's direction: n=1,956, -4.85, day t -0.79. 73% of headlines score neutral.",
+    "confidence": "high",
+    "reopen_if": "A better scorer (S2 Claude labels, under the pre-registered rule) beats S1 by >= 3 bps on post-training T1 trades.",
+    "journal": "2026-11-07 PRE-REGISTRATION headline-family (S1 results 2026-11-08)",
+    "updated": "2026-11-08"
   }
 ]

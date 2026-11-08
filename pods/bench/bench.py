@@ -28,6 +28,7 @@ from datetime import datetime, timedelta, timezone
 
 import requests
 
+import golive
 import ladder
 import spike_pod
 import strategies
@@ -39,6 +40,7 @@ VIRTUAL_CSV = os.path.join(STATE_DIR, "bench_virtual.csv")
 PAPER_CSV = os.path.join(STATE_DIR, "bench_paper.csv")
 LADDER_FILE = os.path.join(STATE_DIR, "ladder.json")
 KILL_FILE = os.path.join(STATE_DIR, "KILL")
+SPIKE_DIR = os.getenv("SPIKE_DIR", "/spike")   # the spike pod's data, mounted read-only
 VIRTUAL_FIELDS = ["strategy", "date", "et", "symbol", "side", "signal_bar", "entry_px", "exit_px",
                   "gross_bps", "net_bps", "tags"]
 PAPER_FIELDS = ["strategy", "date", "symbol", "side", "qty", "entry_time", "entry_px", "exit_time",
@@ -285,7 +287,9 @@ def maybe_review(state: dict, lad: dict, strats: list):
         return
     lines = ladder.review(lad, strats, VIRTUAL_CSV, PAPER_CSV)
     ladder.save(LADDER_FILE, lad)
-    send_telegram("STRATTON ladder, weekly:\n" + ("\n".join(lines) or "no strategies"))
+    case = golive.report(SPIKE_DIR, STATE_DIR, strats, spike_pod.UNIVERSE,
+                         {s.NAME: ladder.stage_of(lad, s.NAME) for s in strats})
+    send_telegram("STRATTON ladder, weekly:\n" + ("\n".join(lines) or "no strategies") + "\n\n" + case)
     state["ladder_week"] = week
 
 

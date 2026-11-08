@@ -111,3 +111,22 @@ def test_paper_limits(tmp_path, monkeypatch):
     monkeypatch.delenv("INCUB_ALPACA_API_KEY")
     os.remove(tmp_path / "KILL")
     assert not bench.may_enter(st, "pod", "a", "AMD", set())
+
+
+def test_golive_needs_all_four_and_reports_progress():
+    import golive
+
+    trades = [{"date": f"2026-{m:02d}-{d:02d}", "symbol": f"S{i % 10}", "net_bps": 12 if i % 3 else -6}
+              for i, (m, d) in enumerate((m, d) for m in (1, 2, 3, 4) for d in range(1, 29) for _ in range(3))]
+    paper = [{"date": "2026-04-01", "symbol": "S1", "net_bps": 5, "slip_bps": 1.5}] * 60
+    ops = [{"date": f"d{i}", "errors": "0"} for i in range(25)]
+    r = golive.evaluate(trades, paper, 2.0, ops)
+    assert r["checks"] == {"evidence": True, "fills": True, "risk": True, "operations": True} and r["ready"]
+    assert not golive.evaluate(trades, paper, 2.0, ops[:-1] + [{"date": "x", "errors": "2"}])["ready"]
+    assert not golive.evaluate(trades, [dict(p, slip_bps=3.0) for p in paper], 2.0, ops)["checks"]["fills"]
+    assert not golive.evaluate(trades[:200], paper, 2.0, ops)["checks"]["evidence"]
+    assert "READY" in golive.fmt("x", r, 2.0)
+
+
+def test_wide_universe_is_the_research_set():
+    assert len(strategies.WIDE) == 277 and "AAPL" in strategies.WIDE

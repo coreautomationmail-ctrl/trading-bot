@@ -16,11 +16,16 @@ net result per trade, copied from the journal and never changed afterwards.
 Adding a strategy: subclass Strategy, append it to ALL, and give it a journal
 entry. Rules see only bars up to and including the one just completed.
 """
+import json
 import math
+import os
 
 import spike_pod
 
 VOL_X, K = spike_pod.VOL_X, spike_pod.K
+# The 277 names with cached 1-min history (top-200 dollar volume lists): what research tests on,
+# so a strategy that passed there is watched on all of them. IEX serves them in one request.
+WIDE = json.load(open(os.path.join(os.path.dirname(os.path.abspath(spike_pod.__file__)), "missed_universe.json")))
 
 
 class Strategy:

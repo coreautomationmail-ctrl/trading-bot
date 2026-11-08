@@ -45,6 +45,10 @@ FAIL is a good run. Never loosen a gate after seeing results.
   created_at, headline; 2016 on, filled by scripts/fill_news_cache.py). Check
   coverage by year before testing, because early years are thinner. Only a
   headline whose created_at is BEFORE the signal bar may be used.
+- `.cache/crypto/m1_<BASE>_<YEAR>.pkl`: Alpaca 1-min crypto bars (BTC, ETH, SOL,
+  DOGE, LTC, AVAX, LINK; 2021 on; UTC, all hours). Same columns as `load_year`;
+  read them with `pandas.read_pickle`. Crypto costs are Alpaca's fees, not 2 bps:
+  25 bps/side (taker), see ideas.md G.
 - `.cache/iex_live/<date>.csv.gz`: the live feed's 1-min IEX bars for the 62
   names since 2026-11-02.
 - `.cache/missed_summary.md`: why the pod missed each day's biggest movers
@@ -79,7 +83,11 @@ FAIL is a good run. Never loosen a gate after seeing results.
    belief too. Set `updated` to today on anything you touch.
 5. If PASS: also test it on a held-out slice you did NOT use while
    designing (e.g. other names or years) and report both. A PASS is a
-   candidate for a paper pod, never deployed by you.
+   candidate for a paper pod, never deployed by you. A PASS that holds out
+   goes onto the shadow bench (pods/bench, built by the owner's check-in, not
+   you), where the evidence ladder decides on forward results alone. So write
+   the exact rule, the backtest's net bps per trade and its hold time in the
+   entry: those numbers become the bench's fixed yardstick.
 
 ## Gate (pre-registered for every idea)
 

@@ -21,6 +21,48 @@ B. DONE, FAIL 2026-11-07, see journal. spike-events: is the spike edge concentra
    days, top-1% tails)? Report the edge with and without them. Score it on daily
    P&L too: per-trade t 3.34 is only 1.33 by day, and the biggest days look macro.
    Define event days from a fixed calendar, never from which days had many signals.
+Owner, 2026-11-07: the fund's aim is active intraday trading, so new intraday signals
+come first now, then the last Phase 2 question (C). Crypto and options are in scope
+if they can make money. Near-misses go to the shadow bench (pods/bench) as watch-only;
+a fresh PASS here is what puts a rule on it with real ladder stages.
+
+D. news-drift: trade the headline itself, not a spike filtered by it. Chan (2003),
+   "Stock price reaction to news and no-news" (JFE): drift after news (check the
+   paper before pre-registering). Every single-name headline (tagged to fewer than 5
+   names, as spike_news.py) created 09:45-14:50 ET on the 277 names: take the 1-min
+   return of the first bar that opens after created_at, minus SPY's same bar; if it
+   is at least 3 trailing-30-bar sds, enter that direction at the next bar's open,
+   hold 60 min (primary; also report 30). 2 bps/side. Rank 1-100 by prior-year dollar
+   volume is the primary group; report 101-277 as held out.
+E. steady-movers: plan question 4. Most missed movers rise steadily, never spiking.
+   At 12:00 ET (primary; report 11:00 and 13:00), among the 277 names: return since
+   the 09:30 open in the top or bottom decile AND efficiency ratio (|net move since
+   the open| / sum of |1-min moves|) in the top decile. Go with the move, exit 15:55.
+   Idea: order-splitting by institutions keeps pushing a quiet trend (an intraday
+   cousin of Da, Gurun & Warachka's "frog in the pan", 2014). 2 bps/side. Never pick
+   names with the movers list, which is hindsight.
+F. intraday-pairs: plan question 6, market-neutral. Each month, the 50 pairs among the
+   277 with the highest correlation of 30-min returns over the prior 60 sessions.
+   After 10:30 ET, when a pair's log price ratio moves more than 3 sds (of its prior
+   20 sessions' 30-min changes) from today's 10:00 value and neither name had a
+   single-name headline in the prior 60 minutes, fade it: long the laggard, short the
+   leader, equal dollars; exit when it is back to the 10:00 value or at 15:55.
+   2 bps/side per leg (8 bps round trip per pair trade); the gate's 3 bps is per pair.
+G. crypto-fee-check: plan question 8. Data: .cache/crypto/m1_<BASE>_<YEAR>.pkl
+   (BTC, ETH, SOL, DOGE, LTC, AVAX, LINK; 2021-26; filled by
+   scripts/fill_crypto_cache.py; UTC, all hours, no sessions). Alpaca's tier-1 fees
+   are 0.25% taker / 0.15% maker a side (docs, read 2026-11-07), so costs are 25
+   bps/side (market orders); report 15 too. First the break-even question: on the
+   spike rule (vol x8, |move| >= 5 sd, trailing 30 bars, rolling through midnight,
+   hold 60), what is the mean gross move, and how many trades beat 50 bps round trip?
+   Then one rule with a reason to clear the fee, e.g. 4-hour time-series momentum
+   (Liu & Tsyvinski 2021, "Risks and returns of cryptocurrency", RFS). Gate as
+   intraday but with these costs; "years" are 2021-26 with same sign in 2021-23 and
+   2024-26 instead of the 2016-20 split.
+H. options-iv-lead: plan question 7. BLOCKED on history: Alpaca's option bars start
+   2024 and need keys; world_recorder.py has saved SPY/QQQ chains twice a day since
+   2026-11-05. Revisit when 60 sessions are recorded (about February 2027).
+
 C. spike-regime-filter: retrain monthly on all earlier data, take or skip each
    signal using market trend, realized volatility, time of day, sector. Scored
    only on later months. Must beat the fixed rule by a pre-registered margin.

@@ -2,6 +2,13 @@
 
 Approved 2026-11-05. Paper only, $0 budget. Phases 0 and 1 are live; see the build order for the rest.
 
+Update 2026-11-07 (owner): Phase 2 two of three failed; the desk now tests new intraday
+signals first (ideas.md D-H), then self-retraining. Phase 3 started early: the shadow
+bench and ladder run on the VPS (pods/bench), with spike-news and its no-news twin as
+watch-only. The live spike pod stays on its own script until a replay match. Decisions:
+auto-promotion on paper YES (ladder.py rules); crypto and options IN scope, traded only
+if they pass; thesis pod waits for the engine.
+
 ## The goal
 
 Turn STRATTON from one rule that waits for a signal into a fund that each day

@@ -163,11 +163,11 @@
     "id": "price-only-research-exhausted",
     "claim": "New edge in these liquid names is more likely from new data (news, filings, flows, options) than from more price rules.",
     "status": "open",
-    "evidence": "11 straight FAILs, nearly all price patterns on the same data. A pattern, not a test; the news and filing tests will challenge it. So far the first two news tests also FAILED: spike-news and spike-down-no-news, both using only headline timing, not content. headline-family S1 (2026-11-08): headline CONTENT by word list also failed all three tests (T1 -3.4 net, day t -7.5, n=56,217; T2 day t 1.53; T3 -4.9).",
+    "evidence": "11 straight FAILs, nearly all price patterns on the same data. A pattern, not a test; the news and filing tests will challenge it. So far the first two news tests also FAILED: spike-news and spike-down-no-news, both using only headline timing, not content. headline-family S1 (2026-11-08): headline CONTENT by word list also failed all three tests (T1 -3.4 net, day t -7.5, n=56,217; T2 day t 1.53; T3 -4.9). steady-movers (2026-11-09), price only: big + smooth midday movers -5.8 net, day t -5.6, n=48,796.",
     "confidence": "low",
     "reopen_if": "New-data tests fail as often as price tests have: rethink the universe and horizon instead.",
-    "journal": "docs/stratton-revamp-plan.md; 2026-11-06 spike-news; 2026-11-06 spike-down-no-news; 2026-11-07 headline-family",
-    "updated": "2026-11-08"
+    "journal": "docs/stratton-revamp-plan.md; 2026-11-06 spike-news; 2026-11-06 spike-down-no-news; 2026-11-07 headline-family; 2026-11-09 steady-movers",
+    "updated": "2026-11-09"
   },
   {
     "id": "data-raw-bars-carry-splits",
@@ -213,11 +213,11 @@
     "id": "price-triggers-no-edge",
     "claim": "Simple intraday price/volume move triggers (follow or fade, 1-60 min holds) on the 277 liquid names have no edge after 2 bps/side.",
     "status": "rejected",
-    "evidence": "grammar-zmove 2026-11-07: 0 of 432 rules passed; best design day t 2.23 (needed 3.5) and it reversed held out (-4.7 bps, t -1.23). No rule had held-out t >= 2.",
+    "evidence": "grammar-zmove 2026-11-07: 0 of 432 rules passed; best design day t 2.23 (needed 3.5) and it reversed held out (-4.7 bps, t -1.23). No rule had held-out t >= 2. steady-movers 2026-11-09: following top/bottom-decile moves since the open at 12:00 to 15:55 is -0.7 gross, -1.8 gross with the smoothness filter.",
     "confidence": "high",
     "reopen_if": "A new information source (headline direction, filings) changes which moves are taken; test that as its own family.",
-    "journal": "2026-11-07 grammar-zmove",
-    "updated": "2026-11-07"
+    "journal": "2026-11-07 grammar-zmove; 2026-11-09 steady-movers",
+    "updated": "2026-11-09"
   },
   {
     "id": "headline-tone-wordlist",
@@ -228,5 +228,15 @@
     "reopen_if": "A better scorer (S2 Claude labels, under the pre-registered rule) beats S1 by >= 3 bps on post-training T1 trades.",
     "journal": "2026-11-07 PRE-REGISTRATION headline-family (S1 results 2026-11-08)",
     "updated": "2026-11-08"
+  },
+  {
+    "id": "steady-movers",
+    "claim": "Names whose move since the open is in the day's top or bottom decile AND unusually smooth (efficiency ratio top decile) keep moving from midday to 15:55.",
+    "status": "rejected",
+    "evidence": "277 names 2016-26, 12:00 entry +1 bar, exit 15:55, 2 bps/side: n=48,796, -5.76 net (gross -1.76), day t -5.59, 1/11 years positive; rank 1-100 -4.05, rank 101-277 -6.40. 11:00 and 13:00 also about -1 gross. Without the smoothness filter gross -0.67, so smoothness hurts slightly.",
+    "confidence": "high",
+    "reopen_if": "A non-price input (headline absence or presence, filings) picks which steady movers continue, tested as its own pre-registered idea.",
+    "journal": "2026-11-09 steady-movers",
+    "updated": "2026-11-09"
   }
 ]

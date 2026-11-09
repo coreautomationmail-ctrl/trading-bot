@@ -30,7 +30,7 @@ D. S1 DONE, all 3 FAIL 2026-11-08, see journal; S2 is Vision's step. headline-fa
    headline-family). Run T1, T2 and T3 with scorer S1 (the cached word list) exactly as written there,
    and append the results to that entry. Don't add tests to the family. S2 (Claude labels) only under
    that entry's rule, never by the desk.
-E. steady-movers: plan question 4. Most missed movers rise steadily, never spiking.
+E. DONE, FAIL 2026-11-09, see journal. steady-movers: plan question 4. Most missed movers rise steadily, never spiking.
    At 12:00 ET (primary; report 11:00 and 13:00), among the 277 names: return since
    the 09:30 open in the top or bottom decile AND efficiency ratio (|net move since
    the open| / sum of |1-min moves|) in the top decile. Go with the move, exit 15:55.

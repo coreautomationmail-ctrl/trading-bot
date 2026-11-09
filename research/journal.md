@@ -744,3 +744,19 @@ Caveats: 2 bps/side on the smaller of the 277 names may be optimistic; shorting 
 missed-movers lead came from 4 sessions only, under the 10-session bar in agent.md; the idea was queued by the
 owner's check-in (ideas.md E), so it runs as queued.
 Script: scripts/research/steady_movers.py.
+
+**Result: FAIL, 3 of 9 checks.** 12:00, all 277 names, 2016-26 (data ends 2026-10-27), 2 bps/side. Log:
+research/steady_movers.log; trades in .cache/steady_movers_trades.csv. 647,028 eligible name-days, median 240
+names a day, so the two deciles pick about 18 names a day.
+- n=48,796 on 2,709 days, -5.76 net (gross -1.76), per-trade t -9.91, day t -5.59, win 46%, median -7.1. Positive
+  in 1 of 11 years (2025 +3.0). 2016-20 -6.47, 2021-26 -5.16. Long -5.3, short -6.3. At 4 bps/side -9.76.
+- Replication halves agree on the loss: rank 1-100 -4.05 (day t -3.00), rank 101-277 -6.40 (day t -5.08).
+- Reported only: 11:00 -5.33 net (gross -1.33, day t -4.13); 13:00 -5.11 (gross -1.11, day t -5.75). Without the
+  smoothness filter (R decile only): 12:00 -4.67 net, gross -0.67; 11:00 gross +0.30; 13:00 gross -0.56.
+- Daily P&L correlation with spike_mom rank 1-25: +0.05 on 728 shared days.
+Verdict: FAIL. Not loosened. Big midday movers in these names don't continue into the close, and selecting the
+smooth ones makes it slightly worse (gross -1.8 vs -0.7 bps), not better: no intraday frog-in-the-pan here. The
+gross move is about zero, so no cost assumption rescues it, and the faded side (+1.8 gross) is under the 4 bps
+cost too. Held-out step not run, since it applies only to a PASS.
+Lesson: the missed-movers bucket "moved steadily, no signal" describes movers picked after the fact; at noon,
+the smooth movers among 277 names are not the ones that keep going. Another price-only FAIL.

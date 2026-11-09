@@ -186,7 +186,7 @@ def score(now: datetime) -> str:
     today = now.astimezone(ET).date()
     if todo:
         start = todo[0]
-        end = (today + timedelta(days=1)).isoformat()
+        end = (now - timedelta(minutes=20)).isoformat()  # SIP refuses anything in the last 15 minutes
         cal = spike_pod.api("GET", f"/v2/calendar?start={start}&end={(today + timedelta(days=10)).isoformat()}")
         closed = [c["date"] for c in cal if c["date"] < today.isoformat() or now.astimezone(ET).hour >= 17]
         symbols = sorted({t["symbol"] for d in todo for t in sealed[d]["theses"]} | {"SPY"} | set(UNIVERSE))

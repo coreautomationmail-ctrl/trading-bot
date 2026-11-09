@@ -1,6 +1,6 @@
 #!/bin/sh
 # Deploy/refresh the STRATTON shadow bench on the VPS (run from this folder):
-#   ssh postiz 'mkdir -p /opt/stratton-bench/data' && scp Dockerfile bench.py golive.py ops.sh ladder.py strategies.py ../spike/missed_universe.json ../spike/spike_pod.py ../spike/spike_scorecard.py postiz:/opt/stratton-bench/ && ssh postiz 'sh -s' < deploy.sh
+#   ssh postiz 'mkdir -p /opt/stratton-bench/data' && scp Dockerfile bench.py golive.py ops.sh ladder.py strategies.py thesis.py ../spike/missed_universe.json ../spike/spike_pod.py ../spike/spike_scorecard.py postiz:/opt/stratton-bench/ && ssh postiz 'sh -s' < deploy.sh
 # Market data comes through the spike pod's keys (read only). Paper orders, for strategies the
 # ladder has promoted, go to the main paper account (the trading listener's keys, exported as
 # INCUB_*), idle since ORB paused. Telegram and the paper-URL check as the spike pod.
@@ -23,4 +23,11 @@ docker logs --tail 5 stratton-bench
 # bench (22:55 Berlin, after the US close; ops.sh skips weekends and market holidays).
 cat > /etc/cron.d/stratton-ops <<'EOF'
 55 22 * * 1-5 root sh /opt/stratton-bench/ops.sh >> /opt/stratton-bench/data/ops.log 2>&1
+EOF
+# Thesis pod (thesis.py): seal the morning's theses from GitHub every 5 min before the open (the
+# script checks the 08:00-09:29 ET window itself, so the weeks when Berlin and New York change
+# clocks apart don't matter), and score them after the close.
+cat > /etc/cron.d/stratton-thesis <<'EOF'
+*/5 13-15 * * 1-5 root docker run --rm --memory 128m --env-file /opt/stratton-bench/.env -v /opt/stratton-bench/data:/data stratton-bench python thesis.py seal >> /opt/stratton-bench/data/thesis.log 2>&1
+5 23 * * 1-5 root docker run --rm --memory 192m --env-file /opt/stratton-bench/.env -v /opt/stratton-bench/data:/data stratton-bench python thesis.py score >> /opt/stratton-bench/data/thesis.log 2>&1
 EOF

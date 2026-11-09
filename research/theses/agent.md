@@ -14,18 +14,21 @@ Write only under research/theses/. Finish and commit by 09:15 ET; the worker mer
 
 ## 1. Read your record first (2 minutes)
 
-- `ssh postiz cat /opt/stratton-bench/data/theses_summary.json` and
-  `ssh postiz tail -n 30 /opt/stratton-bench/data/theses_scores.csv` (read only; change nothing there).
+- Your record, copied from the VPS at 05:25 PT (this session can't ssh; `synced_at.txt` says when):
+  `C:/Users/Silvine Raza/projects/trading-bot/scripts/.cache/thesis/theses_summary.json` and the last 30 rows of `C:/Users/Silvine Raza/projects/trading-bot/scripts/.cache/thesis/theses_scores.csv`
+  (no scores file until the first day is scored).
 - `research/theses/lessons.md`: what your record has taught you so far. Apply it.
 - Ask: which kinds of thesis beat random, which didn't, and is your confidence calibrated (high
   confidence should score better than low)? If a kind keeps losing, stop writing it.
 
 ## 2. See the morning (10 minutes)
 
-- Pre-market snapshot, taken 08:20 ET: `ssh postiz 'zcat $(ls -t /opt/stratton-spike/data/world/*-pre.json.gz | head -1)'`
+- Pre-market snapshot, taken 08:20 ET: `C:/Users/Silvine Raza/projects/trading-bot/scripts/.cache/thesis/pre.json.gz`, read with Python's gzip module
   (gzipped JSON: movers, most_actives, news with symbols, market_SPY/QQQ regime, SPY/QQQ option IVs). It is
   large; pipe it through `python -c` to pull the parts you need, e.g. news tagged with the 277 names.
-- Yesterday's movers and why the spike pod missed them: `C:/Users/Silvine Raza/projects/trading-bot/scripts/.cache/missed_summary.md`.
+- Yesterday's movers and why the spike pod missed them: `C:/Users/Silvine Raza/projects/trading-bot/scripts/.cache/thesis/missed_summary.md`.
+- If a file is missing or `synced_at.txt` isn't from this morning, say so in the regime line and work
+  from the web alone; don't skip the day for that reason only.
 - `research/beliefs.json` and the last few verdicts in `research/journal.md`: what STRATTON already
   knows doesn't work (plain price patterns at 1-60 minute holds, word-list headline tone).
 - Web: overnight news, earnings before the open and after yesterday's close, guidance changes, FDA and

@@ -711,3 +711,52 @@ S1 scores 11% good, 17% bad, 73% neutral (skipped). No T3 filings for 12 names (
 Verdict: no S1 test passes. Not loosened. Under the pre-registered rule, the S2 (Claude label) comparison is
 Vision's step, not the desk's, and was not run here. If S2 doesn't qualify, the stop rule applies: no more API
 money on trading signals.
+
+## 2026-11-09 steady-movers: ride intraday moves that are big AND smooth (ideas.md E)
+
+**Pre-registered, before any return was computed.** Hypothesis: a name whose move since the open is both
+among the day's largest and unusually smooth (many small same-direction steps, few jumps) is being pushed by
+order-splitting, and keeps going into the close. An intraday cousin of Da, Gurun & Warachka, "Frog in the Pan"
+(RFS 2014), which is monthly. Lead from .cache/missed_summary.md ("moved steadily, no signal" is the biggest
+bucket, 22 of 40 movers over 4 sessions); those movers are hindsight and are not used anywhere in the rule.
+Rules:
+- Universe: the 277 names (backtest_scalp.SYMBOLS + WIDE + m1_extra_symbols.json), SIP 1-min, regular hours.
+  Years 2016-2026 are all cached (277 files each; data ends 2026-10-27). A name-day is eligible only if it has
+  the 09:30 bar, at least 90% of the bars from 09:30 to the decision bar, the entry bar and the 15:55 bar.
+- Decision time T = 12:00 ET (primary, gated). 11:00 and 13:00 reported, not gated.
+- Using only bars that close before T (09:30 .. T-1 min): R = log(close at T-1 / open at 09:30);
+  ER = |R| / sum over those bars of |log step| (first step = log(close/open) of the 09:30 bar, then
+  close-to-close).
+- Each day, across eligible names: R in the top or bottom decile of that day's R AND ER in the top decile of
+  that day's ER. Side = sign(R). Entry = open of the bar at T+1 min (the 1-bar delay convention), exit = open
+  of the 15:55 bar. One trade per name-day.
+- Costs 2 bps/side (4 round trip). Gross is log return in bps. No overnight hold, so splits don't matter.
+Gate (desk standard, plus day t because trades cluster on the same days): n >= 300; mean net >= +3 bps;
+per-trade t >= 2.5 AND t on summed daily net P&L >= 2.5; >= 70% of years positive (2016-26, 11 years); same
+sign in 2016-20 and 2021-26; top symbol <= 25% of positive-symbol P&L.
+Replication for a PASS (not a true holdout, all 277 names are in the sample; the cross-section needs them all):
+the same trades split into names ranked 1-100 and 101-277 by PRIOR-year dollar volume (2017-26); a PASS needs
+both halves the same sign with day t >= 2.
+Reported, not gated: win rate, median, top-1% share, long vs short, 11:00 and 13:00, the R-decile-only rule
+without the ER filter (is smoothness adding anything?), 4 bps/side, daily P&L correlation with spike_mom rank
+1-25 (.cache/spike_wide_trades.csv, stand-in for the pod).
+Caveats: 2 bps/side on the smaller of the 277 names may be optimistic; shorting costs are not modelled. The
+missed-movers lead came from 4 sessions only, under the 10-session bar in agent.md; the idea was queued by the
+owner's check-in (ideas.md E), so it runs as queued.
+Script: scripts/research/steady_movers.py.
+
+**Result: FAIL, 3 of 9 checks.** 12:00, all 277 names, 2016-26 (data ends 2026-10-27), 2 bps/side. Log:
+research/steady_movers.log; trades in .cache/steady_movers_trades.csv. 647,028 eligible name-days, median 240
+names a day, so the two deciles pick about 18 names a day.
+- n=48,796 on 2,709 days, -5.76 net (gross -1.76), per-trade t -9.91, day t -5.59, win 46%, median -7.1. Positive
+  in 1 of 11 years (2025 +3.0). 2016-20 -6.47, 2021-26 -5.16. Long -5.3, short -6.3. At 4 bps/side -9.76.
+- Replication halves agree on the loss: rank 1-100 -4.05 (day t -3.00), rank 101-277 -6.40 (day t -5.08).
+- Reported only: 11:00 -5.33 net (gross -1.33, day t -4.13); 13:00 -5.11 (gross -1.11, day t -5.75). Without the
+  smoothness filter (R decile only): 12:00 -4.67 net, gross -0.67; 11:00 gross +0.30; 13:00 gross -0.56.
+- Daily P&L correlation with spike_mom rank 1-25: +0.05 on 728 shared days.
+Verdict: FAIL. Not loosened. Big midday movers in these names don't continue into the close, and selecting the
+smooth ones makes it slightly worse (gross -1.8 vs -0.7 bps), not better: no intraday frog-in-the-pan here. The
+gross move is about zero, so no cost assumption rescues it, and the faded side (+1.8 gross) is under the 4 bps
+cost too. Held-out step not run, since it applies only to a PASS.
+Lesson: the missed-movers bucket "moved steadily, no signal" describes movers picked after the fact; at noon,
+the smooth movers among 277 names are not the ones that keep going. Another price-only FAIL.

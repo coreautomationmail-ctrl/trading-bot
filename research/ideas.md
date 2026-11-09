@@ -30,7 +30,7 @@ D. S1 DONE, all 3 FAIL 2026-11-08, see journal; S2 is Vision's step. headline-fa
    headline-family). Run T1, T2 and T3 with scorer S1 (the cached word list) exactly as written there,
    and append the results to that entry. Don't add tests to the family. S2 (Claude labels) only under
    that entry's rule, never by the desk.
-E. steady-movers: plan question 4. Most missed movers rise steadily, never spiking.
+E. DONE, FAIL 2026-11-09, see journal. steady-movers: plan question 4. Most missed movers rise steadily, never spiking.
    At 12:00 ET (primary; report 11:00 and 13:00), among the 277 names: return since
    the 09:30 open in the top or bottom decile AND efficiency ratio (|net move since
    the open| / sum of |1-min moves|) in the top decile. Go with the move, exit 15:55.
@@ -136,3 +136,11 @@ C. spike-regime-filter: retrain monthly on all earlier data, take or skip each
     for S&P500 ETF (SPY)" (SSRN / Swiss Finance Institute RP 24-97, 2024-25); seen in search summaries only, read
     the paper first. Differs from the rejected first-half-hour rule: the trigger is a time-of-day volatility band.
     SPY/QQQ 1-min 2016-26; one trade a day at most, so n >= 300 needs both ETFs or all years.
+18. short-term-momentum-high-turnover: last month's return reverses on average, but among the highest-turnover
+    stocks it continues ("short-term momentum"), the reversal being confined to low-turnover names. Medhat &
+    Schmeling, "Short-term Momentum" (Review of Financial Studies 2022); Alpha Architect's recaps say the effect
+    sits in liquid, cheaper-to-trade stocks. Test: pool names, monthly, double sort on prior 21-day return and
+    21-day share turnover (needs shares outstanding, not cached; the stated proxy is 21-day volume over the
+    prior 252-day average volume, a weaker stand-in, say so), long top-turnover
+    winners and short top-turnover losers, hold 21 sessions. Daily, excess vs pool, 5 bps/side. Differs from
+    idea 1 (weekly, no turnover split).

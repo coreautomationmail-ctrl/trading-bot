@@ -1,0 +1,58 @@
+  done 1/277
+  done 26/277
+  done 51/277
+  done 76/277
+  done 101/277
+  done 126/277
+  done 151/277
+  done 176/277
+  done 201/277
+  done 226/277
+  done 251/277
+  done 276/277
+names 277; eligible name-days at 12:00 647028, median names a day 240
+
+== PRIMARY 12:00, R decile + ER top decile, all 277, 2016-26
+  n=48796 on 2709 days, net -5.76 bps (gross -1.76; per-trade t -9.91, day t -5.59), win 46%, median -7.1, top-1% share -89%
+  by year: 2016:-8.1/4335  2017:-3.5/4489  2018:-3.7/4591  2019:-7.8/4511  2020:-9.4/4449  2021:-9.3/4481  2022:-4.2/4364  2023:-6.5/4356  2024:-4.4/4336  2025:+3.0/4584  2026:-9.8/4300
+  2016-20 -6.47, 2021-26 -5.16; top symbol BB 9%; long -5.3 (n=25685), short -6.3 (n=23111); at 4 bps/side -9.76
+  replication rank 1-100: n=16369, net -4.05, day t -3.00
+  replication rank 101-277: n=28091, net -6.40, day t -5.08
+    ok   n >= 300
+    FAIL mean net >= 3
+    FAIL per-trade t >= 2.5
+    FAIL day t >= 2.5
+    FAIL years+ >= 70%
+    ok   same sign 2016-20 / 2021-26
+    ok   top symbol <= 25%
+    FAIL rank 1-100 same sign, day t >= 2
+    FAIL rank 101-277 same sign, day t >= 2
+  verdict: FAIL (3/9)
+  daily P&L corr with spike_mom rank 1-25: +0.05 on 728 shared days
+
+== reported: 11:00
+  n=48814 on 2709 days, net -5.33 bps (gross -1.33; per-trade t -7.85, day t -4.13), win 47%, median -6.7, top-1% share -109%
+  by year: 2016:-2.4/4332  2017:-5.2/4516  2018:-7.8/4559  2019:-6.9/4453  2020:-10.5/4442  2021:-1.8/4496  2022:-6.2/4415  2023:-2.8/4330  2024:-6.8/4308  2025:+1.8/4686  2026:-10.5/4277
+  2016-20 -6.57, 2021-26 -4.29; top symbol GME 10%; long -4.2 (n=25374), short -6.5 (n=23440); at 4 bps/side -9.33
+
+== reported: 13:00
+  n=48169 on 2707 days, net -5.11 bps (gross -1.11; per-trade t -10.35, day t -5.75), win 46%, median -6.2, top-1% share -85%
+  by year: 2016:-5.1/4326  2017:-3.7/4403  2018:-5.6/4554  2019:-6.1/4532  2020:-4.7/4397  2021:-9.4/4343  2022:-3.5/4339  2023:-7.3/4306  2024:-6.1/4281  2025:+6.0/4422  2026:-11.0/4266
+  2016-20 -5.05, 2021-26 -5.16; top symbol TSLA 10%; long -6.0 (n=25420), short -4.2 (n=22749); at 4 bps/side -9.11
+
+== reported: 12:00 R decile only, no ER filter
+  n=129422 on 2720 days, net -4.67 bps (gross -0.67; per-trade t -11.84, day t -7.36), win 47%, median -6.4, top-1% share -124%
+  by year: 2016:-6.7/11989  2017:-2.2/11793  2018:-5.9/11929  2019:-4.6/11941  2020:-7.8/12370  2021:-2.8/11805  2022:-2.3/12047  2023:-6.2/11687  2024:-3.5/11351  2025:-1.0/11835  2026:-8.6/10675
+  2016-20 -5.47, 2021-26 -3.98; top symbol MSTR 19%; long -4.6 (n=65777), short -4.7 (n=63645); at 4 bps/side -8.67
+
+== reported: 11:00 R decile only, no ER filter
+  n=131446 on 2717 days, net -3.70 bps (gross +0.30; per-trade t -8.16, day t -5.40), win 48%, median -6.2, top-1% share -180%
+  by year: 2016:-5.2/12132  2017:-4.0/12018  2018:-3.1/12092  2019:-4.6/12061  2020:-6.8/12439  2021:+0.2/12027  2022:-4.0/12234  2023:-3.9/11902  2024:-3.6/11678  2025:+0.3/12057  2026:-6.1/10806
+  2016-20 -4.75, 2021-26 -2.79; top symbol GME 12%; long -2.3 (n=66818), short -5.1 (n=64628); at 4 bps/side -7.70
+
+== reported: 13:00 R decile only, no ER filter
+  n=127273 on 2719 days, net -4.56 bps (gross -0.56; per-trade t -13.20, day t -9.00), win 47%, median -5.6, top-1% share -111%
+  by year: 2016:-3.6/11815  2017:-3.5/11548  2018:-6.8/11727  2019:-4.6/11766  2020:-3.1/12205  2021:-4.9/11575  2022:-5.0/11901  2023:-6.2/11465  2024:-6.1/11120  2025:+1.3/11589  2026:-8.1/10562
+  2016-20 -4.32, 2021-26 -4.77; top symbol MSTR 21%; long -5.3 (n=64609), short -3.8 (n=62664); at 4 bps/side -8.56
+
+VERDICT steady-movers: FAIL

@@ -1,0 +1,26 @@
+{
+  "written_at": "2026-11-10T08:36:00-05:00",
+  "regime": "Snapshot fresh (synced 05:25 PT, taken 08:20 ET). Rebound day after SPY +2.4%, QQQ +3.4% yesterday, both still below the 50-day; futures mixed (Dow/S&P up, Nasdaq 100 down) on Trump saying the Iran war ends 'fairly soon', December hike odds ~82%. Single-name catalysts are thin: earnings-driven names only. Skipped: TDG (Q4 beat but FY27 adj EPS guide $47.09-47.94 vs $48.80; mixed with a sales guide above, after a 10% slide, no clear direction), OXY (adj EPS $1.91 confirmed in the 8-K, but Iran peace talk is an oil headwind that outweighs a known beat), NVDA (Huang/Alice Huang story is two weeks old; FBI/class-action escalation unverified beyond the feed), LNG (the feed item recaps Oct 29 results, stale), ADSK and HUM (no verifiable catalyst; ADSK's Q3 report is normally late Nov).",
+  "theses": [
+    {
+      "id": "2026-11-10-1",
+      "symbol": "TTWO",
+      "direction": "long",
+      "hold_days": 5,
+      "stop_pct": 6.0,
+      "confidence": 0.55,
+      "why": "Q2 FY27 after yesterday's close: adj EPS $0.99 vs $0.94, sales $1.601B vs $1.575B; CEO says GTA 6 pre-orders are tracking 'far in excess' of initial expectations and 'unprecedented', with launch on Nov 19. Bookings guide was only affirmed (below consensus), so the guide is a known lowball the CEO says he won't raise before launch. Mechanism: pre-launch run-up into the biggest release in the company's history; a 5-day hold exits at the Nov 17 close, before the launch-day sell-the-news risk.",
+      "wrong_if": "The after-hours gain fades to flat or negative in the first hour today, or a GTA 6 delay or review-embargo problem surfaces before Nov 17."
+    },
+    {
+      "id": "2026-11-10-2",
+      "symbol": "TSM",
+      "direction": "long",
+      "hold_days": 0,
+      "stop_pct": 3.0,
+      "confidence": 0.5,
+      "why": "TSMC October revenue released overnight: NT$586.89B, +59.7% YoY and +14.7% MoM; Jan-Oct +43.3% YoY. A double-digit month-on-month jump points to a Q4 above the guided run-rate on AI demand, a hard data point a random name doesn't have today.",
+      "wrong_if": "TSM underperforms SOX/QQQ in the first hour (the number was already priced via Taiwan's session), or the Nasdaq weakness on the China data-center ban story drags semis broadly."
+    }
+  ]
+}

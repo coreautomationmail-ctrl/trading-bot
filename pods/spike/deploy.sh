@@ -1,6 +1,6 @@
 #!/bin/sh
 # Deploy/refresh the STRATTON spike pod on the VPS (run from this folder):
-#   ssh postiz 'mkdir -p /opt/stratton-spike/data' && scp Dockerfile spike_pod.py spike_scorecard.py missed_report.py missed_universe.json world_recorder.py postiz:/opt/stratton-spike/ && ssh postiz 'sh -s' < deploy.sh
+#   ssh postiz 'mkdir -p /opt/stratton-spike/data' && scp Dockerfile spike_pod.py spike_scorecard.py missed_report.py missed_universe.json world_recorder.py intraday_snapshot.py postiz:/opt/stratton-spike/ && ssh postiz 'sh -s' < deploy.sh
 # Trades its own paper account (keys in /opt/stratton-spike/keys.env as
 # SPIKE_ALPACA_API_KEY / SPIKE_ALPACA_SECRET_KEY, written by the user), so its
 # positions and P&L never mix with the ORB bot's. Base URL + Telegram come
@@ -29,4 +29,10 @@ EOF
 cat > /etc/cron.d/stratton-world <<'EOF'
 20 14 * * 1-5 root docker run --rm --memory 192m --env-file /opt/stratton-spike/.env -v /opt/stratton-spike/data:/data stratton-spike python world_recorder.py pre >> /opt/stratton-spike/data/world.log 2>&1
 50 22 * * 1-5 root docker run --rm --memory 192m --env-file /opt/stratton-spike/.env -v /opt/stratton-spike/data:/data stratton-spike python world_recorder.py post >> /opt/stratton-spike/data/world.log 2>&1
+EOF
+# Intraday desk (intraday_snapshot.py): the live snapshot ten minutes before each check-in (10:30,
+# 12:00, 13:30 ET). Every 5 minutes through the session; the script picks the due check-in itself,
+# so the weeks when Berlin and New York change clocks apart don't matter. Vision reads /spike/world.
+cat > /etc/cron.d/stratton-intraday <<'EOF'
+*/5 15-20 * * 1-5 root docker run --rm --memory 192m --env-file /opt/stratton-spike/.env -v /opt/stratton-spike/data:/data stratton-spike python intraday_snapshot.py auto >> /opt/stratton-spike/data/intraday.log 2>&1
 EOF

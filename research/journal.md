@@ -829,3 +829,20 @@ Verdict: FAIL. Not loosened. The split does close a little (gross +4 bps, positi
 but four legs of 2 bps cost twice that. Even at 1 bps a side it is zero. Held-out step reported above; it agrees.
 Lesson: intraday pair divergences in these liquid names are mostly real repricing (87% never close the same day);
 the small reversion is a market-maker's spread-sized edge, not a taker's. Another price-only FAIL, the 18th.
+
+## 2026-11-10 Trigger replay: what a minute-by-minute screener would hand Claude (sizing test, not a desk)
+
+Owner's idea: a VPS screener watches all 277 names every minute and wakes Claude only when something happens.
+Before building, scripts/research/trigger_replay.py (rules fixed in its docstring before the run: news / volume
+5x + 4 sd / breakout on 3x volume, one flag per name per 30 min, direction = the first 2 minutes, entry 3 bars
+later) counted the flags and measured what move is left at Claude's entry. Cached SIP bars, no network.
+- Last 20 days to 10/27: **391 flags a day** (144 news, 93 volume, 153 breakout) on 205 names. All of 2026: 346.
+- First 2 minutes: +11 (news) to +31 (volume) bps in the move's direction; that is what the fast bots get.
+- Left after a 3-minute entry, same direction, before 4 bps cost: 2026 all flags +0.0 / +0.1 / -0.2 at 15/30/60 min;
+  news +0.1 / +0.4 / +1.0 (t 1.5 at 60); volume +0.3 / +0.8 / +0.2; breakout -0.1 / -0.5 / -1.2 (t -3.0, fades).
+  The last 20 days alone: +1.2 / +0.9 / +1.1 all flags. None clears the cost.
+- Movement after entry is the same as at random minutes (|30 min move| 37 vs 36 bps).
+Reading: the flags are cheap to triage (~390 Haiku calls, ~$0.10 a day), but the obvious read of a flag has nothing
+left by the time a session can act. So a screener-fed desk can only work if Claude's judgment (which flags, which
+direction, which to fade) beats the obvious read; the intraday book's scoring is what tests that. Another
+price-only null, consistent with the 18 FAILs.

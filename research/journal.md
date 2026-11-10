@@ -773,3 +773,39 @@ gross move is about zero, so no cost assumption rescues it, and the faded side (
 cost too. Held-out step not run, since it applies only to a PASS.
 Lesson: the missed-movers bucket "moved steadily, no signal" describes movers picked after the fact; at noon,
 the smooth movers among 277 names are not the ones that keep going. Another price-only FAIL.
+
+## 2026-11-10 intraday-pairs: fade 3-sd intraday splits in highly correlated pairs (ideas.md F)
+
+**Pre-registered, before any return was computed.** Hypothesis: two names that have moved together every
+half hour for three months share the same order flow; when one pulls away from the other intraday with no
+single-name headline to explain it, the gap is temporary liquidity pressure and closes the same day.
+Market-neutral, so it should not depend on the day's direction (unlike spike_mom). Scout (2026-11-10) found
+no new after-cost evidence for intraday pairs; a 2025 study of 288 intraday momentum/contrarian rules on 28
+US blue chips (Investment Management and Financial Innovations) found none survive costs, a reason to expect FAIL.
+Rules:
+- Universe: the 277 names (backtest_scalp.SYMBOLS + WIDE + m1_extra_symbols.json), SIP 1-min, 09:30-15:59.
+  All 2016-2026 cached (data ends 2026-10-27). A name-day is eligible if it has the 09:30 bar and >= 90% of the
+  390 bars; missing bars take the previous close (open and close).
+- Pairs: on each month's first trading day, using the prior 60 sessions, each eligible-all-60-days name's 13
+  half-hour log returns a day (09:30 open, then closes of the 09:59 .. 15:59 bars); the 50 pairs with the highest
+  correlation are that month's pairs. First month with 60 prior sessions is used; earlier 2016 is skipped.
+- Each day, pair (a, b), both eligible: L = log(close a) - log(close b); ref = L at the 09:59 bar close (the
+  10:00 value); sd = std of the pair's 13 half-hour changes of L a day over the prior 20 sessions (days where
+  both were eligible, need >= 15).
+- Trigger: the first bar starting 10:30..15:53 whose close has |L - ref| > 3 sd and neither name has a
+  single-name headline (in fewer than 5 of the 277 news files) with created_at in [bar start - 60 min, bar start).
+  One trade per pair per day.
+- Entry at the next bar's open: long the laggard, short the leader, equal dollars. Exit at the open of the bar
+  after the first bar (entry bar on) whose close is back at or across ref, else at the 15:55 bar open.
+- P&L per pair trade = long leg log return minus short leg log return, bps of one leg's notional; costs
+  2 bps/side per leg = 8 bps round trip. No overnight hold, so splits don't matter.
+Gate (desk standard; day t gated too, as in steady-movers): n >= 300; mean net >= +3 bps per pair; per-trade
+t >= 2.5 and t on summed daily net >= 2.5; >= 70% of years positive (2016-26); same sign 2016-20 and 2021-26;
+no symbol > 25% of positive-symbol P&L (each trade's net split half to each leg).
+Held out (needed for a PASS, run and reported regardless): the same procedure with pairs formed only among names
+ranked 101-277 by PRIOR-year dollar volume within the 277 (2017-26); same sign with day t >= 2.
+Reported, not gated: win rate, median, top-1% share, top pair share, median hold, share exited on reversion,
+the rule without the headline filter, daily P&L correlation with spike_mom rank 1-25 (.cache/spike_wide_trades.csv).
+Caveats: shorting costs and borrow not modelled; share-class twins (if both are in the 277) will rank top and are
+kept, as written.
+Script: scripts/research/intraday_pairs.py.

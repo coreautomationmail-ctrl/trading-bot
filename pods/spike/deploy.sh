@@ -1,6 +1,6 @@
 #!/bin/sh
 # Deploy/refresh the STRATTON spike pod on the VPS (run from this folder):
-#   ssh postiz 'mkdir -p /opt/stratton-spike/data' && scp Dockerfile spike_pod.py spike_scorecard.py missed_report.py missed_universe.json world_recorder.py intraday_snapshot.py postiz:/opt/stratton-spike/ && ssh postiz 'sh -s' < deploy.sh
+#   ssh postiz 'mkdir -p /opt/stratton-spike/data' && scp Dockerfile spike_pod.py spike_scorecard.py missed_report.py missed_universe.json world_recorder.py intraday_snapshot.py flash_screener.py postiz:/opt/stratton-spike/ && ssh postiz 'sh -s' < deploy.sh
 # Trades its own paper account (keys in /opt/stratton-spike/keys.env as
 # SPIKE_ALPACA_API_KEY / SPIKE_ALPACA_SECRET_KEY, written by the user), so its
 # positions and P&L never mix with the ORB bot's. Base URL + Telegram come
@@ -35,4 +35,9 @@ EOF
 # so the weeks when Berlin and New York change clocks apart don't matter. Vision reads /spike/world.
 cat > /etc/cron.d/stratton-intraday <<'EOF'
 */5 15-20 * * 1-5 root docker run --rm --memory 192m --env-file /opt/stratton-spike/.env -v /opt/stratton-spike/data:/data stratton-spike python intraday_snapshot.py auto >> /opt/stratton-spike/data/intraday.log 2>&1
+EOF
+# Flash desk screener (flash_screener.py): every minute; the script checks 09:35-15:34 ET itself, so the
+# hours here are wide enough for the weeks when Berlin and New York change clocks apart.
+cat > /etc/cron.d/stratton-flash <<'EOF'
+* 14-22 * * 1-5 root docker run --rm --memory 128m --env-file /opt/stratton-spike/.env -v /opt/stratton-spike/data:/data stratton-spike python flash_screener.py >> /opt/stratton-spike/data/flash.log 2>&1
 EOF

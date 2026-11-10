@@ -9,6 +9,9 @@ At each check-in (10:30, 12:00, 13:30 ET) a PC session commits research/theses/<
                                   data/theses/intraday/ the first time it is seen (up to 90 min after
                                   the check-in). sealed_at is that moment, so nothing is scored on
                                   prices from before the file existed.
+  python intraday_book.py seal_flash   every minute: flash-desk files (<date>-F<HHMM>-<SYM>.json, written
+                                  after a screener flag, research/theses/flash.md), sealed when first seen
+                                  in a git fetch; at most MAX_FLASH trades each
   python intraday_book.py score   after the close: data/theses_intraday_scores.csv and
                                   data/theses_intraday_summary.json
 
@@ -24,6 +27,7 @@ import csv
 import json
 import os
 import random
+import subprocess
 import sys
 from datetime import datetime, timedelta
 
@@ -35,7 +39,9 @@ from spike_pod import ET
 
 CHECKINS = ["1030", "1200", "1330"]
 SEAL_WINDOW_MIN = 90
-MAX_NEW = 3
+MAX_NEW, MAX_FLASH = 3, 2
+REPO_URL = "https://github.com/coreautomationmail-ctrl/trading-bot.git"
+REPO_DIR = os.path.join(thesis.STATE_DIR, "repo")
 DIR = os.path.join(thesis.STATE_DIR, "theses", "intraday")
 SCORES_CSV = os.path.join(thesis.STATE_DIR, "theses_intraday_scores.csv")
 SUMMARY_JSON = os.path.join(thesis.STATE_DIR, "theses_intraday_summary.json")
@@ -45,6 +51,11 @@ FIELDS = ["date", "id", "symbol", "direction", "confidence", "entry_at", "exit_a
 
 def minutes(hhmm: str) -> int:
     return int(hhmm[:2]) * 60 + int(hhmm[-2:])
+
+
+def start_min(code: str) -> int:
+    """A file's start: a check-in "1030", or a flash flag "F1032-AMD" (research/theses/flash.md)."""
+    return minutes(code[1:5] if code.startswith("F") else code)
 
 
 def valid(t: dict, date: str, checkin: str) -> str:
@@ -62,8 +73,8 @@ def valid(t: dict, date: str, checkin: str) -> str:
         return "target_pct must be null or between stop_pct and 20"
     by = str(t.get("exit_by", ""))
     if len(by) != 5 or by[2] != ":" or not by.replace(":", "").isdigit() or \
-            not minutes(checkin) + 20 <= minutes(by) <= 15 * 60 + 55:
-        return "exit_by must be HH:MM, 20+ minutes after the check-in, no later than 15:55"
+            not start_min(checkin) + 20 <= minutes(by) <= 15 * 60 + 55:
+        return "exit_by must be HH:MM, 20+ minutes after the check-in or flag, no later than 15:55"
     return ""
 
 
@@ -85,17 +96,56 @@ def seal(now: datetime) -> str:
         if r.status_code == 404:
             continue
         r.raise_for_status()
-        body = json.loads(r.text)
-        theses = (body.get("theses") or [])[:MAX_NEW]
-        earlier = {t["id"] for f in sorted(os.listdir(DIR)) if f.startswith(date) and f < f"{date}-{c}.json"
-                   for t in json.load(open(os.path.join(DIR, f)))["theses"]}
-        with open(path, "w") as f:
-            json.dump({"sealed_at": now.isoformat(), "checkin": c, "read": str(body.get("read", ""))[:300],
-                       "theses": [t for t in theses if not valid(t, date, c)],
-                       "close": [i for i in body.get("close") or [] if i in earlier],
-                       "rejected": [{"id": t.get("id"), "why": valid(t, date, c)} for t in theses if valid(t, date, c)]},
-                      f, indent=1)
-        done.append(f"sealed {c}: {sum(not valid(t, date, c) for t in theses)} of {len(theses)} trades")
+        done.append(_seal_one(json.loads(r.text), path, date, c, now, MAX_NEW))
+    return "; ".join(done)
+
+
+def _seal_one(body: dict, path: str, date: str, code: str, now: datetime, max_new: int) -> str:
+    theses = (body.get("theses") or [])[:max_new]
+    earlier = {t["id"] for f in sorted(os.listdir(DIR)) if f.startswith(date) and f.endswith(".json")
+               for t in json.load(open(os.path.join(DIR, f)))["theses"]}   # everything sealed before now
+    with open(path, "w") as f:
+        json.dump({"sealed_at": now.isoformat(), "checkin": code, "read": str(body.get("read", ""))[:300],
+                   "theses": [t for t in theses if not valid(t, date, code)],
+                   "close": [i for i in body.get("close") or [] if i in earlier],
+                   "rejected": [{"id": t.get("id"), "why": valid(t, date, code)} for t in theses if valid(t, date, code)]},
+                  f, indent=1)
+    return f"sealed {code}: {sum(not valid(t, date, code) for t in theses)} of {len(theses)} trades"
+
+
+def git(*args: str) -> str:
+    return subprocess.run(["git", "-C", REPO_DIR, *args], capture_output=True, text=True, check=True, timeout=60).stdout
+
+
+def seal_flash(now: datetime) -> str:
+    """Flash files (research/theses/<date>-F<HHMM>-<SYM>.json) are sealed the minute they're seen. Their
+    times are unknown in advance, so instead of the contents API (60 unsigned calls an hour) a sparse
+    shallow clone is fetched: ls-remote first, a fetch only when master moved."""
+    et = now.astimezone(ET)
+    date = et.date().isoformat()
+    if et.weekday() > 4 or not 9 * 60 + 35 <= et.hour * 60 + et.minute <= 15 * 60 + 55:
+        return ""
+    os.makedirs(DIR, exist_ok=True)
+    if not os.path.isdir(os.path.join(REPO_DIR, ".git")):
+        subprocess.run(["git", "clone", "--quiet", "--depth", "1", "--filter=blob:none", "--sparse", REPO_URL, REPO_DIR],
+                       check=True, timeout=120)
+        git("sparse-checkout", "set", "research/theses")
+    head = subprocess.run(["git", "ls-remote", REPO_URL, "refs/heads/master"], capture_output=True, text=True,
+                          check=True, timeout=30).stdout.split()[0]
+    if head != git("rev-parse", "HEAD").strip():
+        git("fetch", "--quiet", "--depth", "1", "origin", "master")
+        git("reset", "--quiet", "--hard", "FETCH_HEAD")
+    done = []
+    theses_dir = os.path.join(REPO_DIR, "research", "theses")
+    for name in sorted(os.listdir(theses_dir)):
+        if not (name.startswith(f"{date}-F") and name.endswith(".json")) or os.path.exists(os.path.join(DIR, name)):
+            continue
+        code = name[len(date) + 1:-len(".json")]
+        try:
+            body = json.load(open(os.path.join(theses_dir, name), encoding="utf-8"))
+        except ValueError:
+            body = {"read": "unparseable file", "theses": []}
+        done.append(_seal_one(body, os.path.join(DIR, name), date, code, now, MAX_FLASH))
     return "; ".join(done)
 
 
@@ -233,6 +283,9 @@ if __name__ == "__main__":
     now = datetime.now(ET)
     if cmd == "seal":
         if text := seal(now):
+            print(f"{now:%Y-%m-%d %H:%M} {text}", flush=True)
+    elif cmd == "seal_flash":
+        if text := seal_flash(now):
             print(f"{now:%Y-%m-%d %H:%M} {text}", flush=True)
     elif cmd == "score":
         print(score(now), flush=True)

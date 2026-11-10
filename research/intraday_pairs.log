@@ -1,0 +1,44 @@
+names 277; loading headlines
+  2016: 252 days (1 half/thin), main trades 4196, pairs by month [0, 0, 0, 50, 50, 50, 50, 50, 50, 50, 50, 50], December top 3 [('GOOG', 'GOOGL', np.float64(0.962)), ('DUK', 'SO', np.float64(0.871)), ('QQQ', 'SPY', np.float64(0.859))]
+  2017: 251 days (2 half/thin), main trades 5758, pairs by month [50, 50, 50, 50, 50, 50, 50, 50, 50, 50, 50, 50], December top 3 [('BAC', 'JPM', np.float64(0.809)), ('AMAT', 'LRCX', np.float64(0.795)), ('C', 'JPM', np.float64(0.764))]
+  2018: 251 days (3 half/thin), main trades 5749, pairs by month [50, 50, 50, 50, 50, 50, 50, 50, 50, 50, 50, 50], December top 3 [('QQQ', 'SPY', np.float64(0.924)), ('GOOGL', 'QQQ', np.float64(0.871)), ('MA', 'V', np.float64(0.862))]
+  2019: 252 days (3 half/thin), main trades 4943, pairs by month [50, 50, 50, 50, 50, 50, 50, 50, 50, 50, 50, 50], December top 3 [('QQQ', 'SPY', np.float64(0.94)), ('MSFT', 'QQQ', np.float64(0.797)), ('IWM', 'SPY', np.float64(0.766))]
+  2020: 253 days (2 half/thin), main trades 5058, pairs by month [50, 50, 50, 50, 50, 50, 50, 50, 50, 50, 50, 50], December top 3 [('MSFT', 'QQQ', np.float64(0.887)), ('QQQ', 'SPY', np.float64(0.882)), ('KEY', 'RF', np.float64(0.88))]
+  2021: 252 days (3 half/thin), main trades 5736, pairs by month [50, 50, 50, 50, 50, 50, 50, 50, 50, 50, 50, 50], December top 3 [('QQQ', 'SPY', np.float64(0.9)), ('BAC', 'JPM', np.float64(0.882)), ('HAL', 'SLB', np.float64(0.873))]
+  2022: 251 days (3 half/thin), main trades 5466, pairs by month [50, 50, 50, 50, 50, 50, 50, 50, 50, 50, 50, 50], December top 3 [('GOOG', 'GOOGL', np.float64(0.993)), ('QQQ', 'SPY', np.float64(0.971)), ('DHI', 'LEN', np.float64(0.921))]
+  2023: 250 days (2 half/thin), main trades 5232, pairs by month [50, 50, 50, 50, 50, 50, 50, 50, 50, 50, 50, 50], December top 3 [('GOOG', 'GOOGL', np.float64(0.994)), ('QQQ', 'SPY', np.float64(0.928)), ('MET', 'PRU', np.float64(0.881))]
+  2024: 252 days (3 half/thin), main trades 5520, pairs by month [50, 50, 50, 50, 50, 50, 50, 50, 50, 50, 50, 50], December top 3 [('GOOG', 'GOOGL', np.float64(0.996)), ('QQQ', 'SPY', np.float64(0.911)), ('PSX', 'VLO', np.float64(0.82))]
+  2025: 250 days (3 half/thin), main trades 5228, pairs by month [50, 50, 50, 50, 50, 50, 50, 50, 50, 50, 50, 50], December top 3 [('GOOG', 'GOOGL', np.float64(0.998)), ('QQQ', 'SPY', np.float64(0.949)), ('DHI', 'LEN', np.float64(0.835))]
+  2026: 206 days (0 half/thin), main trades 4187, pairs by month [50, 50, 50, 50, 50, 50, 50, 50, 50, 50], December top 3 [('GOOG', 'GOOGL', np.float64(0.99)), ('QQQ', 'SPY', np.float64(0.883)), ('D', 'NEE', np.float64(0.867))]
+
+== PRIMARY: top-50 pairs, 3 sd, no headline, all 277, 2016-26
+  n=57073 on 2637 days, net -3.95 bps (gross +4.05; per-trade t -13.82, day t -8.98), win 46%, median -3.9, top-1% share -54%
+  by year: 2016:-1.8/4196  2017:-3.1/5758  2018:-4.6/5749  2019:-4.0/4943  2020:-0.6/5058  2021:-4.2/5736  2022:-5.4/5466  2023:-4.9/5232  2024:-6.5/5520  2025:-4.4/5228  2026:-3.0/4187
+  2016-20 -2.92, 2021-26 -4.79; top symbol GPN 17%; top pair GPN/V 5% (n=38); median hold 195 min, reverted 13%, median entry z 3.09; at 1 bps/side +0.05
+  most traded pairs: AAL/UAL 874, BAC/JPM 873, DAL/UAL 849, COP/EOG 796, MSFT/QQQ 784, COP/DVN 776, AAL/DAL 770, RF/TFC 752
+  held out (pairs among rank 101-277): n=56067, net -5.15, day t -7.62
+    ok   n >= 300
+    FAIL mean net >= 3
+    FAIL per-trade t >= 2.5
+    FAIL day t >= 2.5
+    FAIL years+ >= 70%
+    ok   same sign 2016-20 / 2021-26
+    ok   top symbol <= 25%
+    FAIL held out same sign, day t >= 2
+  verdict: FAIL (3/8)
+
+== held out: pairs among rank 101-277 (prior-year $ volume), 2017-26
+  n=56067 on 2445 days, net -5.15 bps (gross +2.85; per-trade t -13.81, day t -7.62), win 47%, median -4.3, top-1% share -55%
+  by year: 2017:-5.5/5713  2018:-6.9/5856  2019:-8.0/5456  2020:-0.7/5914  2021:-1.6/5834  2022:-7.0/5916  2023:-5.4/5441  2024:-7.9/5805  2025:-5.8/5621  2026:-2.2/4511
+  2016-20 -5.23, 2021-26 -5.10; top symbol WDC 46%; top pair SWKS/WDC 4% (n=146); median hold 204 min, reverted 13%, median entry z 3.09; at 1 bps/side -1.15
+  most traded pairs: RF/TFC 821, MCHP/ON 763, KMI/OKE 737, KMI/WMB 730, DVN/EOG 693, KEY/TFC 676, KEY/RF 670, OKE/WMB 659
+
+== reported: no headline filter
+  n=61394 on 2637 days, net -4.14 bps (gross +3.86; per-trade t -14.62, day t -9.24), win 46%, median -3.7, top-1% share -51%
+  by year: 2016:-2.0/4372  2017:-3.1/5940  2018:-4.6/6200  2019:-4.8/5535  2020:-1.5/5877  2021:-4.6/5943  2022:-4.8/5922  2023:-4.8/5674  2024:-6.6/5889  2025:-5.2/5582  2026:-2.7/4460
+  2016-20 -3.29, 2021-26 -4.85; top symbol GPN 19%; top pair GPN/V 5% (n=40); median hold 203 min, reverted 14%, median entry z 3.09; at 1 bps/side -0.14
+  most traded pairs: QQQ/SPY 1297, IWM/SPY 1235, AAL/UAL 903, BAC/JPM 896, DAL/UAL 884, MSFT/QQQ 856, COP/EOG 809, AAL/DAL 800
+
+  daily P&L corr with spike_mom rank 1-25: -0.06 on 725 shared days
+
+VERDICT intraday-pairs: FAIL

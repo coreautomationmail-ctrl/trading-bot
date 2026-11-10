@@ -809,3 +809,23 @@ the rule without the headline filter, daily P&L correlation with spike_mom rank 
 Caveats: shorting costs and borrow not modelled; share-class twins (if both are in the 277) will rank top and are
 kept, as written.
 Script: scripts/research/intraday_pairs.py.
+
+**Reading fix before any return was seen:** the first run (stopped at 2018, only progress lines printed) formed no
+pairs from mid-November to February each year, because on half-day sessions every name has under 90% of 390 bars,
+so no name is "eligible all 60 days". The formation and sd windows now count the prior 60 / 20 FULL sessions,
+skipping days where fewer than half of the names with data are eligible (1-3 a year). No rule changed otherwise.
+
+**Result: FAIL, 3 of 8 checks.** All 277 names, 2016-26 (data ends 2026-10-27; pairs from April 2016), 8 bps a pair
+trade. Log: research/intraday_pairs.log; trades in .cache/intraday_pairs_trades.csv.
+- n=57,073 on 2,637 days, -3.95 net per pair (gross +4.05), per-trade t -13.82, day t -8.98, win 46%, median -3.9.
+  Negative in 11 of 11 years; 2016-20 -2.92, 2021-26 -4.79. Top symbol GPN 17%, top pair GPN/V 5%.
+- Median hold 195 min; only 13% of trades get back to the 10:00 value before 15:55; median entry z 3.09.
+- Held out (pairs formed among rank 101-277 by prior-year dollar volume, 2017-26): n=56,067, -5.15 net (gross
+  +2.85), day t -7.62, all 10 years negative.
+- Reported only: without the headline filter -4.14 net (gross +3.86, n=61,394), so the filter adds +0.2 bps. At
+  1 bps/side per leg (4 a trade) +0.05. Most traded: AAL/UAL, BAC/JPM, DAL/UAL, COP/EOG, MSFT/QQQ. Daily P&L
+  correlation with spike_mom rank 1-25: -0.06 on 725 shared days.
+Verdict: FAIL. Not loosened. The split does close a little (gross +4 bps, positive every year in both universes),
+but four legs of 2 bps cost twice that. Even at 1 bps a side it is zero. Held-out step reported above; it agrees.
+Lesson: intraday pair divergences in these liquid names are mostly real repricing (87% never close the same day);
+the small reversion is a market-maker's spread-sized edge, not a taker's. Another price-only FAIL, the 18th.

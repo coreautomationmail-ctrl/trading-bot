@@ -37,7 +37,7 @@ E. DONE, FAIL 2026-11-09, see journal. steady-movers: plan question 4. Most miss
    Idea: order-splitting by institutions keeps pushing a quiet trend (an intraday
    cousin of Da, Gurun & Warachka's "frog in the pan", 2014). 2 bps/side. Never pick
    names with the movers list, which is hindsight.
-F. intraday-pairs: plan question 6, market-neutral. Each month, the 50 pairs among the
+F. DONE, FAIL 2026-11-10, see journal. intraday-pairs: plan question 6, market-neutral. Each month, the 50 pairs among the
    277 with the highest correlation of 30-min returns over the prior 60 sessions.
    After 10:30 ET, when a pair's log price ratio moves more than 3 sds (of its prior
    20 sessions' 30-min changes) from today's 10:00 value and neither name had a

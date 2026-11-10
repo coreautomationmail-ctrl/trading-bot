@@ -14,6 +14,12 @@ At each check-in (10:30, 12:00, 13:30 ET) a PC session commits research/theses/<
                                   in a git fetch; at most MAX_FLASH trades each
   python intraday_book.py score   after the close: data/theses_intraday_scores.csv and
                                   data/theses_intraday_summary.json
+  python intraday_book.py score_flags   after score: every screener flag, passed or not, as if
+                                  followed and as if faded (entry FLAG_LAG_MIN after the flag, the
+                                  time a session's file takes to be sealed; out at +30 and +60 min, net
+                                  of costs, minus SPY), joined with Vision's ledger (Haiku's call; the
+                                  session's status, minutes and API-rate cost estimate) and Claude's
+                                  own scored result: data/flash_ledger.csv, data/flash_ledger_summary.json
 
 A trade enters at the open of the first SIP 1-minute bar starting at or after sealed_at (rounded up to
 the minute). It exits at the first of: its stop (fill at the stop, or at a bar's open past it), its
@@ -45,6 +51,14 @@ REPO_DIR = os.path.join(thesis.STATE_DIR, "repo")
 DIR = os.path.join(thesis.STATE_DIR, "theses", "intraday")
 SCORES_CSV = os.path.join(thesis.STATE_DIR, "theses_intraday_scores.csv")
 SUMMARY_JSON = os.path.join(thesis.STATE_DIR, "theses_intraday_summary.json")
+FLAGS_DIR = os.getenv("FLAGS_DIR", "/spike/world/flags")
+LEDGER_DIR = os.getenv("LEDGER_DIR", "/vision")
+FLAG_CSV = os.path.join(thesis.STATE_DIR, "flash_ledger.csv")
+FLAG_SUMMARY = os.path.join(thesis.STATE_DIR, "flash_ledger_summary.json")
+FLAG_LAG_MIN, FLAG_HOLDS = 4, (30, 60)
+FLAG_FIELDS = ["date", "id", "symbol", "flagged_at", "move_pct", "volume_x", "headline", "triage", "triage_why",
+               "session", "minutes", "cost_usd_est", "claude_trades", "claude_net_bps", "claude_vs_random",
+               "follow30", "fade30", "follow60", "fade60"]
 FIELDS = ["date", "id", "symbol", "direction", "confidence", "entry_at", "exit_at", "exit_why", "net_bps",
           "spy_bps", "random_bps", "vs_spy", "vs_random", "why"]
 
@@ -278,6 +292,105 @@ def score(now: datetime) -> str:
     return f"intraday: {len(new)} new, {len(rows)} scored so far: {json.dumps(summary)}"
 
 
+def _read_jsonl(path: str) -> list:
+    out = []
+    for line in open(path, encoding="utf-8"):
+        try:
+            out.append(json.loads(line))
+        except ValueError:
+            continue
+    return out
+
+
+def score_flag_day(date: str, flags: list, ledger: dict, claude: dict, bars: dict) -> list:
+    """One row per flag: Vision's ledger entry, Claude's scored trades, and the follow/fade counterfactuals
+    (each net of costs and minus SPY over the same minutes, same direction)."""
+    rows = []
+    for f in flags:
+        at = datetime.fromisoformat(f["flagged_at"]).astimezone(ET)
+        entry_at = (at + timedelta(minutes=FLAG_LAG_MIN, seconds=59)).replace(second=0, microsecond=0)
+        up = 1 if f.get("since_headline_pct", 0) >= 0 else -1
+        led = ledger.get(f["id"], {})
+        mine = claude.get(f["id"], [])
+        row = {"date": date, "id": f["id"], "symbol": f["sym"], "flagged_at": at.strftime("%H:%M"),
+               "move_pct": f.get("since_headline_pct"), "volume_x": f.get("volume_x"),
+               "headline": str(f.get("headline", ""))[:160],
+               "triage": "" if not led else ("look" if led.get("look") else "skip"),
+               "triage_why": str(led.get("why") or "")[:120], "session": led.get("status", ""),
+               "minutes": round(led["duration_s"] / 60, 1) if led.get("duration_s") else "",
+               "cost_usd_est": led["cost_usd_est"] if led.get("cost_usd_est") is not None else "",
+               "claude_trades": len(mine),
+               "claude_net_bps": round(sum(float(r["net_bps"]) for r in mine), 1) if mine else "",
+               "claude_vs_random": round(sum(float(r["vs_random"]) for r in mine), 1) if mine else ""}
+        for hold in FLAG_HOLDS:
+            exit_at = entry_at + timedelta(minutes=hold)
+            for name, sign in (("follow", up), ("fade", -up)):
+                own = trade(bars.get(f["sym"], []), sign, entry_at, exit_at)
+                spy = trade(bars.get("SPY", []), sign, entry_at, exit_at)
+                row[f"{name}{hold}"] = round(own[0] - spy[0], 1) if own and spy else ""
+        rows.append(row)
+    return rows
+
+
+def _mean(xs: list):
+    xs = [float(x) for x in xs if x not in ("", None)]
+    return round(sum(xs) / len(xs), 1) if xs else None
+
+
+def flag_summary(rows: list) -> dict:
+    """By Haiku's call: how many, and the mean follow/fade counterfactual. For the sessions: cost and
+    Claude's own result per traded flag."""
+    out = {}
+    for name in ("look", "skip", ""):
+        group = [r for r in rows if r["triage"] == name]
+        if group:
+            out[name or "no_ledger"] = {"n": len(group), **{k: _mean([r[k] for r in group])
+                                                             for k in ("follow30", "fade30", "follow60", "fade60")}}
+    traded = [r for r in rows if int(r["claude_trades"] or 0)]
+    out["claude"] = {"sessions": sum(1 for r in rows if r["session"]),
+                     "cost_usd_est": round(sum(float(r["cost_usd_est"]) for r in rows if r["cost_usd_est"] != ""), 2),
+                     "flags_traded": len(traded), "vs_random_per_flag": _mean([r["claude_vs_random"] for r in traded])}
+    return out
+
+
+def score_flags(now: datetime) -> str:
+    if not os.path.isdir(FLAGS_DIR):
+        return f"flags: no {FLAGS_DIR}"
+    today = now.astimezone(ET).date().isoformat()
+    after_close = now.astimezone(ET).hour >= 17
+    done = {r["date"] for r in csv.DictReader(open(FLAG_CSV))} if os.path.exists(FLAG_CSV) else set()
+    scored = list(csv.DictReader(open(SCORES_CSV))) if os.path.exists(SCORES_CSV) else []
+    new = []
+    for name in sorted(os.listdir(FLAGS_DIR)):
+        d = name[:10]
+        if not name.endswith(".jsonl") or d in done or d > today or (d == today and not after_close):
+            continue
+        flags = _read_jsonl(os.path.join(FLAGS_DIR, name))
+        if not flags:
+            continue
+        path = os.path.join(LEDGER_DIR, f"{d}.json")
+        ledger = {e["id"]: e for e in json.load(open(path))} if os.path.exists(path) else {}
+        claude = {}
+        for r in scored:
+            if r["date"] == d and "-F" in r["id"]:
+                claude.setdefault(r["id"].rsplit("-", 1)[0], []).append(r)
+        end = min(now - timedelta(minutes=20), datetime.fromisoformat(f"{d}T23:00:00+00:00"))
+        bars = minute_bars(sorted({f["sym"] for f in flags} | {"SPY"}), d, end.strftime("%Y-%m-%dT%H:%M:%SZ"))
+        new += score_flag_day(d, flags, ledger, claude, bars)
+    if new:
+        first = not os.path.exists(FLAG_CSV)
+        with open(FLAG_CSV, "a", newline="") as f:
+            w = csv.DictWriter(f, fieldnames=FLAG_FIELDS)
+            if first:
+                w.writeheader()
+            w.writerows(new)
+    rows = list(csv.DictReader(open(FLAG_CSV))) if os.path.exists(FLAG_CSV) else []
+    summary = flag_summary(rows)
+    with open(FLAG_SUMMARY, "w") as f:
+        json.dump({"at": now.isoformat(), **summary}, f, indent=1)
+    return f"flags: {len(new)} new, {len(rows)} so far: {json.dumps(summary)}"
+
+
 if __name__ == "__main__":
     cmd = sys.argv[1] if len(sys.argv) > 1 else ""
     now = datetime.now(ET)
@@ -289,5 +402,7 @@ if __name__ == "__main__":
             print(f"{now:%Y-%m-%d %H:%M} {text}", flush=True)
     elif cmd == "score":
         print(score(now), flush=True)
+    elif cmd == "score_flags":
+        print(score_flags(now), flush=True)
     else:
         sys.exit(__doc__)

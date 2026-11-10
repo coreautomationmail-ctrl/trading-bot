@@ -90,3 +90,29 @@ def test_screener_needs_both_the_volume_and_the_move(monkeypatch):
     assert len(done) == 1 and done[0]["hit"] is None                 # decided: no flag
     roundup = [{**news[0], "symbols": [SYM, "A", "B", "C"]}]
     assert fs.check(roundup, {SYM: _bars(t0, 33, jump_at=jump, jump_v=500, jump_c=100.6)}, now) == []
+
+
+def test_every_flag_is_scored_followed_and_faded_and_joined_with_the_ledger():
+    t0 = datetime(2026, 11, 10, 10, 0, tzinfo=ET)
+    rise = [{"t": (t0 + timedelta(minutes=k)).astimezone(fs.UTC).strftime("%Y-%m-%dT%H:%M:%SZ"),
+             "o": 100 + k * 0.1, "h": 100 + k * 0.1, "l": 100 + k * 0.1, "c": 100 + k * 0.1, "v": 100}
+            for k in range(120)]
+    flat = [{**b, "o": 50, "h": 50, "l": 50, "c": 50} for b in rise]
+    at = datetime(2026, 11, 10, 10, 10, tzinfo=ET)
+    flags = [{"id": "2026-11-10-F1010-AAA", "sym": "AAA", "flagged_at": at.isoformat(), "since_headline_pct": 0.8,
+              "volume_x": 4, "headline": "AAA raises guidance"},
+             {"id": "2026-11-10-F1010-BBB", "sym": "BBB", "flagged_at": at.isoformat(), "since_headline_pct": -0.5,
+              "volume_x": 3, "headline": "BBB price target cut"}]
+    ledger = {"2026-11-10-F1010-AAA": {"look": True, "why": "LOOK: guidance", "status": "completed",
+                                       "duration_s": 90, "cost_usd_est": 0.5},
+              "2026-11-10-F1010-BBB": {"look": False, "why": "SKIP: note"}}
+    claude = {"2026-11-10-F1010-AAA": [{"net_bps": "20.0", "vs_random": "12.5"}]}
+    rows = ib.score_flag_day("2026-11-10", flags, ledger, claude, {"AAA": rise, "BBB": rise, "SPY": flat})
+    aaa, bbb = rows
+    assert aaa["follow30"] > 250 and aaa["fade30"] < -250              # the rise pays the follower
+    assert bbb["follow30"] < 0 and bbb["fade30"] > 0                   # BBB fell first: following is short
+    assert (aaa["triage"], aaa["minutes"], aaa["claude_trades"], aaa["claude_vs_random"]) == ("look", 1.5, 1, 12.5)
+    assert bbb["triage"] == "skip" and bbb["session"] == "" and bbb["claude_trades"] == 0
+    s = ib.flag_summary([{k: str(v) for k, v in r.items()} for r in rows])
+    assert s["look"]["n"] == 1 and s["skip"]["n"] == 1
+    assert s["claude"] == {"sessions": 1, "cost_usd_est": 0.5, "flags_traded": 1, "vs_random_per_flag": 12.5}

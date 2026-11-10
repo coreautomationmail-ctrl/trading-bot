@@ -28,10 +28,11 @@ EOF
 # script checks the 08:00-09:29 ET window itself, so the weeks when Berlin and New York change
 # clocks apart don't matter), and score them after the close. Intraday book (intraday_book.py): seal
 # each check-in's file when it lands (every 2 min; the script checks its windows), flash-desk files every
-# minute from a git fetch (09:35-15:55 ET, checked by the script), score after the close.
+# minute from a git fetch (09:35-15:55 ET, checked by the script), score after the close, then every
+# screener flag against Vision's flash ledger (score_flags).
 cat > /etc/cron.d/stratton-thesis <<'EOF'
 */5 13-15 * * 1-5 root docker run --rm --memory 128m --env-file /opt/stratton-bench/.env -v /opt/stratton-bench/data:/data stratton-bench python thesis.py seal >> /opt/stratton-bench/data/thesis.log 2>&1
-5 23 * * 1-5 root docker run --rm --memory 192m --env-file /opt/stratton-bench/.env -v /opt/stratton-bench/data:/data stratton-bench sh -c "python thesis.py score; python intraday_book.py score" >> /opt/stratton-bench/data/thesis.log 2>&1
+5 23 * * 1-5 root docker run --rm --memory 192m --env-file /opt/stratton-bench/.env -v /opt/stratton-bench/data:/data -v /opt/stratton-spike/data:/spike:ro -v /opt/vision/data/stratton/flash:/vision:ro stratton-bench sh -c "python thesis.py score; python intraday_book.py score; python intraday_book.py score_flags" >> /opt/stratton-bench/data/thesis.log 2>&1
 */2 15-21 * * 1-5 root docker run --rm --memory 128m --env-file /opt/stratton-bench/.env -v /opt/stratton-bench/data:/data stratton-bench python intraday_book.py seal >> /opt/stratton-bench/data/thesis.log 2>&1
 * 14-22 * * 1-5 root docker run --rm --memory 128m --env-file /opt/stratton-bench/.env -v /opt/stratton-bench/data:/data stratton-bench python intraday_book.py seal_flash >> /opt/stratton-bench/data/thesis.log 2>&1
 EOF

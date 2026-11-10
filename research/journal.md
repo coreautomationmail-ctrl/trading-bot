@@ -712,6 +712,19 @@ Verdict: no S1 test passes. Not loosened. Under the pre-registered rule, the S2 
 Vision's step, not the desk's, and was not run here. If S2 doesn't qualify, the stop rule applies: no more API
 money on trading signals.
 
+**S2 run plan, 2026-11-10, written before any S2 label exists** (owner OK to spend on it). Readings of the
+Claude-label rule, fixed now:
+- Labeller: Haiku 5.5 (claude-haiku-5-5) through Vision (jarvis ops/stratton_labels.py, site stratton_news),
+  200 headlines a request, text alone, G/B/N. 89,927 distinct single-name headline texts from 2025-07-01
+  (same single-name rule as S1); one label per text. G = +1, B = -1, N or no label = 0 (skipped), summed per
+  name and timestamp as S1.
+- Comparison: T1 exactly as the S1 run, each scorer on its own trades, entry date 2026-07-01 to the end of the
+  cached bars (2026-10-27). "Beats S1 by >= 3 bps per trade" = S2's mean net per trade minus S1's >= 3.0.
+  S1 there: n=2,466, -4.47 net, day t -2.76 (reproduced from headline_family_s1_trades.csv). The overlap and
+  the opposite-side trades are reported, not gated.
+- If it qualifies: full labelling (~$5, owner asked first) and S2 T1-T3 under the t >= 2.9 bar. If not: stop rule.
+Script: scripts/research/headline_s2.py.
+
 ## 2026-11-09 steady-movers: ride intraday moves that are big AND smooth (ideas.md E)
 
 **Pre-registered, before any return was computed.** Hypothesis: a name whose move since the open is both

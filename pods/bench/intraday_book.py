@@ -327,7 +327,8 @@ def score_flag_day(date: str, flags: list, ledger: dict, claude: dict, bars: dic
             for name, sign in (("follow", up), ("fade", -up)):
                 own = trade(bars.get(f["sym"], []), sign, entry_at, exit_at)
                 spy = trade(bars.get("SPY", []), sign, entry_at, exit_at)
-                row[f"{name}{hold}"] = round(own[0] - spy[0], 1) if own and spy else ""
+                # net of the trade's costs, minus SPY's gross move (spy[0] is net too: add its costs back)
+                row[f"{name}{hold}"] = round(own[0] - spy[0] - 2 * thesis.COST_BPS, 1) if own and spy else ""
         rows.append(row)
     return rows
 

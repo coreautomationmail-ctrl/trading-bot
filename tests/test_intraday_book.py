@@ -110,6 +110,7 @@ def test_every_flag_is_scored_followed_and_faded_and_joined_with_the_ledger():
     rows = ib.score_flag_day("2026-11-10", flags, ledger, claude, {"AAA": rise, "BBB": rise, "SPY": flat})
     aaa, bbb = rows
     assert aaa["follow30"] > 250 and aaa["fade30"] < -250              # the rise pays the follower
+    assert aaa["follow30"] + aaa["fade30"] == -4 * ib.thesis.COST_BPS  # each side pays its round trip
     assert bbb["follow30"] < 0 and bbb["fade30"] > 0                   # BBB fell first: following is short
     assert (aaa["triage"], aaa["minutes"], aaa["claude_trades"], aaa["claude_vs_random"]) == ("look", 1.5, 1, 12.5)
     assert bbb["triage"] == "skip" and bbb["session"] == "" and bbb["claude_trades"] == 0

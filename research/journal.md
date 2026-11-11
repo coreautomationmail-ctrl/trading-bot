@@ -734,6 +734,8 @@ Script: scripts/research/headline_s2.py.
 Verdict: S2 does not qualify. Not loosened. No full labelling, no S2 T1-T3. The stop rule applies: no more API
 money on headline-tone trading signals. Both scorers lose after costs; Claude's label reads the tone a little
 better (the opposite-side trades) but the tone of a headline is not a tradeable signal here at either quality.
+Scope (owner, 2026-11-10): the flash desk's Haiku triage is not a tone signal (it only picks which flags
+get a Claude session, $0.05/day cap) and stays; the flag ledger (flash_ledger.csv) judges it, look vs skip.
 
 ## 2026-11-09 steady-movers: ride intraday moves that are big AND smooth (ideas.md E)
 

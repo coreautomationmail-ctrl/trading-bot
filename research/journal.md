@@ -725,6 +725,16 @@ Claude-label rule, fixed now:
 - If it qualifies: full labelling (~$5, owner asked first) and S2 T1-T3 under the t >= 2.9 bar. If not: stop rule.
 Script: scripts/research/headline_s2.py.
 
+**S2 results, 2026-11-10** (`headline_s2.py compare`, labels 89,927 of 89,927; G 34%, B 17%, N 49%). T1 from
+2026-07-01 to 2026-10-27, 2 bps a side:
+- S1 word list: n=2,466, -4.47 net per trade, day t -2.76, win 47% (matches the plan's reproduction).
+- S2 Haiku: n=4,593, -3.51 net per trade, day t -2.72, win 46%.
+- Both took 1,316 trades, same side on 1,018; on the 298 where they took opposite sides, S2 netted +4.38.
+- S2 - S1 = +0.96 bps per trade; the bar was >= +3.0.
+Verdict: S2 does not qualify. Not loosened. No full labelling, no S2 T1-T3. The stop rule applies: no more API
+money on headline-tone trading signals. Both scorers lose after costs; Claude's label reads the tone a little
+better (the opposite-side trades) but the tone of a headline is not a tradeable signal here at either quality.
+
 ## 2026-11-09 steady-movers: ride intraday moves that are big AND smooth (ideas.md E)
 
 **Pre-registered, before any return was computed.** Hypothesis: a name whose move since the open is both

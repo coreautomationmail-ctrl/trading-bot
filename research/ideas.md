@@ -44,7 +44,7 @@ F. DONE, FAIL 2026-11-10, see journal. intraday-pairs: plan question 6, market-n
    single-name headline in the prior 60 minutes, fade it: long the laggard, short the
    leader, equal dollars; exit when it is back to the 10:00 value or at 15:55.
    2 bps/side per leg (8 bps round trip per pair trade); the gate's 3 bps is per pair.
-G. crypto-fee-check: plan question 8. Data: .cache/crypto/m1_<BASE>_<YEAR>.pkl
+G. DONE, FAIL 2026-11-11, see journal. crypto-fee-check: plan question 8. Data: .cache/crypto/m1_<BASE>_<YEAR>.pkl
    (BTC, ETH, SOL, DOGE, LTC, AVAX, LINK; 2021-26; filled by
    scripts/fill_crypto_cache.py; UTC, all hours, no sessions). Alpaca's tier-1 fees
    are 0.25% taker / 0.15% maker a side (docs, read 2026-11-07), so costs are 25

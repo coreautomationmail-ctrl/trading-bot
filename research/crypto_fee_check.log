@@ -1,0 +1,42 @@
+BTC: 3076949 minutes 2021-01-01 06:00:00+00:00 .. 2026-11-08 00:28:00+00:00, buy-and-hold +95% log
+ETH: 3076957 minutes 2021-01-01 06:00:00+00:00 .. 2026-11-08 00:36:00+00:00, buy-and-hold +110% log
+SOL: 3076956 minutes 2021-01-01 06:06:00+00:00 .. 2026-11-08 00:41:00+00:00, buy-and-hold +401% log
+DOGE: 3076966 minutes 2021-01-01 06:01:00+00:00 .. 2026-11-08 00:46:00+00:00, buy-and-hold +268% log
+LTC: 3076973 minutes 2021-01-01 06:00:00+00:00 .. 2026-11-08 00:52:00+00:00, buy-and-hold -93% log
+AVAX: 2614325 minutes 2021-11-18 13:00:00+00:00 .. 2026-11-08 01:04:00+00:00, buy-and-hold -253% log
+LINK: 3076993 minutes 2021-01-01 06:00:00+00:00 .. 2026-11-08 01:12:00+00:00, buy-and-hold -6% log
+
+== Part 1: spike rule break-even (all 7 coins, followed, gross bps) ==
+all: n=33288, mean -1.5, median -4.0, t -2.24, share > 50 bps 19%, net@25 -51.5
+design 4: n=17915, mean -1.5, median -3.3, t -1.47, share > 50 bps 18%, net@25 -51.5
+up only (long): n=15322, mean -2.0, median -3.4, t -1.76, share > 50 bps 20%, net@25 -52.0
+down only: n=17966, mean -1.1, median -4.5, t -1.38, share > 50 bps 19%, net@25 -51.1
+by coin mean gross: AVAX -2.1 (n=4001.0), BTC +1.2 (n=4265.0), DOGE -9.3 (n=4906.0), ETH +3.8 (n=3981.0), LINK -0.8 (n=4945.0), LTC -1.6 (n=6427.0), SOL -0.4 (n=4763.0)
+
+== Part 2: 4-hour TSMOM, long only ==
+
+== design BTC ETH SOL DOGE ==
+n=12929 trades, mean gross -0.1, net@25 -50.10, net@15 -30.10, per-trade t -17.75, day t -13.42 (2130 days)
+win 24%, median net -76.1, top-1% share -32%, mean hold 7.6 h
+by year net: 2021 -46.2, 2022 -63.2, 2023 -47.6, 2024 -47.1, 2025 -45.8, 2026 -49.7 | 2021-23 -52.5, 2024-26 -47.5
+by coin net sum (bps): BTC -184934, DOGE -150880, ETH -169388, SOL -142550 | top coin share nan%
+beta check: held windows -0.05 gross (n=24517) vs all windows +1.71 (n=51280), gap -1.76, Welch t -1.01
+daily P&L corr with spike_mom rank 1-25: -0.03 on 414 shared days
+  PASS  n >= 300
+  FAIL  net >= 3
+  FAIL  t >= 2.5
+  FAIL  day t >= 2.5
+  FAIL  years >= 70%
+  FAIL  same sign halves
+  FAIL  top coin <= 25%
+  FAIL  beta gap > 0, t >= 2
+
+== held out LTC AVAX LINK ==
+n=9512 trades, mean gross -2.8, net@25 -52.83, net@15 -32.83, per-trade t -19.90, day t -14.95 (2122 days)
+win 27%, median net -83.6, top-1% share -23%, mean hold 7.7 h
+by year net: 2021 -57.1, 2022 -63.7, 2023 -47.8, 2024 -51.9, 2025 -48.1, 2026 -48.6 | 2021-23 -56.1, 2024-26 -49.6
+by coin net sum (bps): AVAX -145034, LINK -172495, LTC -184967 | top coin share nan%
+beta check: held windows -1.47 gross (n=18295) vs all windows -0.94 (n=36532), gap -0.53, Welch t -0.30
+  held out same sign with day t >= 2: FAIL
+
+VERDICT: FAIL (1 of 8 design checks)

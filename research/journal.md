@@ -889,3 +889,17 @@ Held out (needed for a PASS, run and reported regardless): LTC AVAX LINK, same r
 Reported, not gated: win rate, median, top-1% share, mean hold, buy-and-hold per coin, daily P&L correlation
 with spike_mom rank 1-25 (.cache/spike_wide_trades.csv).
 Script: scripts/research/crypto_fee_check.py.
+
+**Result: FAIL, 1 of 8 checks (only n).** Log: research/crypto_fee_check.log. All 7 coins 2021-01 .. 2026-11-08.
+- Part 1, spike rule followed for 60 min (n=33,288): mean gross -1.5 bps, median -4.0, t -2.24; 19% of trades
+  move over 50 bps the right way, but as many move as far the wrong way, so the mean is about zero. Up spikes
+  (long only) -2.0 gross, n=15,322. Net at 25 bps/side about -51. No coin above +3.8 gross (ETH).
+- Part 2, 4-hour TSMOM long only, design BTC ETH SOL DOGE: n=12,929 runs, gross -0.1, net -50.1 (at 15 bps/side
+  -30.1), per-trade t -17.8, day t -13.4, win 24%, median -76, mean hold 7.6 h. Every year about -46 to -63 net.
+  Beta check: held 4-hour windows -0.05 gross vs +1.71 for all windows (gap -1.76, t -1.01), so the signal times
+  slightly worse than always holding. Daily P&L correlation with spike_mom rank 1-25: -0.03 on 414 shared days.
+- Held out LTC AVAX LINK: n=9,512, gross -2.8, net -52.8, day t -15.0; beta gap -0.53, t -0.30.
+Verdict: FAIL. Not loosened. A 4-hour trend has no gross edge at all in these coins 2021-26, so the fee is not
+even the binding problem; and the spike rule's big moves are symmetric. Lesson: crypto's bigger moves do not
+come with a bigger directional edge on price alone; a crypto rule would need roughly +50 bps gross per trade, or
+maker fills, before anything else matters. Price-only FAIL number 19.

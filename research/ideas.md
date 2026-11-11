@@ -144,3 +144,12 @@ C. spike-regime-filter: retrain monthly on all earlier data, take or skip each
     prior 252-day average volume, a weaker stand-in, say so), long top-turnover
     winners and short top-turnover losers, hold 21 sessions. Daily, excess vs pool, 5 bps/side. Differs from
     idea 1 (weekly, no turnover split).
+19. crypto-half-hour-tsmom: Bitcoin's first half hour of the (UTC) day predicts its last half hour, attributed
+    to liquidity provision; reported economic gains, costs unclear. Shen, Urquhart & Wang, "Bitcoin intraday
+    time-series momentum" (Financial Review, 2022); seen in a search summary, read the paper first. Test on the
+    7 cached coins, long-only (Alpaca has no crypto shorts), at 25 bps/side: likely too small, so report gross first.
+20. peer-overnight-spillover: economically linked peers' overnight returns lift a stock's overnight return, and
+    that gain reverses during the day. Wang, "Decoding Spillover" (JFQA, accepted 2025); seen in a search summary,
+    read the paper first. Test: pool names, peers = the 5 highest-correlation names over the prior 60 sessions
+    (no industry data cached), fade the focal name's open-to-close when peers' overnight return is extreme.
+    Daily open/close, 5 bps/side.

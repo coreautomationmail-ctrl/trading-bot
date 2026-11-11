@@ -858,3 +858,34 @@ Reading: the flags are cheap to triage (~390 Haiku calls, ~$0.10 a day), but the
 left by the time a session can act. So a screener-fed desk can only work if Claude's judgment (which flags, which
 direction, which to fade) beats the obvious read; the intraday book's scoring is what tests that. Another
 price-only null, consistent with the 18 FAILs.
+
+## 2026-11-11 crypto-fee-check: can anything clear Alpaca's 25 bps/side crypto fee? (ideas.md G)
+
+**Pre-registered, before any return was computed.** Hypothesis: crypto trades all hours with fatter moves than
+the 62 stocks, so a rule may earn more than the 50 bps round trip that Alpaca's tier-1 taker fee costs. Liu &
+Tsyvinski (RFS 2021) find time-series momentum in crypto; a 2026 hourly Kraken study (scout, search summary)
+finds trend rules no better than buy-and-hold after search, a reason to expect FAIL. Alpaca has no crypto
+shorting, so every traded rule is LONG ONLY.
+Data: .cache/crypto/m1_<BASE>_<YEAR>.pkl, BTC ETH SOL DOGE LTC AVAX LINK, 2021-01-01 .. 2026-11-08 UTC (AVAX
+from 2021-11-18). Each coin's years are joined into one series and reindexed to a full 1-min grid; a missing
+minute takes the previous close as open/high/low/close with volume 0. Alpaca volume is its own venue's, thin.
+Part 1, break-even (reported, not gated): spike rule from backtest_scalp, rolling through midnight: bar return
+ret = log(close/open); vol_mean, ret_std = mean of volume, std of ret over the prior 30 bars (min 20, current bar
+excluded); spike = volume >= 8 x vol_mean (vol_mean > 0) and |ret| >= 5 x ret_std (ret_std > 0). Entry at the
+open two bars later (trades()' 1-bar delay), exit at the close 60 bars after that, one trade at a time per coin.
+Report both sides followed: mean gross, median, the share of trades with gross > 50 bps, and the up-spike
+(long-only) subset.
+Part 2, the gated rule, 4-hour time-series momentum, long only: at each 4-hour UTC boundary (00, 04, .., 20) a coin
+is held for the next 4 hours if its log return over the prior 4 hours (close of the last bar before the
+boundary vs the close 4 hours earlier) is > 0, else flat. Entry/exit at the boundary bar's open. A run of
+consecutive held windows is ONE trade (fees on entry and exit only). P&L per trade = log return over the run,
+bps, minus 2 x 25 bps (also reported at 2 x 15).
+Gate (intraday standard with crypto costs and years): design coins BTC ETH SOL DOGE; n >= 300; mean net >= +3
+bps per trade; per-trade t >= 2.5 and t on summed daily net (by exit UTC date) >= 2.5; >= 70% of years
+positive (2021-26, by entry year); same sign 2021-23 and 2024-26; no coin > 25% of positive-coin P&L. Added
+because the rule is long only and crypto rose over the sample: beta check, the mean gross per HELD 4-hour
+window minus the mean gross over ALL 4-hour windows (same coins) must be > 0 with t >= 2 (Welch).
+Held out (needed for a PASS, run and reported regardless): LTC AVAX LINK, same rule; same sign with day t >= 2.
+Reported, not gated: win rate, median, top-1% share, mean hold, buy-and-hold per coin, daily P&L correlation
+with spike_mom rank 1-25 (.cache/spike_wide_trades.csv).
+Script: scripts/research/crypto_fee_check.py.

@@ -1,0 +1,46 @@
+{
+  "written_at": "2026-11-11T08:57:00-05:00",
+  "regime": "Risk-off backdrop after hot CPI (10y ~5%, Bowman/Goolsbee/Paulson hawkish, GS/BofA talking further hikes); SPY and QQQ below 50d, QQQ 20d vol 35%; futures modestly up on Bessent US-China comments; Veterans Day so bond market thin. Snapshot synced 05:25 PT today, pre 08:20 ET; no web pass (session started 08:56 ET), news from the snapshot only.",
+  "theses": [
+    {
+      "id": "2026-11-11-1",
+      "symbol": "AMGN",
+      "direction": "long",
+      "hold_days": 0,
+      "stop_pct": 2.5,
+      "confidence": 0.55,
+      "why": "Amgen said at 08:01 ET that dazodalibep (anti-CD40L, Sjogren's) met its primary endpoint at week 48. A positive Phase 3 in a disease with no approved disease-modifying drug adds a pipeline leg the market had discounted; large-cap biotech readouts released before the open tend to keep drifting as sell-side notes land during the session.",
+      "wrong_if": "Endpoint detail (effect size, secondary misses, safety) disappoints and AMGN trades below its open in the first hour, or the gain is only in line with XBI/healthcare."
+    },
+    {
+      "id": "2026-11-11-2",
+      "symbol": "NVDA",
+      "direction": "short",
+      "hold_days": 0,
+      "stop_pct": 3.0,
+      "confidence": 0.45,
+      "why": "Overhang is escalating, not fading: Reuters exclusive that a PLA-linked university bought H200s despite the blacklist, Sen. Cramer calling for Huang's resignation, Axios on Lutnick being warned, Schumer piling on, and Baird downgrading to Neutral (PT $200) this morning. Export-control and governance risk now has a congressional subpoena path, which institutions de-risk ahead of rather than buy.",
+      "wrong_if": "Dip buyers (Niles et al.) take it back above yesterday's close in the first 90 minutes, or the semis rally broadly with NVDA keeping pace."
+    },
+    {
+      "id": "2026-11-11-3",
+      "symbol": "CI",
+      "direction": "short",
+      "hold_days": 0,
+      "stop_pct": 2.5,
+      "confidence": 0.4,
+      "why": "Bernstein downgraded Cigna to Sell this morning. Outright Sell ratings from a large house on a managed-care name are rare and tend to cite a specific cost-trend or PBM-reform risk, and the sector is fragile on medical-cost news; expect selling into the open to continue.",
+      "wrong_if": "CI is green vs. its open by midday or managed care (ELV, HUM, UNH) rallies together on Elevance's reaffirmed guidance."
+    },
+    {
+      "id": "2026-11-11-4",
+      "symbol": "COST",
+      "direction": "long",
+      "hold_days": 0,
+      "stop_pct": 2.0,
+      "confidence": 0.4,
+      "why": "Costco declared a $30 special dividend and reauthorized a $4B buyback after yesterday's close. A large special payout signals excess cash and confidence in a risk-off, inflation-squeeze tape where defensive staples already attract flows; income buyers chase it before the ex-date.",
+      "wrong_if": "COST fades below its open in the first hour (event fully priced pre-market) or staples lag SPY on a risk-on rotation."
+    }
+  ]
+}

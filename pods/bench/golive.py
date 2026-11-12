@@ -156,4 +156,25 @@ def report(spike_dir: str, bench_dir: str, strategies: list, universe: list[str]
         papered = {(r["symbol"], r.get("signal_bar")) for r in p if r.get("signal_bar")}
         v = [r for r in v if (r["symbol"], r.get("signal_bar")) not in papered]
         blocks.append(fmt(s.NAME, evaluate(v + p, p, s.COST_BPS, ops), s.COST_BPS))
+    blocks.append(desks(bench_dir))
     return "STRATTON go-live case (real money only when all four pass; your call):\n" + "\n".join(blocks)
+
+
+def desks(bench_dir: str) -> str:
+    """The Claude desks (revamp review G4): virtual only until a desk passes its registered test and then
+    clears 100 paper trades in "desk incubation" (built when a desk first clears its n = 100 early-stop
+    line). Until then they can't make a go-live case; this says where they are."""
+    import json
+
+    lines = ["Claude desks (virtual only; a pass goes to desk incubation first, then these checks):"]
+    for name, path, key in (("thesis", "theses_summary.json", None), ("intraday", "theses_intraday_summary.json", None),
+                            ("flash", "theses_intraday_summary.json", "flash")):
+        try:
+            with open(os.path.join(bench_dir, path)) as f:
+                s = json.load(f)
+            s = s.get(key) or {} if key else s
+            lines.append(f"  {name}: {s.get('n', 0)}/{s.get('of', 300)} scored, day t vs random "
+                         f"{s.get('day_t_vs_random')} (bar {s.get('bar', 'n/a')}), {s.get('verdict', 'n/a')}")
+        except (OSError, ValueError):
+            lines.append(f"  {name}: no summary yet")
+    return "\n".join(lines)

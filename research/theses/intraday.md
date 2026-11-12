@@ -32,6 +32,12 @@ you take is a minute the price moves before your entry.
 Up to 3 new trades per check-in, at most 6 of your intraday trades open at once. None is a fine answer;
 write the file anyway with an empty list and say why in `read`.
 
+Optional checks (installed 2026-11-12 in `.claude/skills/`, from that pack): `/trader-scanner`, `/trader-news`,
+`/trader-entry`, `/trader-exit`, `/trader-timemachine` (replay a plan on recent bars), `/trader-analyst`. They
+read free delayed Yahoo/SEC data and write state under `trader/` (gitignored). Use them only if they fit your
+time; your file is still the only output. Their mentions of trader-broker, budget or alerts don't apply here:
+this desk is virtual and never places orders.
+
 Each trade, before you write it (methods adapted from the MIT-licensed day-trader-skill pack):
 - **Catalyst first.** A specific, dated piece of news or a flow you can name (an index event, a halt and
   resumption, a guidance change, a competitor's report) and why the price hasn't finished reacting.

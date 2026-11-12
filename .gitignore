@@ -8,3 +8,6 @@ __pycache__/
 *.pyc
 scripts/.cache/
 .nautilus_venv/
+
+# day-trader-skill state files (written in the working dir by the skills)
+trader/

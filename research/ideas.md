@@ -23,7 +23,7 @@ the test that passes), one desk session each:
   from minute 20 to the close.
 - U2. The same signal, entered at the next day's open, held one day.
 - U3. The spike rule (backtest_scalp: volume >= 8x, move >= 5 sigma) on this universe, 60-minute hold.
-- Held-out slice for any pass: the years not used while designing. Intraday only; no long holds.
+- Held-out slice for any pass: the years not used while designing. Nothing held longer than one day.
 
 Revamp priorities (docs/stratton-revamp-plan.md), tested before anything below:
 

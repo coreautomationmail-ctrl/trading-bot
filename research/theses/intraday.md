@@ -32,8 +32,9 @@ you take is a minute the price moves before your entry.
 Up to 3 new trades per check-in, at most 6 of your intraday trades open at once. None is a fine answer;
 write the file anyway with an empty list and say why in `read`.
 
-Optional checks (installed 2026-11-12 in `.claude/skills/`, from that pack): `/trader-scanner`, `/trader-news`,
-`/trader-entry`, `/trader-exit`, `/trader-timemachine` (replay a plan on recent bars), `/trader-analyst`. They
+Optional checks (installed 2026-11-12 in `.claude/skills/`, from that pack): trader-scanner, trader-news,
+trader-entry, trader-exit, trader-timemachine (replay a plan on recent bars), trader-analyst. Read the skill's
+SKILL.md and run its script with `python3` through Bash ("${CLAUDE_SKILL_DIR}" = that skill's folder). They
 read free delayed Yahoo/SEC data and write state under `trader/` (gitignored). Use them only if they fit your
 time; your file is still the only output. Their mentions of trader-broker, budget or alerts don't apply here:
 this desk is virtual and never places orders.

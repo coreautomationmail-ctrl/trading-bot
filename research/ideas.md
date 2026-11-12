@@ -7,6 +7,24 @@ momentum, spike_fade, vwap_fade, event drift on any big move, RSI2, Kronos
 standalone, spike_mom (PASS, live as the spike pod), PEAD on real earnings
 dates and pre-earnings run-up (2026-11-02, see journal).
 
+**NEXT (owner's revamp review, 2026-11-12): U, a new universe, tested before anything below.** Every
+stock test so far ran on the 62 or 277 most liquid names, and the trigger replay (journal 2026-11-10)
+found nothing left there three minutes after a move. The likeliest place for an edge the desk can still
+catch is less-watched names. Run U1-U3 as ONE pre-registered family under one combined bar (as the
+headline family: all three registered in one journal entry before any result, PASS needs t >= 2.9 for
+the test that passes), one desk session each:
+- Universe, fixed before any return: US common stocks, market cap $300M-$5B, price > $5, median daily
+  dollar volume > $5M over the PRIOR 60 days (no hindsight), from the daily pool and SIP history (free
+  once 15 minutes old). If the cache lacks them, the first session is the download and is BLOCKED
+  until it lands; say exactly what to fetch.
+- Costs: measure half-spreads from 1-min high-low on quiet minutes for a sample of these names and
+  pre-register a per-side cost of at least 10 bps (never less than measured).
+- U1. Single-name news (Benzinga, created_at before entry), follow the first 15 minutes' direction
+  from minute 20 to the close.
+- U2. The same signal, entered at the next day's open, held one day.
+- U3. The spike rule (backtest_scalp: volume >= 8x, move >= 5 sigma) on this universe, 60-minute hold.
+- Held-out slice for any pass: the years not used while designing. Intraday only; no long holds.
+
 Revamp priorities (docs/stratton-revamp-plan.md), tested before anything below:
 
 A. DONE, FAIL 2026-11-06, see journal. spike-down-no-news: spike-news (2026-11-06) failed its gate, but its gap came

@@ -13,11 +13,11 @@
     "id": "spike-tail-driven",
     "claim": "Spike P&L comes from a small share of trades; the median trade loses a little.",
     "status": "open",
-    "evidence": "Median -0.8 bps, win rate 48%, top 1% of trades = 45-63% of P&L. Split by FOMC days: not the source. Three non-FOMC days (2025-04-09, 2022-11-30, 2019-08-01; 41 of 1,444 trades) are +12,139 of the +12,463 summed bps on rank 1-25; without them +0.2 net, t 0.11. Those days were picked after the fact, and dropping the 3 worst days too (all FOMC, -7,079) leaves +5.5, so the total rests on about 6 days either way.",
+    "evidence": "Median -0.8 bps, win rate 48%, top 1% of trades = 45-63% of P&L. Split by FOMC days: not the source. Three non-FOMC days (2025-04-09, 2022-11-30, 2019-08-01; 41 of 1,444 trades) are +12,139 of the +12,463 summed bps on rank 1-25; without them +0.2 net, t 0.11. Those days were picked after the fact, and dropping the 3 worst days too (all FOMC, -7,079) leaves +5.5, so the total rests on about 6 days either way. A walk-forward filter on SPY trend/volatility/time (2026-11-12) couldn't pick them out in advance: skipped trades earned more than taken ones.",
     "confidence": "high",
     "reopen_if": "A fixed calendar or a rule known at entry identifies these shock days in advance; CPI and jobs days aren't split yet.",
-    "journal": "project notes 2026-10-29; 2026-11-07 spike-events",
-    "updated": "2026-11-07"
+    "journal": "project notes 2026-10-29; 2026-11-07 spike-events; 2026-11-12 spike-regime-filter",
+    "updated": "2026-11-12"
   },
   {
     "id": "spike-wider-universe",
@@ -163,11 +163,11 @@
     "id": "price-only-research-exhausted",
     "claim": "New edge in these liquid names is more likely from new data (news, filings, flows, options) than from more price rules.",
     "status": "open",
-    "evidence": "11 straight FAILs, nearly all price patterns on the same data. A pattern, not a test; the news and filing tests will challenge it. So far the first two news tests also FAILED: spike-news and spike-down-no-news, both using only headline timing, not content. headline-family S1 (2026-11-08): headline CONTENT by word list also failed all three tests (T1 -3.4 net, day t -7.5, n=56,217; T2 day t 1.53; T3 -4.9). steady-movers (2026-11-09), price only: big + smooth midday movers -5.8 net, day t -5.6, n=48,796. intraday-pairs (2026-11-10), price plus headline absence: fading 3-sd splits in the 50 most correlated pairs -3.95 net per pair (gross +4.05 vs 8 bps cost), day t -9.0, n=57,073; held out -5.15. crypto-fee-check (2026-11-11), price only on 7 coins: 4-hour long-only trend gross -0.1 bps per trade (net -50.1 at Alpaca's 25 bps/side, day t -13.4, n=12,929); the spike rule on crypto -1.5 gross.",
+    "evidence": "11 straight FAILs, nearly all price patterns on the same data. A pattern, not a test; the news and filing tests will challenge it. So far the first two news tests also FAILED: spike-news and spike-down-no-news, both using only headline timing, not content. headline-family S1 (2026-11-08): headline CONTENT by word list also failed all three tests (T1 -3.4 net, day t -7.5, n=56,217; T2 day t 1.53; T3 -4.9). steady-movers (2026-11-09), price only: big + smooth midday movers -5.8 net, day t -5.6, n=48,796. intraday-pairs (2026-11-10), price plus headline absence: fading 3-sd splits in the 50 most correlated pairs -3.95 net per pair (gross +4.05 vs 8 bps cost), day t -9.0, n=57,073; held out -5.15. crypto-fee-check (2026-11-11), price only on 7 coins: 4-hour long-only trend gross -0.1 bps per trade (net -50.1 at Alpaca's 25 bps/side, day t -13.4, n=12,929); the spike rule on crypto -1.5 gross. spike-regime-filter (2026-11-12): a monthly-retrained filter on market trend, volatility and time cut the spike mean (-0.79 bps vs taking all, Welch t -0.35; held out -1.88).",
     "confidence": "low",
     "reopen_if": "New-data tests fail as often as price tests have: rethink the universe and horizon instead.",
-    "journal": "docs/stratton-revamp-plan.md; 2026-11-06 spike-news; 2026-11-06 spike-down-no-news; 2026-11-07 headline-family; 2026-11-09 steady-movers; 2026-11-10 intraday-pairs; 2026-11-11 crypto-fee-check",
-    "updated": "2026-11-11"
+    "journal": "docs/stratton-revamp-plan.md; 2026-11-06 spike-news; 2026-11-06 spike-down-no-news; 2026-11-07 headline-family; 2026-11-09 steady-movers; 2026-11-10 intraday-pairs; 2026-11-11 crypto-fee-check; 2026-11-12 spike-regime-filter",
+    "updated": "2026-11-12"
   },
   {
     "id": "data-raw-bars-carry-splits",
@@ -267,6 +267,16 @@
     "confidence": "low",
     "reopen_if": "SEC companyfacts, full-market daily bars, 1-min bars and Benzinga headlines for the universe are cached (journal 2026-11-12 u-family lists them).",
     "journal": "2026-11-12 PRE-REGISTRATION u-family",
+    "updated": "2026-11-12"
+  },
+  {
+    "id": "spike-regime-filter",
+    "claim": "A take/skip filter retrained monthly on earlier spike_mom trades (side, SPY trend today and over 20 sessions, SPY 60-min and 20-day volatility, time) lifts the mean net per trade.",
+    "status": "rejected",
+    "evidence": "Ridge, alpha 10, walk-forward 2018-01..2026-10. Rank 1-25: all +9.90 net (n=1,291), taken +9.11 (n=834, day t 1.10), skipped +11.34; gap -0.79, Welch t -0.35. Held out rank 26-100: gap -1.88, Welch t -1.10. Model leans on SPY 60-min vol and doesn't carry forward.",
+    "confidence": "medium",
+    "reopen_if": "A new input known at entry (headlines, sector, macro calendar for CPI/jobs) is added and pre-registered as its own filter test.",
+    "journal": "2026-11-12 spike-regime-filter",
     "updated": "2026-11-12"
   }
 ]

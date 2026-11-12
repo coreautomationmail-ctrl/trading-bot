@@ -988,3 +988,14 @@ time) says which spikes run, a filter trained only on earlier months should lift
   symbol > 25% of positive P&L. Held out (rank 26-100, own training): gap same sign with Welch t >= 2.
 - Reported, not gated: summed net bps taken vs all, win rate, median, top-1% share, share of trades taken.
 Script: scripts/research/spike_regime_filter.py.
+
+**Result: FAIL, 6 of 9 primary checks; the filter lowers the mean.** Log: research/spike_regime_filter.log.
+- Rank 1-25, scored 2018-01..2026-10 (n=1,291): fixed rule +9.90 net (t 3.45, day t 1.36). The filter took 834
+  (65%): +9.11 net (t 2.83, day t 1.10), sum +7,595 vs +12,779 for all; skipped trades earned MORE, +11.34.
+  Gap taken - all -0.79 bps, Welch t -0.35. Failed: gap, Welch t, day t. Taken win 50%, median +0.1, top-1% of
+  trades 44% of the sum, top symbol MU 10%, 7/9 years positive, 2018-20 +15.0 and 2021-26 +4.9.
+- Held out rank 26-100 (n=3,634): fixed +1.96, taken (49%) +0.08, skipped +3.79; gap -1.88, Welch t -1.10.
+- The ridge weights lean on SPY's 60-minute realized vol (+30.6 standardized), i.e. the model learned "spikes in
+  busy markets run", which is the same few shock days (spike-tail-driven) and doesn't carry to later months.
+Verdict: FAIL. Not loosened. Market trend, volatility and time of day known at entry don't say which spikes run;
+the edge's dependence on a few days isn't predictable from these inputs. Price-only FAIL number 20.

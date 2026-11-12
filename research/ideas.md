@@ -7,7 +7,9 @@ momentum, spike_fade, vwap_fade, event drift on any big move, RSI2, Kronos
 standalone, spike_mom (PASS, live as the spike pod), PEAD on real earnings
 dates and pre-earnings run-up (2026-11-02, see journal).
 
-**NEXT (owner's revamp review, 2026-11-12): U, a new universe, tested before anything below.** Every
+**NEXT (owner's revamp review, 2026-11-12): U, a new universe, tested before anything below.** BLOCKED
+2026-11-12 (pre-registered in the journal; the cache has no shares outstanding, and no 1-min bars or headlines
+for these names; the journal entry lists the 4 downloads). Rerun as registered once they land. Every
 stock test so far ran on the 62 or 277 most liquid names, and the trigger replay (journal 2026-11-10)
 found nothing left there three minutes after a move. The likeliest place for an edge the desk can still
 catch is less-watched names. Run U1-U3 as ONE pre-registered family under one combined bar (as the
@@ -77,7 +79,7 @@ H. options-iv-lead: plan question 7. BLOCKED on history: Alpaca's option bars st
    2024 and need keys; world_recorder.py has saved SPY/QQQ chains twice a day since
    2026-11-05. Revisit when 60 sessions are recorded (about February 2027).
 
-C. spike-regime-filter: retrain monthly on all earlier data, take or skip each
+C. DONE, FAIL 2026-11-12, see journal. spike-regime-filter: retrain monthly on all earlier data, take or skip each
    signal using market trend, realized volatility, time of day, sector. Scored
    only on later months. Must beat the fixed rule by a pre-registered margin.
 

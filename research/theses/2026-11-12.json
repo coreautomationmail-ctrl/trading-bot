@@ -1,0 +1,56 @@
+{
+  "written_at": "2026-11-12T09:05:00-05:00",
+  "regime": "Pre-market snapshot fresh (synced 05:25 PT, taken 08:20 ET); no web pass for time. SPY +1.3% and QQQ +2.3% yesterday but both below 50d, 20d vol 22/36%: a headline-driven tape (Iran/Hormuz, tariff threats on Mexico) with NVDA governance turmoil and capital-raise supply as today's stock-specific news.",
+  "theses": [
+    {
+      "id": "2026-11-12-1",
+      "symbol": "KDP",
+      "direction": "short",
+      "hold_days": 0,
+      "stop_pct": 3.0,
+      "confidence": 0.55,
+      "why": "Keurig Dr Pepper launched a $2.0B common stock offering (plus $300M option) at 07:46 ET to repay debt ahead of its split. A marketed follow-on prices at a discount and the overnight book is hedged by shorting, so the stock tends to sit near the deal price through the day; deleveraging is a known plan, not new upside.",
+      "wrong_if": "The deal prices tight to the prior close and KDP trades above the open by midday, i.e. the market treats deleveraging before the split as the news."
+    },
+    {
+      "id": "2026-11-12-2",
+      "symbol": "SO",
+      "direction": "short",
+      "hold_days": 0,
+      "stop_pct": 2.0,
+      "confidence": 0.45,
+      "why": "Southern Company announced a $1.75B equity-units offering (35M units, 5M option) at 06:44 ET. Mandatory-convertible buyers hedge by shorting the common, which pressures a low-volatility utility on pricing day; proceeds go to debt, no growth news.",
+      "wrong_if": "SO holds above the open with the utility sector up, i.e. hedge demand is absorbed by a defensive rotation."
+    },
+    {
+      "id": "2026-11-12-3",
+      "symbol": "NVDA",
+      "direction": "short",
+      "hold_days": 0,
+      "stop_pct": 3.0,
+      "confidence": 0.4,
+      "why": "WSJ says the board is preparing to oust Jensen Huang; reports the board weighs Colette Kress as interim CEO; KeyBanc and William Blair downgraded this morning. A founder-CEO exit at the largest stock is an unresolved, escalating event, and downgrades citing it give funds cover to keep cutting after the gap.",
+      "wrong_if": "The board denies or names a credible successor early, or NVDA fills a third of its gap in the first hour."
+    },
+    {
+      "id": "2026-11-12-4",
+      "symbol": "AMD",
+      "direction": "long",
+      "hold_days": 0,
+      "stop_pct": 3.0,
+      "confidence": 0.45,
+      "why": "William Blair upgraded AMD to Outperform this morning, AMD was named a strategic partner and investor in Anthropic's IPO filing last night, and a PsiQuantum partnership/equity stake is out; flows rotating out of NVDA over its CEO turmoil look for the nearest liquid substitute.",
+      "wrong_if": "AMD trades below the open with NVDA, i.e. the turmoil is read as AI-complex risk rather than a rotation."
+    },
+    {
+      "id": "2026-11-12-5",
+      "symbol": "HUBS",
+      "direction": "long",
+      "hold_days": 0,
+      "stop_pct": 4.0,
+      "confidence": 0.35,
+      "why": "HubSpot CEO Rangan stepped down effective immediately and co-founder Halligan returns as CEO, while the company reaffirmed Q4 and FY26 guidance in the same release. The reaffirmation removes the hidden-problem read of an abrupt exit, and founder returns are usually greeted as a reset; an initial dip at the open could be overdone.",
+      "wrong_if": "HUBS falls further after the open, or the CFO's retirement and 'refounding' talk are read as a coming guidance reset."
+    }
+  ]
+}

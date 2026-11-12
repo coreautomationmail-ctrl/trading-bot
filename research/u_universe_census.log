@@ -1,0 +1,21 @@
+pool names 1000, 1-min names 277, news names 277
+edgar CIK files 993, with XBRL facts (shares outstanding) 0
+
+year  pass_liq  not_in_277  of_which_1min  of_which_news  median_dv60_$M
+2016       984         712              0              0            38.9
+2017       984         712              0              0            41.3
+2018       978         706              0              0            47.8
+2019       979         707              0              0            46.8
+2020       978         706              0              0            48.2
+2021       980         708              0              0            58.6
+2022       978         707              0              0            59.4
+2023       970         699              0              0            52.7
+2024       970         699              0              0            58.6
+2025       967         695              0              0            74.8
+2026       968         695              0              0            91.5
+
+names ever passing liquidity, not in the 277: 727
+  with any 1-min file: 0; with news file: 0
+
+universe.pkl symbols 10979, non-ETF and not unit/warrant/right-like 4599
+  daily pool covers 1000 of them (pool = top 1000 by 2016Q1 $vol)

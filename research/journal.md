@@ -947,3 +947,44 @@ Scripts: scripts/research/u_universe_census.py (data check, this session), then 
 
 Data check first (cached only): does the cache hold, for this universe, (a) shares outstanding, (b) 1-min bars,
 (c) Benzinga headlines? If not, this session is BLOCKED and lists exactly what to fetch.
+
+**Data check result: BLOCKED (no U test run, no return computed).** Log: research/u_universe_census.log.
+- Market cap: impossible from the cache. The 993 edgar CIK files are submissions indexes only; 0 hold XBRL facts
+  (no shares outstanding).
+- The daily pool is the top 1,000 by Q1-2016 dollar volume, so it is 2016 survivors only (no later IPOs) and
+  skews large: the 712 pool names outside the 277 that pass price > $5 and prior-60-day median $vol > $5M have a
+  median of $39M (2016) to $92M (2026) a day. The $300M-$5B, $5M-a-day end is mostly not in it.
+- 1-min bars: 0 of the 727 candidate names. Benzinga headlines: 0 of 727. So U1 and U3 (1-min) and U2 (needs
+  headlines) can't run, and the cost measurement (1-min high-low) can't either.
+Exactly what to fetch, in order (the family is rerun unchanged once it lands):
+1. SEC XBRL companyfacts, data.sec.gov/api/xbrl/companyfacts/CIK##########.json (free, no key, 10 req/s with a
+   User-Agent), for every common-like symbol in universe.pkl (4,599 non-ETF, non-unit/warrant/right), CIKs from
+   .cache/edgar/company_tickers.json; keep dei:EntityCommonStockSharesOutstanding with its filed date.
+   Caveat: company_tickers.json lists current tickers only, so delisted names drop out (survivorship; say so).
+2. Daily SIP bars 2016-01-01..today for the same 4,599 (Alpaca, keys), to apply the universe rule day by day.
+3. 1-min SIP bars 2016-26 for every name that passes the universe rule in any year (size known after 1-2),
+   2024 first so the 50-name cost sample can be measured before anything else.
+4. Benzinga headlines (.cache/news/<SYM>.csv.gz format, scripts/fill_news_cache.py) for the same names.
+Verdict: BLOCKED. Gate untouched; the pre-registration above stands as written.
+
+## 2026-11-12 spike-regime-filter: a monthly-retrained take/skip filter on spike_mom (ideas.md C)
+
+**Pre-registered, before any filter result was computed** (U is BLOCKED above, so the desk moved to the next idea).
+Hypothesis: spike_mom's edge is uneven (tail-driven, a few days); if the market's state at entry (trend, volatility,
+time) says which spikes run, a filter trained only on earlier months should lift the mean of the trades it keeps.
+- Trades: .cache/spike_wide_trades.csv (spike_mom exactly as live: vol >= 8x, |ret| >= 5 sd, signals 13:00-14:54,
+  1-bar delay, 60-min hold, gross signed bps), side joined from .cache/spike_news_scored.csv on (sym, exit).
+  Primary: rank 1-25 by prior-year dollar volume (the pod's names), 2017-26. Held out: rank 26-100.
+- Features, from SPY 1-min bars with timestamp <= entry - 1 min only: side; side x SPY log return since today's
+  09:30 open; SPY realized vol over the prior 60 1-min bars; SPY sd of daily close-to-close returns over the
+  prior 20 sessions; side x SPY 20-session return to the prior close; minutes since 13:00. No sector (not cached).
+- Model: ridge regression (features standardized on the training set, alpha 10), target = net bps (gross - 4).
+  Retrained at the start of each calendar month on ALL earlier trades of the same universe; first scored month
+  is 2018-01 (>= 12 months of training). Take a trade if its prediction > 0, else skip. One model, no tuning.
+- Fixed-rule baseline: all trades in the same scored months (2018-01 .. 2026-10).
+- Costs 2 bps/side. PASS needs ALL: (1) mean net of taken - mean net of all >= +3 bps, and Welch t of taken vs
+  skipped >= 2.5; (2) the taken set passes the intraday gate: n >= 300, mean net >= +3, per-trade t >= 2.5 AND t
+  on summed daily net >= 2.5, >= 70% of years positive, same sign 2018-20 and 2021-26 (2016 has no trades), no
+  symbol > 25% of positive P&L. Held out (rank 26-100, own training): gap same sign with Welch t >= 2.
+- Reported, not gated: summed net bps taken vs all, win rate, median, top-1% share, share of trades taken.
+Script: scripts/research/spike_regime_filter.py.

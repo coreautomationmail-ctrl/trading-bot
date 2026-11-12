@@ -258,5 +258,15 @@
     "reopen_if": "Maker (limit) fills near 15 bps/side or lower are shown, AND a rule known at entry shows >= +40 bps gross per trade on a pre-registered test.",
     "journal": "2026-11-11 crypto-fee-check",
     "updated": "2026-11-11"
+  },
+  {
+    "id": "u-family",
+    "claim": "News-follow (U1, U2) or the spike rule (U3) earns after >= 10 bps/side on less-watched US common stocks ($300M-$5B cap, > $5, > $5M median daily $vol).",
+    "status": "blocked",
+    "evidence": "Pre-registered 2026-11-12 (combined bar t 2.9). Cache check: 0 shares-outstanding files, 0 of 727 candidate pool names with 1-min bars or headlines; the daily pool is 2016 survivors skewed large (median $39-92M a day). Nothing tested.",
+    "confidence": "low",
+    "reopen_if": "SEC companyfacts, full-market daily bars, 1-min bars and Benzinga headlines for the universe are cached (journal 2026-11-12 u-family lists them).",
+    "journal": "2026-11-12 PRE-REGISTRATION u-family",
+    "updated": "2026-11-12"
   }
 ]

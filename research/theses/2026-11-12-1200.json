@@ -1,0 +1,18 @@
+{
+  "written_at": "2026-11-12T12:04:00-05:00",
+  "read": "Indexes flat after a gap-down was bought; semis now giving back in the last 30m (SMCI -4.4%, LITE/MRVL/LRCX -1.4 to -1.8%), energy pinned at highs. NVDA has retraced +9.1% off a -13% gap on a record retail opening bid, yet the Huang story escalated after 11:00: Semafor reports a DOJ probe (11:29), House leadership wants a classified briefing (11:18), Huang will testify before Congress, and the President is publicly pushing Tim Cook against the board's Kress pick. One short on NVDA for the afternoon. SMCI's drop has no catalyst I could verify, so no trade; the web pass found nothing current on either name. No intraday trades open, nothing to close.",
+  "theses": [
+    {
+      "id": "2026-11-12-1200-1",
+      "symbol": "NVDA",
+      "direction": "short",
+      "exit_by": "15:55",
+      "stop_pct": 2.5,
+      "target_pct": 4.0,
+      "confidence": 0.45,
+      "why": "The morning rebound (+9.1% from the open, 87% of range) was led by record retail buying (net $111M in the first half hour) before the 11:18-11:42 headlines turned the CEO exit into a Washington matter: a reported DOJ probe, a requested classified House briefing, Huang testifying before Thanksgiving, and the President contesting the board's choice of Kress. The last 30m has only shaved 0.6% while the rest of the semis roll over; institutions that bought the dip on a clean succession now face open-ended legal and political risk, and retail-led rebounds tend to fade into the afternoon.",
+      "wrong_if": "NVDA makes a new high of the day after 12:30, or the DOJ report is denied or walked back by Nvidia or the department."
+    }
+  ],
+  "close": []
+}

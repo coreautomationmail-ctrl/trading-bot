@@ -60,7 +60,7 @@ FLAG_FIELDS = ["date", "id", "symbol", "flagged_at", "move_pct", "volume_x", "he
                "session", "minutes", "cost_usd_est", "claude_trades", "claude_net_bps", "claude_vs_random",
                "follow30", "fade30", "follow60", "fade60"]
 FIELDS = ["date", "id", "symbol", "direction", "confidence", "entry_at", "exit_at", "exit_why", "net_bps",
-          "spy_bps", "random_bps", "vs_spy", "vs_random", "why"]
+          "spy_bps", "random_bps", "vs_spy", "vs_random", "why", "version"]
 
 
 def minutes(hhmm: str) -> int:
@@ -120,6 +120,7 @@ def _seal_one(body: dict, path: str, date: str, code: str, now: datetime, max_ne
                for t in json.load(open(os.path.join(DIR, f)))["theses"]}   # everything sealed before now
     with open(path, "w") as f:
         json.dump({"sealed_at": now.isoformat(), "checkin": code, "read": str(body.get("read", ""))[:300],
+                   "prompt_version": int(body.get("prompt_version") or 1),
                    "theses": [t for t in theses if not valid(t, date, code)],
                    "close": [i for i in body.get("close") or [] if i in earlier],
                    "rejected": [{"id": t.get("id"), "why": valid(t, date, code)} for t in theses if valid(t, date, code)]},
@@ -258,7 +259,8 @@ def score_day(date: str, files: list, bars: dict) -> list:
                          "confidence": t.get("confidence", ""), "entry_at": entry_at.strftime("%H:%M"),
                          "exit_at": out_at.strftime("%H:%M"), "exit_why": why, "net_bps": round(net, 1),
                          "spy_bps": round(spy[0], 1), "random_bps": round(rand, 1), "vs_spy": round(net - spy[0], 1),
-                         "vs_random": round(net - rand, 1), "why": str(t.get("why", ""))[:200]})
+                         "vs_random": round(net - rand, 1), "why": str(t.get("why", ""))[:200],
+                         "version": s.get("prompt_version", 1)})
     return rows
 
 
@@ -278,15 +280,20 @@ def score(now: datetime) -> str:
         end = min(now - timedelta(minutes=20), datetime.fromisoformat(f"{d}T23:00:00+00:00"))
         bars = minute_bars(sorted(set(thesis.UNIVERSE) | {"SPY"}), d, end.strftime("%Y-%m-%dT%H:%M:%SZ"))
         new += score_day(d, files, bars)
-    if new:
-        first = not os.path.exists(SCORES_CSV)
-        with open(SCORES_CSV, "a", newline="") as f:
-            w = csv.DictWriter(f, fieldnames=FIELDS)
-            if first:
-                w.writeheader()
-            w.writerows(new)
-    rows = list(csv.DictReader(open(SCORES_CSV))) if os.path.exists(SCORES_CSV) else []
-    summary = thesis.summarize([{**r, "stopped": int(r["exit_why"] == "stop")} for r in rows])
+    thesis.write_rows(SCORES_CSV, FIELDS, new)
+    rows = [{**r, "stopped": int(r["exit_why"] == "stop")}
+            for r in (list(csv.DictReader(open(SCORES_CSV))) if os.path.exists(SCORES_CSV) else [])]
+    flash = lambda i: "-F" in i  # noqa: E731  flash-desk trade ids carry the flag code
+    sealed_files = sorted(f for f in os.listdir(DIR) if f.endswith(".json"))
+    checkins = [len(json.load(open(os.path.join(DIR, f)))["theses"]) for f in sealed_files if not flash(f)]
+    flash_days: dict[str, int] = {}
+    for f in sealed_files:
+        if flash(f):
+            flash_days[f[:10]] = flash_days.get(f[:10], 0) + len(json.load(open(os.path.join(DIR, f)))["theses"])
+    # The flash desk's sessions are trading days since it started (a quiet day with no flag counts).
+    flash_sessions = [flash_days.get(d, 0) for d in sorted({f[:10] for f in sealed_files}) if d >= "2026-11-11"]
+    summary = {**thesis.summarize([r for r in rows if not flash(r["id"])], "intraday", checkins),
+               "flash": thesis.summarize([r for r in rows if flash(r["id"])], "flash", flash_sessions)}
     with open(SUMMARY_JSON, "w") as f:
         json.dump({"at": now.isoformat(), **summary}, f, indent=1)
     return f"intraday: {len(new)} new, {len(rows)} scored so far: {json.dumps(summary)}"

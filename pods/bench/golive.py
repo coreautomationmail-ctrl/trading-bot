@@ -25,9 +25,17 @@ import math
 import os
 from collections import defaultdict
 
+import registry
+
 MIN_N, MIN_T, MIN_MONTHS, MONTH_SHARE = 300, 2.0, 3, 2 / 3
 MIN_PAPER, TRADE_USD, MAX_DD_USD, MAX_SHARE = 50, 5000.0, 2500.0, 0.25
 OPS_SESSIONS = 20
+
+
+def need_t() -> float:
+    """MIN_T, raised for the number of forward tests registered (registry.py, revamp review G1).
+    Only ever higher than the 2.0 fixed on 11/07: the bar is never loosened."""
+    return max(MIN_T, registry.bar())
 
 
 def read(path: str) -> list[dict]:
@@ -67,7 +75,7 @@ def evaluate(trades: list[dict], paper: list[dict], cost_bps: float, ops: list[d
     slips = [float(p["slip_bps"]) for p in paper if p.get("slip_bps") not in ("", None)]
     recent = ops[-OPS_SESSIONS:]
     checks = {
-        "evidence": n >= MIN_N and total > 0 and (day_t or 0) >= MIN_T and len(months) >= MIN_MONTHS
+        "evidence": n >= MIN_N and total > 0 and (day_t or 0) >= need_t() and len(months) >= MIN_MONTHS
                     and pos_months >= MONTH_SHARE * len(months),
         "fills": len(paper) >= MIN_PAPER and bool(slips) and sum(slips) / len(slips) <= cost_bps,
         "risk": n > 0 and total > 0 and dd <= MAX_DD_USD and max(day_vals) <= MAX_SHARE * total
@@ -94,7 +102,7 @@ def fmt(name: str, r: dict, cost_bps: float) -> str:
     return "\n".join([
         f"{name}: {'READY for the owner to decide on real money' if r['ready'] else 'building the case'}",
         f"  1 evidence {mark[c['evidence']]}: {r['n']}/{MIN_N} trades, mean {f(r['mean_bps'], '+.1f')} bps, "
-        f"day t {f(r['day_t'], '.2f')}/{MIN_T}, months {r['pos_months']}/{r['months']} positive (need {MIN_MONTHS}+)",
+        f"day t {f(r['day_t'], '.2f')}/{need_t()}, months {r['pos_months']}/{r['months']} positive (need {MIN_MONTHS}+)",
         f"  2 fills {mark[c['fills']]}: {r['paper_n']}/{MIN_PAPER} paper trades, slippage {f(r['slip_bps'], '.1f')} "
         f"bps vs {cost_bps:g} assumed",
         f"  3 risk {mark[c['risk']]}: drawdown ${r['dd_usd']:,.0f}/{MAX_DD_USD:,.0f} at ${TRADE_USD:,.0f} a trade",

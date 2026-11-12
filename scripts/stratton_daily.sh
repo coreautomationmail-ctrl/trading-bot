@@ -20,6 +20,7 @@ docker ps --filter name=stratton-bench --format "bench: {{.Status}}"
 echo "bench errors today: $(docker logs --since 24h stratton-bench 2>&1 | grep -ciE "error|traceback")"
 [ -f /opt/stratton-bench/data/bench_virtual.csv ] && echo "bench virtual today: $(grep -c ",$D," /opt/stratton-bench/data/bench_virtual.csv)  all: $(($(wc -l < /opt/stratton-bench/data/bench_virtual.csv) - 1))"
 [ -f /opt/stratton-bench/data/bench_paper.csv ] && echo "bench paper trades all: $(($(wc -l < /opt/stratton-bench/data/bench_paper.csv) - 1))"
+python3 -c "import json; d=\"/opt/stratton-bench/data/\"; a=json.load(open(d+\"theses_summary.json\")); b=json.load(open(d+\"theses_intraday_summary.json\")); print(\"desks: thesis \" + a[\"verdict\"] + \" | intraday \" + b[\"verdict\"] + \" | flash \" + b.get(\"flash\", {}).get(\"verdict\", \"n/a\"))" 2>/dev/null
 python3 -c "import json; print(\"ladder: \" + \", \".join(k + \" \" + v[\"stage\"] for k, v in json.load(open(\"/opt/stratton-bench/data/ladder.json\")).items()))" 2>/dev/null') || { vps="VPS UNREACHABLE"; triggers="$triggers vps-unreachable"; }
 echo "$vps"
 echo "$vps" | grep -q "^pod: Up" || triggers="$triggers pod-down"
@@ -28,6 +29,9 @@ echo "$vps" | grep -Eq "^bench errors today: [1-9]" && triggers="$triggers bench
 echo "$vps" | grep -q '"paused": true' && triggers="$triggers pod-paused"
 echo "$vps" | grep -Eq "^errors today: [1-9]" && triggers="$triggers pod-errors"
 echo "$vps" | grep -E "errors \{" | head -2 | grep -q . && triggers="$triggers recorder-errors"
+echo "$vps" | grep "^desks:" | grep -q "inactive" && triggers="$triggers desk-inactive"
+echo "$vps" | grep "^desks:" | grep -q "STOPPED" && triggers="$triggers desk-futile"
+echo "$vps" | grep "^desks:" | grep -q "PASS" && triggers="$triggers desk-forward-pass"
 
 echo "== Research desk"
 git fetch -q origin 2>/dev/null

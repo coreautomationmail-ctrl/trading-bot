@@ -30,6 +30,13 @@ redeployed only when the market is closed and only for a fix, never to change it
      the close. The ladder promotes it from there by its own rules. If something doesn't
      check out, don't add it; say why.
    - `desk-quiet`: the desk didn't run. Check Vision's task list for the failure and report.
+   - `desk-inactive`: a Claude desk (thesis, intraday or flash) has traded too little to ever reach a
+     verdict (pods/bench/thesis.py INACTIVE). Report it with the numbers; don't change its instructions.
+     Its one rewrite a quarter is the owner's call (pods/bench/registry.py).
+   - `desk-futile`: a desk tripped its early stop (day t vs random <= 0 after 100 trades, 60 for
+     flash). Report it; the owner decides whether to switch its standing order off.
+   - `desk-forward-pass`: a desk passed its registered forward test. Report it first, with n, days and
+     day t against the bar; nothing goes live from a virtual pass (docs/stratton-revamp-plan.md).
 4. Commit what you changed (never .env) and push to master.
 
 ## Final message (sent to the owner on Telegram)

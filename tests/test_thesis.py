@@ -82,3 +82,57 @@ def test_seal_only_before_the_open(tmp_path, monkeypatch):
     assert thesis.seal(datetime(2026, 11, 10, 9, 20, tzinfo=ET)) == "sealed 1 of 2 theses for 2026-11-10"
     saved = json.load(open(tmp_path / "2026-11-10.json"))
     assert len(saved["theses"]) == 1 and "universe" in saved["rejected"][0]["why"]
+
+
+# --- revamp review G1-G3: registry bar, versions, futility, inactivity --------------------
+
+import csv  # noqa: E402
+
+import registry  # noqa: E402
+
+
+def _rows(n, per_day=5, vs=4, version=None):
+    return [{"date": f"d{i // per_day:03d}", "net_bps": 10 + i % 7, "vs_spy": vs + i % 6, "vs_random": vs + i % 7,
+             "stopped": 0, "confidence": 0.6, **({"version": version} if version else {})} for i in range(n)]
+
+
+def test_the_bar_rises_with_the_number_of_registered_tests():
+    assert [registry.bar(k) for k in (1, 3, 5, 8, 12, 20)] == [2.0, 2.39, 2.58, 2.73, 2.87, 3.02]
+    assert registry.bar() == registry.bar(len(registry.load()))       # read from forward_registry.json
+    ids = [t["id"] for t in registry.load()]
+    assert len(ids) == len(set(ids)) and {"thesis-desk-v1", "intraday-desk-v1", "flash-desk-v1"} <= set(ids)
+
+
+def test_only_the_current_instruction_version_is_judged(monkeypatch):
+    monkeypatch.setattr(registry, "current_version", lambda desk, tests=None: 2)
+    s = thesis.summarize(_rows(300) + _rows(5, version="2"))
+    assert s["n"] == 5 and s["older_versions_n"] == 300 and s["version"] == 2 and s["verdict"] == "running"
+
+
+def test_a_desk_that_loses_to_random_stops_early_and_a_pass_needs_60_days():
+    losing = [{**r, "vs_random": -abs(r["vs_random"])} for r in _rows(100)]
+    assert thesis.summarize(losing)["verdict"].startswith("STOPPED: futility")
+    assert thesis.summarize(losing[:99])["verdict"] == "running"
+    short = _rows(300, per_day=10)          # 30 trading days: no final verdict yet, however good
+    assert thesis.summarize(short)["verdict"] == "running"
+    assert thesis.summarize(_rows(300))["verdict"].startswith("PASS")
+
+
+def test_a_desk_that_stops_trading_is_called_inactive():
+    s = thesis.summarize([], "intraday", sessions=[0] * 15)
+    assert s["inactive"] and s["verdict"].startswith("inactive")
+    assert not thesis.summarize([], "intraday", sessions=[0] * 14)["inactive"]     # not enough sessions yet
+    assert not thesis.summarize([], "intraday", sessions=[1] * 15)["inactive"]
+    assert thesis.summarize([], "thesis", sessions=[1] * 20)["inactive"]          # thesis needs 1.5 a morning
+
+
+def test_old_score_files_get_the_version_column_without_losing_rows(tmp_path):
+    path = str(tmp_path / "scores.csv")
+    old = [f for f in thesis.FIELDS if f != "version"]
+    with open(path, "w", newline="") as f:
+        w = csv.DictWriter(f, fieldnames=old)
+        w.writeheader()
+        w.writerow({k: "1" for k in old})
+    thesis.write_rows(path, thesis.FIELDS, [{**{k: "2" for k in old}, "version": 2}])
+    rows = list(csv.DictReader(open(path)))
+    assert [r["version"] for r in rows] == ["", "2"] and rows[0]["id"] == "1"

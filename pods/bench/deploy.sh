@@ -1,6 +1,6 @@
 #!/bin/sh
 # Deploy/refresh the STRATTON shadow bench on the VPS (run from this folder):
-#   ssh postiz 'mkdir -p /opt/stratton-bench/data' && scp Dockerfile bench.py golive.py ops.sh ladder.py strategies.py thesis.py intraday_book.py ../spike/missed_universe.json ../spike/spike_pod.py ../spike/spike_scorecard.py postiz:/opt/stratton-bench/ && ssh postiz 'sh -s' < deploy.sh
+#   ssh postiz 'mkdir -p /opt/stratton-bench/data' && scp Dockerfile bench.py golive.py ops.sh ladder.py strategies.py thesis.py intraday_book.py registry.py forward_registry.json ../spike/missed_universe.json ../spike/spike_pod.py ../spike/spike_scorecard.py postiz:/opt/stratton-bench/ && ssh postiz 'sh -s' < deploy.sh
 # Market data comes through the spike pod's keys (read only). Paper orders, for strategies the
 # ladder has promoted, go to the main paper account (the trading listener's keys, exported as
 # INCUB_*), idle since ORB paused. Telegram and the paper-URL check as the spike pod.

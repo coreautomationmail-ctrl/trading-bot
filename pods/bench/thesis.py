@@ -32,6 +32,7 @@ from datetime import datetime, timedelta
 
 import requests
 
+import registry
 import spike_pod
 from spike_pod import ET
 
@@ -45,8 +46,32 @@ COST_BPS = 2.0
 RANDOM_DRAWS = 20
 MAX_THESES, MAX_HOLD = 5, 5
 EXIT_N = 300
+MIN_DAYS = 60            # the final test needs this many trading days as well as EXIT_N trades
+FUTILITY_N = 100         # from here, a desk whose day t vs random is <= 0 stops early (can't make a false pass)
+# Inactivity, per desk: (sessions looked at, fewest trades a session on average). Revamp review G3.
+INACTIVE = {"thesis": (20, 1.5), "intraday": (15, 1.0), "flash": (40, 0.5)}
 FIELDS = ["date", "id", "symbol", "direction", "hold_days", "stop_pct", "confidence", "exit_date", "stopped",
-          "net_bps", "spy_bps", "random_bps", "vs_spy", "vs_random", "why"]
+          "net_bps", "spy_bps", "random_bps", "vs_spy", "vs_random", "why", "version"]
+
+
+def write_rows(path: str, fields: list, new: list) -> None:
+    """Append rows; a file written before a column was added is rewritten with the new header
+    (missing values left empty: an empty version reads as 1)."""
+    if not new:
+        return
+    old_fields = next(csv.reader(open(path)), []) if os.path.exists(path) else []
+    if old_fields and old_fields != fields:
+        rows = list(csv.DictReader(open(path)))
+        with open(path, "w", newline="") as f:
+            w = csv.DictWriter(f, fieldnames=fields, extrasaction="ignore")
+            w.writeheader()
+            w.writerows(rows)
+    first = not os.path.exists(path)
+    with open(path, "a", newline="") as f:
+        w = csv.DictWriter(f, fieldnames=fields, extrasaction="ignore")
+        if first:
+            w.writeheader()
+        w.writerows(new)
 
 
 def valid(t: dict, date: str) -> str:
@@ -78,7 +103,8 @@ def seal(now: datetime) -> str:
     kept = [t for t in theses if not valid(t, date)]
     os.makedirs(SEALED_DIR, exist_ok=True)
     with open(os.path.join(SEALED_DIR, f"{date}.json"), "w") as f:
-        json.dump({"sealed_at": now.isoformat(), "theses": kept,
+        json.dump({"sealed_at": now.isoformat(), "prompt_version": int(json.loads(r.text).get("prompt_version") or 1),
+                   "theses": kept,
                    "rejected": [{"id": t.get("id"), "why": valid(t, date)} for t in theses if valid(t, date)]}, f, indent=1)
     return f"sealed {len(kept)} of {len(theses)} theses for {date}"
 
@@ -144,7 +170,7 @@ def score_day(sealed: dict, date: str, sessions: list, bars: dict) -> list:
                      "confidence": t.get("confidence", ""), "exit_date": span[-1], "stopped": int(stopped),
                      "net_bps": round(net, 1), "spy_bps": round(spy, 1), "random_bps": round(rand, 1),
                      "vs_spy": round(net - spy, 1), "vs_random": round(net - rand, 1),
-                     "why": str(t.get("why", ""))[:200]})
+                     "why": str(t.get("why", ""))[:200], "version": sealed.get("prompt_version", 1)})
     return rows
 
 
@@ -156,8 +182,13 @@ def _t(values: list) -> float | None:
     return round(mean / (sd / math.sqrt(len(values))), 2) if sd else None
 
 
-def summarize(rows: list) -> dict:
-    """The running record the morning session reads, and the plan's 300-thesis exit test."""
+def summarize(rows: list, desk: str = "thesis", sessions: list | None = None, k: int | None = None) -> dict:
+    """The running record a desk's session reads, and its registered test (revamp review G1-G3).
+    Only the desk's current instruction version is judged; older versions' rows are counted, not used.
+    sessions: trades per session, oldest first, for the inactivity check. k: tests registered (bar)."""
+    version = registry.current_version(desk)
+    older = sum(int(r.get("version") or 1) != version for r in rows)
+    rows = [r for r in rows if int(r.get("version") or 1) == version]
     by_day: dict[str, list] = {}
     for r in rows:
         by_day.setdefault(r["date"], []).append(r)
@@ -169,10 +200,22 @@ def summarize(rows: list) -> dict:
         tiers[name] = {"n": len(rs), "net_bps": mean("net_bps", rs), "vs_random": mean("vs_random", rs)}
     n = len(rows)
     t_spy, t_rand = _t(day_mean("vs_spy")), _t(day_mean("vs_random"))
-    verdict = ("running" if n < EXIT_N else
-               "PASS: beats SPY and random picks" if (t_spy or 0) >= 2 and (t_rand or 0) >= 2 else
-               "FAIL: stop virtual trading; keep as an idea source")
-    return {"n": n, "of": EXIT_N, "days": len(by_day), "net_bps": mean("net_bps"), "vs_spy": mean("vs_spy"),
+    need = registry.bar(k)
+    looked, least = INACTIVE.get(desk, INACTIVE["thesis"])
+    recent = (sessions or [])[-looked:]
+    inactive = len(recent) >= looked and sum(recent) / len(recent) < least
+    beats = (t_rand or 0) >= need and (desk == "flash" or (t_spy or 0) >= need)
+    futility_n = 60 if desk == "flash" else FUTILITY_N
+    if n >= EXIT_N and len(by_day) >= MIN_DAYS:
+        verdict = "PASS: beats " + ("random picks" if desk == "flash" else "SPY and random picks") if beats else             "FAIL: stop virtual trading; keep as an idea source"
+    elif n >= futility_n and (t_rand or 0) <= 0:
+        verdict = f"STOPPED: futility, day t vs random {t_rand} after {n} trades; keep as an idea source"
+    elif inactive:
+        verdict = f"inactive: {sum(recent)} trades in the last {len(recent)} sessions (needs {least:g} a session)"
+    else:
+        verdict = "running"
+    return {"n": n, "of": EXIT_N, "days": len(by_day), "version": version, "older_versions_n": older,
+            "bar": need, "inactive": inactive, "net_bps": mean("net_bps"), "vs_spy": mean("vs_spy"),
             "vs_random": mean("vs_random"), "day_t_vs_spy": t_spy, "day_t_vs_random": t_rand,
             "hit_rate": round(sum(float(r["net_bps"]) > 0 for r in rows) / n, 2) if n else None,
             "stopped": sum(int(r["stopped"]) for r in rows), "by_confidence": tiers, "verdict": verdict}
@@ -203,15 +246,10 @@ def score(now: datetime) -> str:
                 new += rows  # every exit has closed: the day is final, even if a name had no data
                 with open(path(d), "w") as f:
                     json.dump({**sealed[d], "scored_at": now.isoformat(), "scored": len(rows)}, f, indent=1)
-        if new:
-            first = not os.path.exists(SCORES_CSV)
-            with open(SCORES_CSV, "a", newline="") as f:
-                w = csv.DictWriter(f, fieldnames=FIELDS)
-                if first:
-                    w.writeheader()
-                w.writerows(new)
+        write_rows(SCORES_CSV, FIELDS, new)
     rows = list(csv.DictReader(open(SCORES_CSV))) if os.path.exists(SCORES_CSV) else []
-    summary = summarize(rows)
+    sessions = [len(sealed[d]["theses"]) for d in sorted(sealed)]   # every morning a file was sealed, empty ones too
+    summary = summarize(rows, "thesis", sessions)
     with open(SUMMARY_JSON, "w") as f:
         json.dump({"at": now.isoformat(), **summary}, f, indent=1)
     return f"scored {len(rows)} theses so far: {json.dumps(summary)}"

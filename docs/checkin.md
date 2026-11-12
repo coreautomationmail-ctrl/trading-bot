@@ -23,12 +23,13 @@ redeployed only when the market is closed and only for a fix, never to change it
    - `desk-branch`: review the branch. Merge it to master only if it touches nothing outside
      research/ and scripts/research/, and its verdict follows the pre-registered gate.
    - `desk-pass`: a strategy passed. Check the journal entry: pre-registered before the run,
-     the gate met, and a held-out result reported. If all true, add it to
-     pods/bench/strategies.py as a Strategy at STAGE "shadow", with BACKTEST_NET_BPS and
-     HOLD_MIN from the journal and the universe it was tested on (WIDE for the 277 names), plus
-     a test in tests/test_bench.py; run the tests; deploy the bench (pods/bench/deploy.sh) after
-     the close. The ladder promotes it from there by its own rules. If something doesn't
-     check out, don't add it; say why.
+     the gate met, and a held-out result reported. If all true, prepare it on a branch
+     `bench/<strategy name>` (never master): a Strategy in pods/bench/strategies.py at STAGE
+     "shadow", with BACKTEST_NET_BPS and HOLD_MIN from the journal and the universe it was tested
+     on (WIDE for the 277 names), plus a test in tests/test_bench.py; run the tests; push the
+     branch. Do NOT merge it and do NOT deploy the bench: the owner decides (owner, 2026-11-12).
+     Say in your final message what passed, the numbers, and that branch `bench/<name>` is ready
+     for their yes. If something doesn't check out, don't prepare it; say why.
    - `desk-quiet`: the desk didn't run. Check Vision's task list for the failure and report.
    - `desk-inactive`: a Claude desk (thesis, intraday or flash) has traded too little to ever reach a
      verdict (pods/bench/thesis.py INACTIVE). Report it with the numbers; don't change its instructions.

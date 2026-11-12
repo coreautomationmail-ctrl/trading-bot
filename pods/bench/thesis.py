@@ -43,6 +43,8 @@ SUMMARY_JSON = os.path.join(STATE_DIR, "theses_summary.json")
 REPO_FILE = "https://api.github.com/repos/coreautomationmail-ctrl/trading-bot/contents/research/theses/{date}.json?ref=master"
 UNIVERSE = json.load(open(os.path.join(os.path.dirname(os.path.abspath(spike_pod.__file__)), "missed_universe.json")))
 COST_BPS = 2.0
+STOP_SLIP_BPS = 3.0    # a stop becomes a market order in a moving stock: it fills worse than its price (G7)
+HIGH_COST_BPS = 5.0    # reported alongside: does a result survive 5 bps a side? (G7)
 RANDOM_DRAWS = 20
 MAX_THESES, MAX_HOLD = 5, 5
 EXIT_N = 300
@@ -51,7 +53,7 @@ FUTILITY_N = 100         # from here, a desk whose day t vs random is <= 0 stops
 # Inactivity, per desk: (sessions looked at, fewest trades a session on average). Revamp review G3.
 INACTIVE = {"thesis": (20, 1.5), "intraday": (15, 1.0), "flash": (40, 0.5)}
 FIELDS = ["date", "id", "symbol", "direction", "hold_days", "stop_pct", "confidence", "exit_date", "stopped",
-          "net_bps", "spy_bps", "random_bps", "vs_spy", "vs_random", "why", "version"]
+          "net_bps", "spy_bps", "random_bps", "vs_spy", "vs_random", "why", "version", "net_5bps"]
 
 
 def write_rows(path: str, fields: list, new: list) -> None:
@@ -143,7 +145,7 @@ def trade_bps(days: list, direction: str, stop_pct) -> tuple[float, bool]:
             if (d["l"] if sign > 0 else d["h"]) * sign <= level * sign:
                 exit_px, stopped = level, True
                 break
-    return sign * (exit_px / entry - 1) * 1e4 - 2 * COST_BPS, stopped
+    return sign * (exit_px / entry - 1) * 1e4 - 2 * COST_BPS - (STOP_SLIP_BPS if stopped else 0), stopped
 
 
 def score_day(sealed: dict, date: str, sessions: list, bars: dict) -> list:
@@ -170,7 +172,8 @@ def score_day(sealed: dict, date: str, sessions: list, bars: dict) -> list:
                      "confidence": t.get("confidence", ""), "exit_date": span[-1], "stopped": int(stopped),
                      "net_bps": round(net, 1), "spy_bps": round(spy, 1), "random_bps": round(rand, 1),
                      "vs_spy": round(net - spy, 1), "vs_random": round(net - rand, 1),
-                     "why": str(t.get("why", ""))[:200], "version": sealed.get("prompt_version", 1)})
+                     "why": str(t.get("why", ""))[:200], "version": sealed.get("prompt_version", 1),
+                     "net_5bps": round(net - 2 * (HIGH_COST_BPS - COST_BPS), 1)})
     return rows
 
 
@@ -214,7 +217,9 @@ def summarize(rows: list, desk: str = "thesis", sessions: list | None = None, k:
         verdict = f"inactive: {sum(recent)} trades in the last {len(recent)} sessions (needs {least:g} a session)"
     else:
         verdict = "running"
+    net5 = [float(r["net_5bps"]) for r in rows if r.get("net_5bps") not in ("", None)]
     return {"n": n, "of": EXIT_N, "days": len(by_day), "version": version, "older_versions_n": older,
+            "net_bps_at_5bps": round(sum(net5) / len(net5), 1) if net5 else None,
             "bar": need, "inactive": inactive, "net_bps": mean("net_bps"), "vs_spy": mean("vs_spy"),
             "vs_random": mean("vs_random"), "day_t_vs_spy": t_spy, "day_t_vs_random": t_rand,
             "hit_rate": round(sum(float(r["net_bps"]) > 0 for r in rows) / n, 2) if n else None,

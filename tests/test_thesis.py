@@ -36,9 +36,9 @@ def test_trade_maths_costs_stops_and_gaps():
     up = [bar(100, 103, 99.5, 102)]
     assert r(thesis.trade_bps(up, "long", None)) == (200 - 4, False)
     assert r(thesis.trade_bps(up, "short", None)) == (-200 - 4, False)
-    assert r(thesis.trade_bps([bar(100, 101, 96, 100)], "long", 3.0)) == (-300 - 4, True)   # stop inside the day
+    assert r(thesis.trade_bps([bar(100, 101, 96, 100)], "long", 3.0)) == (-300 - 4 - 3, True)   # stop inside the day, +3 bps stop slippage
     gap = [bar(100, 101, 99, 100), bar(95, 96, 94, 95.5)]                                     # gaps through the stop
-    assert r(thesis.trade_bps(gap, "long", 3.0)) == (-500 - 4, True)
+    assert r(thesis.trade_bps(gap, "long", 3.0)) == (-500 - 4 - 3, True)
 
 
 def test_score_day_compares_with_spy_and_random_and_waits_for_the_exit():

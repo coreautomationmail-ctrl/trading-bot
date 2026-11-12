@@ -60,7 +60,7 @@ FLAG_FIELDS = ["date", "id", "symbol", "flagged_at", "move_pct", "volume_x", "he
                "session", "minutes", "cost_usd_est", "claude_trades", "claude_net_bps", "claude_vs_random",
                "follow30", "fade30", "follow60", "fade60"]
 FIELDS = ["date", "id", "symbol", "direction", "confidence", "entry_at", "exit_at", "exit_why", "net_bps",
-          "spy_bps", "random_bps", "vs_spy", "vs_random", "why", "version"]
+          "spy_bps", "random_bps", "vs_spy", "vs_random", "why", "version", "net_5bps"]
 
 
 def minutes(hhmm: str) -> int:
@@ -223,7 +223,7 @@ def trade(bars: list, sign: int, entry_at: datetime, exit_at: datetime, stop_pct
                 break
     if px is None:
         px, when = bars[-1]["c"], _et(bars[-1])
-    return sign * (px / entry - 1) * 1e4 - 2 * thesis.COST_BPS, when, why
+    return sign * (px / entry - 1) * 1e4 - 2 * thesis.COST_BPS - (thesis.STOP_SLIP_BPS if why == "stop" else 0), when, why
 
 
 def score_day(date: str, files: list, bars: dict) -> list:
@@ -260,7 +260,8 @@ def score_day(date: str, files: list, bars: dict) -> list:
                          "exit_at": out_at.strftime("%H:%M"), "exit_why": why, "net_bps": round(net, 1),
                          "spy_bps": round(spy[0], 1), "random_bps": round(rand, 1), "vs_spy": round(net - spy[0], 1),
                          "vs_random": round(net - rand, 1), "why": str(t.get("why", ""))[:200],
-                         "version": s.get("prompt_version", 1)})
+                         "version": s.get("prompt_version", 1),
+                         "net_5bps": round(net - 2 * (thesis.HIGH_COST_BPS - thesis.COST_BPS), 1)})
     return rows
 
 

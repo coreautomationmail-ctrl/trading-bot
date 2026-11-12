@@ -12,6 +12,6 @@ def test_beliefs_are_well_formed():
     assert len({b["id"] for b in beliefs}) == len(beliefs)
     for b in beliefs:
         assert FIELDS <= set(b), b["id"]
-        assert b["status"] in {"open", "live", "rejected", "fact"}, b["id"]
+        assert b["status"] in {"open", "live", "rejected", "fact", "blocked"}, b["id"]   # blocked: research/agent.md BLOCKED
         assert b["confidence"] in {"low", "medium", "high"}, b["id"]
         assert all(b[k].strip() for k in FIELDS), b["id"]

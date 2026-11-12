@@ -35,7 +35,7 @@ import os
 import random
 import subprocess
 import sys
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 
 import requests
 
@@ -164,6 +164,12 @@ def seal_flash(now: datetime) -> str:
     return "; ".join(done)
 
 
+def utc_z(t: datetime) -> str:
+    """A time as the API's UTC "...Z" string. Formatting a New York time with a literal Z (the old code)
+    sent 16:45 ET as 16:45 UTC = 11:45 ET, so every score after 11:45 ET was cut short or missing."""
+    return t.astimezone(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ")
+
+
 def minute_bars(symbols: list, day: str, end: str) -> dict:
     """SIP 1-minute bars for one session: {sym: [bar, ...]} in time order."""
     out = {}
@@ -279,7 +285,7 @@ def score(now: datetime) -> str:
         if not any(f["theses"] for f in files):
             continue
         end = min(now - timedelta(minutes=20), datetime.fromisoformat(f"{d}T23:00:00+00:00"))
-        bars = minute_bars(sorted(set(thesis.UNIVERSE) | {"SPY"}), d, end.strftime("%Y-%m-%dT%H:%M:%SZ"))
+        bars = minute_bars(sorted(set(thesis.UNIVERSE) | {"SPY"}), d, utc_z(end))
         new += score_day(d, files, bars)
     thesis.write_rows(SCORES_CSV, FIELDS, new)
     rows = [{**r, "stopped": int(r["exit_why"] == "stop")}
@@ -384,7 +390,7 @@ def score_flags(now: datetime) -> str:
             if r["date"] == d and "-F" in r["id"]:
                 claude.setdefault(r["id"].rsplit("-", 1)[0], []).append(r)
         end = min(now - timedelta(minutes=20), datetime.fromisoformat(f"{d}T23:00:00+00:00"))
-        bars = minute_bars(sorted({f["sym"] for f in flags} | {"SPY"}), d, end.strftime("%Y-%m-%dT%H:%M:%SZ"))
+        bars = minute_bars(sorted({f["sym"] for f in flags} | {"SPY"}), d, utc_z(end))
         new += score_flag_day(d, flags, ledger, claude, bars)
     if new:
         first = not os.path.exists(FLAG_CSV)

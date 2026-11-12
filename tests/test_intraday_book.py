@@ -117,3 +117,10 @@ def test_every_flag_is_scored_followed_and_faded_and_joined_with_the_ledger():
     s = ib.flag_summary([{k: str(v) for k, v in r.items()} for r in rows])
     assert s["look"]["n"] == 1 and s["skip"]["n"] == 1
     assert s["claude"] == {"sessions": 1, "cost_usd_est": 0.5, "flags_traded": 1, "vs_random_per_flag": 12.5}
+
+
+def test_the_bar_window_ends_at_the_right_utc_time():
+    """2026-11-12: 16:45 ET was sent as 16:45Z (11:45 ET), so afternoon trades and flags went unscored."""
+    from datetime import datetime
+    from spike_pod import ET
+    assert ib.utc_z(datetime(2026, 11, 12, 16, 45, tzinfo=ET)) == "2026-11-12T21:45:00Z"

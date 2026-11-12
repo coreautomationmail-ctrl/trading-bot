@@ -919,3 +919,31 @@ reopens if forward signals show the same gap. This is that test, fixed now:
 - Fail: otherwise. beliefs.json spike-news -> rejected; spike-quiet stays as the comparison only.
 - Counted in pods/bench/forward_registry.json (entry spike-news); it uses the registry's bar only if
   that is higher than 2.5.
+
+## 2026-11-12 PRE-REGISTRATION u-family: U1-U3 on less-watched names, one combined bar (ideas.md U)
+
+**Written before any return or data check was run.** Hypothesis: every test so far ran on the 277 most liquid
+names, where the trigger replay (2026-11-10) found nothing left 3 minutes after a move. Mid and small caps are
+followed by fewer analysts and fast traders, so news and spikes there may keep running long enough to catch.
+- Universe, fixed per day before any return: US common stocks (no ETFs, units, warrants, rights, preferreds),
+  market cap $300M-$5B on the prior close (shares outstanding from the latest SEC XBRL value filed BEFORE that
+  day x prior close), prior close > $5, median daily dollar volume > $5M over the PRIOR 60 sessions. Names that
+  are in the 277 1-min list are excluded (already tested). Years 2016-26 where data exists.
+- Costs: half-spread measured as the median over quiet minutes (volume below that name-day's median, 10:30-15:00)
+  of (high-low)/close/2 on 1-min bars, for a random sample of 50 universe names, 2024. Per-side cost =
+  max(10 bps, that measured median), fixed before any U return is computed.
+- U1: a single-name Benzinga headline with created_at between the prior 16:00 close and 09:49:59 ET; direction =
+  sign of the 09:30 open to 09:44 close return (first 15 minutes; flat = skip). Entry at the 09:50 bar's open
+  (minute 20), exit at the 15:59 close.
+- U2: the same signal and direction, entered at the NEXT session's open, exit that session's close (one day).
+- U3: backtest_scalp spike rule (volume >= 8 x the prior-30-bar mean, |1-min return| >= 5 x its prior-30-bar sd),
+  followed, 1-bar delay entry as trades(), 60-minute hold, 09:35-14:58 signals, one trade at a time per name.
+- Gate, each test (combined bar for the family): n >= 300; mean net >= +3 bps per trade; per-trade t >= 2.9 AND
+  t on summed daily net >= 2.9; >= 70% of years positive; same sign 2016-20 and 2021-26; no symbol > 25% of P&L.
+  A test that passes is then checked on the years not used while designing (design = 2016-2022, held out =
+  2023-26; the gate is scored on design years, held out must have the same sign with day t >= 2).
+- Report also: win rate, median, top-1% share of P&L, daily P&L correlation with spike_mom rank 1-25.
+Scripts: scripts/research/u_universe_census.py (data check, this session), then u_family.py once data lands.
+
+Data check first (cached only): does the cache hold, for this universe, (a) shares outstanding, (b) 1-min bars,
+(c) Benzinga headlines? If not, this session is BLOCKED and lists exactly what to fetch.

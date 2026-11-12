@@ -1,19 +1,45 @@
 {
   "_doc": "STRATTON forward tests, registered before their first scored trade (pods/bench/registry.py). Never remove an entry; the pass bar rises with the count.",
   "tests": [
-    {"id": "spike-pod", "registered": "2026-11-02", "kind": "strategy",
-     "test": "pods/bench/golive.py: 300 forward trades, mean net > 0, day t >= bar, 3 months with 2/3 positive, plus fills, risk and operations"},
-    {"id": "spike-news", "registered": "2026-11-07", "kind": "strategy",
-     "test": "watch: promoted to shadow only by the forward test in research/journal.md (spike-news vs spike-quiet gap)"},
-    {"id": "thesis-desk-v1", "registered": "2026-11-09", "kind": "desk", "desk": "thesis", "version": 1,
-     "instructions": "research/theses/agent.md as of 2026-11-09",
-     "test": "300 scored theses over 60+ trading days; day t vs SPY and vs random both >= bar",
-     "secondary": "theses at confidence >= 0.6 beat those at 0.5-0.59 (exploratory until registered as primary)"},
-    {"id": "intraday-desk-v1", "registered": "2026-11-10", "kind": "desk", "desk": "intraday", "version": 1,
-     "instructions": "research/theses/intraday.md as of 2026-11-10",
-     "test": "300 scored trades over 60+ trading days; day t vs SPY and vs random both >= bar"},
-    {"id": "flash-desk-v1", "registered": "2026-11-11", "kind": "desk", "desk": "flash", "version": 1,
-     "instructions": "research/theses/flash.md as of 2026-11-11",
-     "test": "300 scored trades; day t vs random >= bar"}
+    {
+      "id": "spike-pod",
+      "registered": "2026-11-02",
+      "kind": "strategy",
+      "test": "pods/bench/golive.py: 300 forward trades, mean net > 0, day t >= bar, 3 months with 2/3 positive, plus fills, risk and operations"
+    },
+    {
+      "id": "spike-news",
+      "registered": "2026-11-07",
+      "kind": "strategy",
+      "test": "research/journal.md 2026-11-12: at >= 100 spike-news and >= 300 spike-quiet forward virtual trades, news minus quiet mean net >= +6 bps with Welch t >= max(2.5, bar); pass -> shadow, fail -> rejected"
+    },
+    {
+      "id": "thesis-desk-v1",
+      "registered": "2026-11-09",
+      "kind": "desk",
+      "desk": "thesis",
+      "version": 1,
+      "instructions": "research/theses/agent.md as of 2026-11-09",
+      "test": "300 scored theses over 60+ trading days; day t vs SPY and vs random both >= bar",
+      "secondary": "theses at confidence >= 0.6 beat those at 0.5-0.59 (exploratory until registered as primary)"
+    },
+    {
+      "id": "intraday-desk-v1",
+      "registered": "2026-11-10",
+      "kind": "desk",
+      "desk": "intraday",
+      "version": 1,
+      "instructions": "research/theses/intraday.md as of 2026-11-10",
+      "test": "300 scored trades over 60+ trading days; day t vs SPY and vs random both >= bar"
+    },
+    {
+      "id": "flash-desk-v1",
+      "registered": "2026-11-11",
+      "kind": "desk",
+      "desk": "flash",
+      "version": 1,
+      "instructions": "research/theses/flash.md as of 2026-11-11",
+      "test": "300 scored trades; day t vs random >= bar"
+    }
   ]
 }

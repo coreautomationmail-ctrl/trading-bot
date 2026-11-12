@@ -44,7 +44,7 @@ SPIKE_DIR = os.getenv("SPIKE_DIR", "/spike")   # the spike pod's data, mounted r
 VIRTUAL_FIELDS = ["strategy", "date", "et", "symbol", "side", "signal_bar", "entry_px", "exit_px",
                   "gross_bps", "net_bps", "tags"]
 PAPER_FIELDS = ["strategy", "date", "symbol", "side", "qty", "entry_time", "entry_px", "exit_time",
-                "exit_px", "pnl", "net_bps", "signal_px", "slip_bps"]
+                "exit_px", "pnl", "net_bps", "signal_px", "slip_bps", "signal_bar"]   # signal_bar: golive counts a signal once
 SIZE_USD = {"incubation": 1500.0, "pod": 5000.0}
 MAX_OPEN_PER_STRATEGY, MAX_OPEN_TOTAL = 2, 6
 DAILY_LOSS_STOP_USD = 300.0
@@ -223,7 +223,7 @@ def paper_enter(paper: Paper, state: dict, lad: dict, sig: dict, now: datetime):
     o = paper.order(sig["symbol"], qty, "buy" if sig["side"] > 0 else "sell", cid)
     state["open"].append({"strategy": sig["strategy"], "symbol": sig["symbol"], "side": sig["side"],
                           "qty": qty, "entry_order": o["id"], "entry_time": now.isoformat(),
-                          "signal_px": float(sig["signal_px"]),
+                          "signal_px": float(sig["signal_px"]), "signal_bar": sig["signal_bar"],
                           "exit_due": (now + timedelta(minutes=sig["hold"])).isoformat()})
     send_telegram(f"STRATTON bench: {sig['strategy']} {'BUY' if sig['side'] > 0 else 'SHORT'} "
                   f"{qty} {sig['symbol']} [{stage}, paper]")

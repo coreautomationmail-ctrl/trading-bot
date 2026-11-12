@@ -8,7 +8,9 @@ Rules, fixed 2026-11-07 before any strategy had forward data, never tuned on res
 z is (forward mean net bps - BACKTEST_NET_BPS) / its standard error, using per-trade
 net bps; day t is the t-stat of summed daily net P&L (trades on one day aren't
 independent).
-  watch       never moves on forward data; reported only.
+  watch       moves only by a fresh pre-registered backtest PASS (a STAGE edit), or by a forward test
+              written in the journal before the strategy had 30 forward trades (spike-news:
+              journal 2026-11-12); otherwise reported only.
   shadow      -> incubation: n >= 60 virtual trades, mean net > 0, z >= -1, day t > 0
               -> retired:    n >= 60 and z <= -2
   incubation  -> pod:        n >= 100 paper trades, mean net > 0, z >= -1, day t > 0,

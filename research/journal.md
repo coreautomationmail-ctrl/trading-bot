@@ -903,3 +903,19 @@ Verdict: FAIL. Not loosened. A 4-hour trend has no gross edge at all in these co
 even the binding problem; and the spike rule's big moves are symmetric. Lesson: crypto's bigger moves do not
 come with a bigger directional edge on price alone; a crypto rule would need roughly +50 bps gross per trade, or
 maker fills, before anything else matters. Price-only FAIL number 19.
+
+## 2026-11-12 PRE-REGISTRATION spike-news forward test (owner's check-in, from the revamp review)
+
+**Written before the result, with 5 spike-news and 20 spike-quiet forward virtual trades on the bench.**
+The 2026-11-06 backtest found spikes with a single-name headline earning +15.9 bps net against +6.5
+without (rank 1-25), gap t 1.54 < 2: a near-miss, so spike-news sits at "watch". beliefs.json says it
+reopens if forward signals show the same gap. This is that test, fixed now:
+- Data: pods/bench bench_virtual.csv rows of spike-news and spike-quiet from 2026-11-07 on (both
+  strategies' rules unchanged since; any rule change voids this test).
+- When: the first Saturday ladder run on which spike-news has >= 100 and spike-quiet >= 300 forward
+  virtual trades.
+- Pass: (spike-news mean net) - (spike-quiet mean net) >= +6 bps, Welch t >= 2.5. Then spike-news moves
+  to shadow (STAGE edit in pods/bench/strategies.py by the check-in) and climbs by the ladder's rules.
+- Fail: otherwise. beliefs.json spike-news -> rejected; spike-quiet stays as the comparison only.
+- Counted in pods/bench/forward_registry.json (entry spike-news); it uses the registry's bar only if
+  that is higher than 2.5.

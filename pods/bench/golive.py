@@ -29,6 +29,7 @@ import registry
 
 MIN_N, MIN_T, MIN_MONTHS, MONTH_SHARE = 300, 2.0, 3, 2 / 3
 MIN_PAPER, TRADE_USD, MAX_DD_USD, MAX_SHARE = 50, 5000.0, 2500.0, 0.25
+MONTH_MIN_TRADES = 30   # a month counts toward the 3 months only with this many trades (revamp review G5)
 OPS_SESSIONS = 20
 
 
@@ -71,6 +72,10 @@ def evaluate(trades: list[dict], paper: list[dict], cost_bps: float, ops: list[d
         peak = max(peak, curve)
         dd = max(dd, peak - curve)
     day_t = _t(day_vals)
+    month_n = defaultdict(int)
+    for t in trades:
+        month_n[t["date"][:7]] += 1
+    months = {m: v for m, v in months.items() if month_n[m] >= MONTH_MIN_TRADES}   # 2 days in a month isn't a month
     pos_months = sum(v > 0 for v in months.values())
     slips = [float(p["slip_bps"]) for p in paper if p.get("slip_bps") not in ("", None)]
     recent = ops[-OPS_SESSIONS:]
@@ -90,6 +95,10 @@ def evaluate(trades: list[dict], paper: list[dict], cost_bps: float, ops: list[d
         "slip_bps": sum(slips) / len(slips) if slips else None, "dd_usd": dd,
         "sharpe": (total / len(day_vals)) / sd_day * math.sqrt(252) if sd_day and len(day_vals) >= 20 else None,
         "win": sum(v > 0 for v in x) / n if n else None, "per_day": n / len(days) if days else 0,
+        # The spike edge is tail-driven (top 1% of trades made 45-63% of P&L in the backtest), so the
+        # report shows what the typical trade does and what's left without the best 1%.
+        "median_bps": sorted(x)[n // 2] if n else None,
+        "mean_ex_top1_bps": (sum(sorted(x)[:n - max(1, n // 100)]) / (n - max(1, n // 100))) if n > 1 else None,
         "clean_sessions": next((i for i, o in enumerate(reversed(ops)) if int(o["errors"])), len(ops)),
     }
 
@@ -108,7 +117,8 @@ def fmt(name: str, r: dict, cost_bps: float) -> str:
         f"  3 risk {mark[c['risk']]}: drawdown ${r['dd_usd']:,.0f}/{MAX_DD_USD:,.0f} at ${TRADE_USD:,.0f} a trade",
         f"  4 operations {mark[c['operations']]}: {r['clean_sessions']}/{OPS_SESSIONS} clean sessions in a row",
         f"  fund view: Sharpe {f(r['sharpe'], '.2f')}, win rate {f(r['win'], '.0%')}, "
-        f"{r['per_day']:.1f} trades a day",
+        f"{r['per_day']:.1f} trades a day; median trade {f(r['median_bps'], '+.1f')} bps, "
+        f"mean without the best 1% {f(r['mean_ex_top1_bps'], '+.1f')} bps",
     ])
 
 
@@ -141,5 +151,9 @@ def report(spike_dir: str, bench_dir: str, strategies: list, universe: list[str]
             continue      # near-misses and retired strategies can't make a go-live case
         v = [r for r in vrows if r["strategy"] == s.NAME]
         p = [r for r in prows if r["strategy"] == s.NAME]
+        # Each signal once (revamp review G5): the bench logs a virtual row for every signal and, once a
+        # strategy trades paper, a paper row too. The paper row (real fills) wins.
+        papered = {(r["symbol"], r.get("signal_bar")) for r in p if r.get("signal_bar")}
+        v = [r for r in v if (r["symbol"], r.get("signal_bar")) not in papered]
         blocks.append(fmt(s.NAME, evaluate(v + p, p, s.COST_BPS, ops), s.COST_BPS))
     return "STRATTON go-live case (real money only when all four pass; your call):\n" + "\n".join(blocks)

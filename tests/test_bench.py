@@ -130,3 +130,29 @@ def test_golive_needs_all_four_and_reports_progress():
 
 def test_wide_universe_is_the_research_set():
     assert len(strategies.WIDE) == 277 and "AAPL" in strategies.WIDE
+
+
+def test_golive_counts_each_signal_once_and_only_full_months(tmp_path, monkeypatch):
+    """Revamp review G5: a signal with a virtual row and a paper row is one trade; a 2-day month isn't a month."""
+    import golive
+
+    trades = [{"date": f"2026-{m:02d}-{d:02d}", "symbol": "S", "net_bps": 10} for m in (1, 2, 3) for d in range(1, 29)]
+    thin = trades + [{"date": "2026-04-01", "symbol": "S", "net_bps": 10}] * 2
+    r = golive.evaluate(thin, [], 2.0, [])
+    assert r["months"] == 0 and not r["checks"]["evidence"]      # 28 a month < 30: none count
+    assert r["median_bps"] == 10 and r["mean_ex_top1_bps"] == 10
+    rows = {"bench_virtual.csv": [{"strategy": "x", "date": "2026-01-02", "symbol": "AA", "signal_bar": "T1", "net_bps": "5"},
+                                  {"strategy": "x", "date": "2026-01-02", "symbol": "BB", "signal_bar": "T2", "net_bps": "5"}],
+            "bench_paper.csv": [{"strategy": "x", "date": "2026-01-02", "symbol": "AA", "signal_bar": "T1", "net_bps": "4",
+                                 "slip_bps": "1"}]}
+    seen = []
+    monkeypatch.setattr(golive, "read", lambda path: rows.get(os.path.basename(path), []))
+    monkeypatch.setattr(golive, "evaluate", lambda t, p, c, o: seen.append(len(t)) or {
+        "checks": {"evidence": False, "fills": False, "risk": False, "operations": False}, "ready": False})
+    monkeypatch.setattr(golive, "fmt", lambda *a: "")
+    monkeypatch.setattr(golive, "spike_pod", lambda *a: ([], []))
+
+    class S:
+        NAME, COST_BPS = "x", 2.0
+    golive.report("spike", "bench", [S], [], {"x": "incubation"})
+    assert seen[-1] == 2       # AA once (paper), BB once (virtual); seen[0] is the spike pod

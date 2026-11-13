@@ -1,0 +1,19 @@
+{
+  "prompt_version": 2,
+  "written_at": "2026-11-13T10:32:00-05:00",
+  "read": "A broad semis liquidation is speeding up: AMD -9.6%, and MRVL/AMAT/KLAC/TER fell 4%+ in the last 30 minutes, all at 0-2% of their day range. QQQ is -2.0% at 5% of range. Rotation is going into staples and insurers. The headlines (NVDA CEO turmoil, price-target cuts on AMAT/CSCO) are recaps of older stories, and a web search found no new primary catalyst for the semis leg. Sector momentum with no news is the base rate a random pick inside the same group would match, so no trade. From the morning book, PANW (-4.2% since open) has hit its wrong_if; I can't touch it.",
+  "theses": [],
+  "considered": [
+    {"symbol": "AMD", "lean": "long", "confidence": 0.45, "category": "flow",
+     "why_not": "Down 9.6% with no AMD-specific headline, so it looks like an overreaction. But it sits at 2% of range with the selling speeding up (-3.5% in 30 minutes), and I can't say why the move is too large without knowing what drove it. Catching a falling knife against the sector isn't a 0.55 trade."},
+    {"symbol": "MRVL", "lean": "short", "confidence": 0.45, "category": "flow",
+     "why_not": "Heaviest relative volume in the semis group (3.1x), at its low, -4.3% in 30 minutes. Continuation is plausible, but 20 random names drawn from a tape this weak would also fall, and an 8% gap of drop invites a snap-back bounce. There is no edge over random."},
+    {"symbol": "AMAT", "lean": "long", "confidence": 0.4, "category": "analyst",
+     "why_not": "Six brokers reiterated Buy or Outperform this morning (RBC $600 at 10:08), but most of them cut their targets, and the stock fell 4.4% through those notes anyway. Reiterations don't stop sector flow."},
+    {"symbol": "CHTR", "lean": "long", "confidence": 0.45, "category": "other",
+     "why_not": "Top gainer, +2.8% since open at 86% of range on 1.8x volume, but it has no headline. A defensive rotation bid on a down day is real, but I can't say whether this is news or just flow."},
+    {"symbol": "CSCO", "lean": "long", "confidence": 0.4, "category": "analyst",
+     "why_not": "Down 5% with two price-target cuts (Truist $127, Rosenblatt $140), but both firms kept Buy. It is stabilising (-0.1% in 30 minutes, 19% of range), yet the post-earnings drift is unknown to me and the move is not clearly larger than the news."}
+  ],
+  "close": []
+}

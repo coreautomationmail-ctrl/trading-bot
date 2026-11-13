@@ -999,3 +999,23 @@ Script: scripts/research/spike_regime_filter.py.
   busy markets run", which is the same few shock days (spike-tail-driven) and doesn't carry to later months.
 Verdict: FAIL. Not loosened. Market trend, volatility and time of day known at entry don't say which spikes run;
 the edge's dependence on a few days isn't predictable from these inputs. Price-only FAIL number 20.
+
+## 2026-11-13 PRE-REGISTRATION triage-shadow: does Haiku's LOOK/SKIP carry information? (T1, T2)
+
+**Written before any shadow flag exists.** The flash desk's live sample is about one LOOK a day, so judging the
+triage by the desk's trades would take a year. The revamp review (G6.2) and the prompts spec (section 5, T1-T2)
+test it in shadow instead; owner's OK 2026-11-13 (cost about $0.03 a day, inside the $0.05 triage cap).
+- Data: the screener's shadow flags (pods/spike/flash_screener.py: the same check at >= 1.5x volume and a 0.1%
+  move, up to 400 a day, the live cooldown). After the close Vision draws a random sample of up to 150 a day
+  (seeded by the date) and labels each with both prompts: version 2 (live since 11/13) and version 1 (the 11/11
+  text, kept word for word in jarvis ops/stratton_shadow.py). Scored by pods/bench/flash_shadow.py: from 4 minutes
+  after the flag (the live flags' entry lag), 60 minutes, |stock minus SPY| in bps.
+- When: the first evening with >= 1,500 scored shadow flags (about 10 sessions).
+- T1 pass: under version 2, mean |move| of LOOK minus mean |move| of SKIP > 0 with Welch t >= max(2.5, the
+  registry's bar). Fail: Haiku's verdict carries no information about which flags move; then flags pass by code
+  (category and size only) or the flash desk closes, said in that Saturday's memo (prompts spec section 6).
+- T2 (decision rule, no test): the prompt with the larger LOOK-minus-SKIP gap is the one kept; if that is
+  version 1, its text returns to the live triage.
+- Report-only: the category table (follow60 and fade60 by category) feeds T3 later; not judged here.
+- Any change to either prompt, the shadow thresholds or the scoring voids this test. Counted in
+  pods/bench/forward_registry.json (entry triage-shadow).

@@ -124,3 +124,47 @@ def test_the_bar_window_ends_at_the_right_utc_time():
     from datetime import datetime
     from spike_pod import ET
     assert ib.utc_z(datetime(2026, 11, 12, 16, 45, tzinfo=ET)) == "2026-11-12T21:45:00Z"
+
+
+def test_shadow_flags_catch_smaller_moves_without_touching_the_live_flags(monkeypatch, tmp_path):
+    import flash_shadow as sh
+    head = datetime(2026, 11, 10, 10, 31, 20, tzinfo=ET)
+    news = [{"id": 7, "symbols": [SYM], "headline": "Contract win", "created_at": head.astimezone(fs.UTC).isoformat()}]
+    t0 = datetime(2026, 11, 10, 10, 0, tzinfo=ET)
+    jump = datetime(2026, 11, 10, 10, 32, tzinfo=ET)
+    bm = {SYM: _bars(t0, 33, jump_at=jump, jump_v=500, jump_c=100.15), "SPY": _bars(t0, 33), "QQQ": _bars(t0, 33)}
+    uni = tmp_path / "u.json"
+    uni.write_text(json.dumps([SYM]))
+    monkeypatch.setattr(fs, "UNIVERSE_FILE", str(uni))
+    monkeypatch.setattr(fs, "FLAG_DIR", str(tmp_path))
+    monkeypatch.setattr(fs, "headlines", lambda names, a, b: news)
+    monkeypatch.setattr(fs, "bars", lambda syms, tf, a, b: bm)
+    monkeypatch.setattr(fs, "VOL_X", 3.0)
+    monkeypatch.setattr(fs, "MOVE_PCT", 0.3)
+    state, shadow, extra = {"seen": [], "last": {}, "count": 0}, {"seen": [], "last": {}, "count": 0}, []
+    now = datetime(2026, 11, 10, 10, 35, 5, tzinfo=ET)
+    assert fs.run(now, state, {SYM: 100.0, "SPY": 100.0, "QQQ": 100.0}, shadow, extra) == []   # +0.15%: not live
+    assert len(extra) == 1 and extra[0]["sym"] == SYM                                          # but a shadow flag
+    assert fs.run(now, state, {SYM: 100.0}, shadow, extra) == [] and len(extra) == 1          # once
+
+    # scored: |move vs SPY| over 60 minutes from 4 minutes after the flag
+    t1 = datetime(2026, 11, 10, 10, 30, tzinfo=ET)
+    rise = [{"t": (t1 + timedelta(minutes=k)).astimezone(fs.UTC).strftime("%Y-%m-%dT%H:%M:%SZ"),
+             "o": 100 - k * 0.01, "h": 100, "l": 90, "c": 100, "v": 1} for k in range(120)]
+    flat = [{**b, "o": 50} for b in rise]
+    flag = {"id": "2026-11-10-F1035-" + SYM, "sym": SYM, "flagged_at": now.isoformat(), "since_headline_pct": 0.15}
+    rows = sh.score_shadow_day("2026-11-10", [flag], {flag["id"]: {"v1": "skip", "v2": "look", "category": "contract",
+                                                                   "size": "small"}}, {SYM: rise, "SPY": flat})
+    assert rows[0]["abs60"] == 60.1 and rows[0]["v2"] == "look"          # fell ~0.6% vs a flat SPY
+    assert rows[0]["fade60"] > 0 > rows[0]["follow60"]
+
+
+def test_shadow_summary_reports_t1_and_t2_only_at_the_sample():
+    import flash_shadow as sh
+    rows = [{"abs60": 40 + (i % 7), "v1": "look" if i % 3 == 0 else "skip", "v2": "look" if i % 2 else "skip",
+             "category": "deal", "follow60": 1, "fade60": -1} for i in range(100)]
+    s = sh.shadow_summary(rows)
+    assert s["T1"].startswith("running (100") and s["v2"]["look"] == 50
+    big = [{**r, "abs60": (80 if r["v2"] == "look" else 20) + (i % 5)} for i, r in enumerate(rows * 15)]
+    s = sh.shadow_summary(big)
+    assert s["T1"] == "pass" and s["T2"] == "keep v2" and s["v2"]["gap"] == 60.0

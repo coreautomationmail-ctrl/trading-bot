@@ -15,6 +15,12 @@ Each flag is one JSON line in STATE_DIR/world/flags/<date>.jsonl: the headline(s
 whether it's worth a look, and only then starts a Claude session (research/theses/flash.md). IEX bars:
 real trades, IEX's share of volume only, so ratios compare IEX with IEX. No orders.
 
+Shadow flags (revamp review G6.2, owner's OK 2026-11-13): the same check with looser lines (SHADOW_VOL_X,
+SHADOW_MOVE_PCT, SHADOW_CAP a day, the same cooldown) goes to STATE_DIR/world/flags/shadow/<date>.jsonl with
+its own state. Nothing reads them during the session: after the close Vision labels a random sample with both
+triage prompts (jarvis ops/stratton_shadow.py) and the bench scores them (intraday_book.py score_shadow), for
+the pre-registered triage test T1/T2. The live flags and their cap are unchanged.
+
 Usage: python flash_screener.py   (cron: every minute through the session; the script checks the ET window)
        python flash_screener.py --day 2026-11-09  (replay a past session minute by minute, prints flags)
 """
@@ -33,8 +39,12 @@ MOVE_PCT = float(os.environ.get("FLASH_MOVE_PCT", 0.3))   # and the price moved 
 COOLDOWN_MIN, DAILY_CAP = 30, int(os.environ.get("FLASH_CAP", 15))
 START, END = 9 * 60 + 35, 15 * 60 + 30
 SINGLE_NAME = 3
+SHADOW_VOL_X = float(os.environ.get("FLASH_SHADOW_VOL_X", 1.5))
+SHADOW_MOVE_PCT = float(os.environ.get("FLASH_SHADOW_MOVE_PCT", 0.1))
+SHADOW_CAP = int(os.environ.get("FLASH_SHADOW_CAP", 400))
 INDEXES = ["SPY", "QQQ"]
 FLAG_DIR = os.path.join(WORLD_DIR, "flags")
+SHADOW_DIR = os.path.join(FLAG_DIR, "shadow")
 UTC = ZoneInfo("UTC")
 
 
@@ -46,7 +56,7 @@ def _t(iso: str) -> datetime:
     return datetime.fromisoformat(iso.replace("Z", "+00:00")).astimezone(ET)
 
 
-def check(news: list, bar_map: dict, now: datetime) -> list:
+def check(news: list, bar_map: dict, now: datetime, vol_x: float = VOL_X, move_pct: float = MOVE_PCT) -> list:
     """Flags from headlines and closed 1-minute bars ({sym: [bar, ...]}). A headline is decided once its
     CONFIRM minutes have closed, or earlier if one of them already shows the volume."""
     out = []
@@ -66,8 +76,8 @@ def check(news: list, bar_map: dict, now: datetime) -> list:
             window = [vol[start + timedelta(minutes=k)] for k in range(CONFIRM) if start + timedelta(minutes=k) in vol]
             pre = [b for b in bs if _t(b["t"]) < start]
             ref = pre[-1]["c"] if pre else None
-            hit = next((b for b in window if mean > 0 and b["v"] >= VOL_X * mean and ref and
-                        max(abs(b["h"] / ref - 1), abs(b["l"] / ref - 1)) * 100 >= MOVE_PCT), None)
+            hit = next((b for b in window if mean > 0 and b["v"] >= vol_x * mean and ref and
+                        max(abs(b["h"] / ref - 1), abs(b["l"] / ref - 1)) * 100 >= move_pct), None)
             closed = now >= start + timedelta(minutes=CONFIRM + 1)   # the last confirming bar has closed
             if hit is None and not closed:
                 continue
@@ -103,17 +113,48 @@ def prev_closes(names: list, now: datetime, path: str | None) -> dict:
     return out
 
 
-def run(now: datetime, state: dict | None = None, prev: dict | None = None) -> list:
-    """One minute. With state given (a replay), nothing is read from or written to disk."""
+def _decide(news: list, bm: dict, now: datetime, state: dict, prev: dict, idx: dict,
+            vol_x: float, move_pct: float, cap: int) -> list:
+    flags = []
+    for c in check([n for n in news if str(n.get("id")) not in state["seen"]], bm, now, vol_x, move_pct):
+        state["seen"].append(str(c["news_id"]))
+        last = state["last"].get(c["sym"])
+        if c["hit"] is None or state["count"] >= cap or \
+                (last and now - datetime.fromisoformat(last) < timedelta(minutes=COOLDOWN_MIN)):
+            continue
+        flags.append(flag_record(c, prev, idx, now))
+        state["last"][c["sym"]], state["count"] = now.isoformat(), state["count"] + 1
+    return flags
+
+
+def _load_state(path: str) -> dict:
+    return json.load(open(path)) if os.path.exists(path) else {"seen": [], "last": {}, "count": 0}
+
+
+def _save(directory: str, day: str, flags: list, state: dict) -> None:
+    os.makedirs(directory, exist_ok=True)
+    with open(os.path.join(directory, f"{day}.jsonl"), "a", encoding="utf-8") as f:
+        f.writelines(json.dumps(r) + "\n" for r in flags)
+    path = os.path.join(directory, f"{day}.state.json")
+    with open(path + ".tmp", "w") as f:
+        json.dump(state, f)
+    os.replace(path + ".tmp", path)
+
+
+def run(now: datetime, state: dict | None = None, prev: dict | None = None, shadow: dict | None = None,
+        shadow_out: list | None = None) -> list:
+    """One minute. With state given (a replay), nothing is read from or written to disk; pass shadow (a
+    state) and shadow_out (a list) to replay the shadow flags too."""
     names = sorted(set(json.load(open(UNIVERSE_FILE))))
     day = now.date().isoformat()
     live = state is None
     os.makedirs(FLAG_DIR, exist_ok=True)
-    state_path = os.path.join(FLAG_DIR, f"{day}.state.json")
     if live:
-        state = json.load(open(state_path)) if os.path.exists(state_path) else {"seen": [], "last": {}, "count": 0}
+        state = _load_state(os.path.join(FLAG_DIR, f"{day}.state.json"))
+        shadow = _load_state(os.path.join(SHADOW_DIR, f"{day}.state.json"))
     since = now - timedelta(minutes=CONFIRM + 3)   # long enough to see a headline through its confirming minutes
-    news = [n for n in headlines(names, since, now) if str(n.get("id")) not in state["seen"]]
+    seen = set(state["seen"]) & set(shadow["seen"]) if shadow is not None else set(state["seen"])
+    news = [n for n in headlines(names, since, now) if str(n.get("id")) not in seen]
     syms = sorted({s for n in news for s in n.get("symbols") or [] if s in names})
     if not syms:
         return []
@@ -121,34 +162,28 @@ def run(now: datetime, state: dict | None = None, prev: dict | None = None) -> l
     bm = bars(syms + INDEXES, "1Min", closed_to - timedelta(minutes=TRAIL + CONFIRM + 8), closed_to - timedelta(seconds=1))
     prev = prev or prev_closes(names + INDEXES, now, os.path.join(FLAG_DIR, f"{day}.prev.json") if live else None)
     idx = {s: bm[s][-1]["c"] for s in INDEXES if bm.get(s)}
-    flags = []
-    for c in check(news, bm, now):
-        state["seen"].append(str(c["news_id"]))
-        last = state["last"].get(c["sym"])
-        if c["hit"] is None or state["count"] >= DAILY_CAP or \
-                (last and now - datetime.fromisoformat(last) < timedelta(minutes=COOLDOWN_MIN)):
-            continue
-        rec = flag_record(c, prev, idx, now)
-        flags.append(rec)
-        state["last"][c["sym"]], state["count"] = now.isoformat(), state["count"] + 1
+    flags = _decide(news, bm, now, state, prev, idx, VOL_X, MOVE_PCT, DAILY_CAP)
+    if shadow is not None:
+        extra = _decide(news, bm, now, shadow, prev, idx, SHADOW_VOL_X, SHADOW_MOVE_PCT, SHADOW_CAP)
+        if shadow_out is not None:
+            shadow_out.extend(extra)
+        if live:
+            _save(SHADOW_DIR, day, extra, shadow)
     if live:
-        with open(os.path.join(FLAG_DIR, f"{day}.jsonl"), "a", encoding="utf-8") as f:
-            f.writelines(json.dumps(r) + "\n" for r in flags)
-        with open(state_path + ".tmp", "w") as f:
-            json.dump(state, f)
-        os.replace(state_path + ".tmp", state_path)
+        _save(FLAG_DIR, day, flags, state)
     return flags
 
 
 def main():
     if "--day" in sys.argv:   # replay a past session minute by minute, to stdout
         d = datetime.fromisoformat(sys.argv[sys.argv.index("--day") + 1]).replace(tzinfo=ET)
-        state = {"seen": [], "last": {}, "count": 0}
+        state, shadow, extra = {"seen": [], "last": {}, "count": 0}, {"seen": [], "last": {}, "count": 0}, []
         names = sorted(set(json.load(open(UNIVERSE_FILE))))
         prev = prev_closes(names + INDEXES, d, None)
         for m in range(START, END + CONFIRM + 2):
-            for r in run(d.replace(hour=m // 60, minute=m % 60, second=5), state, prev):
+            for r in run(d.replace(hour=m // 60, minute=m % 60, second=5), state, prev, shadow, extra):
                 print(json.dumps({k: v for k, v in r.items() if k != "bars"}), flush=True)
+        print(f"shadow flags: {len(extra)}", flush=True)
         return
     now = datetime.now(ET)
     if now.weekday() > 4 or not START <= minute(now) <= END + CONFIRM + 1:

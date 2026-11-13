@@ -20,6 +20,7 @@ At each check-in (10:30, 12:00, 13:30 ET) a PC session commits research/theses/<
                                   of costs, minus SPY), joined with Vision's ledger (Haiku's call; the
                                   session's status, minutes and API-rate cost estimate) and Claude's
                                   own scored result: data/flash_ledger.csv, data/flash_ledger_summary.json
+  (shadow flags, the triage test T1/T2: flash_shadow.py)
 
 A trade enters at the open of the first SIP 1-minute bar starting at or after sealed_at (rounded up to
 the minute). It exits at the first of: its stop (fill at the stop, or at a bar's open past it), its

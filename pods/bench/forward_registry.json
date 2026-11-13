@@ -69,6 +69,14 @@
       "desk": "flash",
       "instructions": "research/theses/flash.md version 2 (2026-11-13)",
       "test": "300 scored trades; day t vs random >= bar; early stops at 60 (mean vs random <= 0) and 150 (day t < 1)"
+    },
+    {
+      "id": "triage-shadow",
+      "registered": "2026-11-13",
+      "kind": "triage",
+      "desk": "flash-triage",
+      "instructions": "jarvis ops/stratton_flash.py SYSTEM (version 2, 2026-11-13); comparison arm ops/stratton_shadow.py V1_SYSTEM",
+      "test": "research/journal.md 2026-11-13 (T1): at >= 1,500 scored shadow flags, LOOK minus SKIP mean absolute 60-minute move vs SPY under the version-2 prompt, Welch t >= max(2.5, bar). T2 (a decision rule, not a test): the prompt with the larger gap is kept"
     }
   ]
 }

@@ -1,0 +1,19 @@
+{
+  "prompt_version": 2,
+  "written_at": "2026-11-13T13:34:00-05:00",
+  "read": "The semis liquidation is holding near the lows without speeding up. QQQ is -1.7% at 27% of range, AMD -10.6% at 7% and CSCO at 2%, with the last 30 minutes flat to slightly red across the board. Payments and staples (GPN, FISV, FIS, KDP, GIS) sit at 90-98% of range on low relative volume, which is drift, not news. Since 11:50 the headlines are an NVO EU approval that a September CHMP opinion made expected, a REGN study readout that didn't move the stock, AZN sales-staff cuts, a $5M JCI settlement and CNBC chatter. None is a new catalyst the price hasn't finished with. No trade, and there are no intraday positions to close. The spike pod is quiet: one +10 bps HD shadow signal and no paper trades.",
+  "theses": [],
+  "considered": [
+    {"symbol": "NVO", "lean": "long", "confidence": 0.45, "category": "regulatory",
+     "why_not": "The 13:01 EU approval of Frehemgo (denecimig) follows a positive CHMP opinion in September, and the EC almost always rubber-stamps those, so it was expected. It's a small haemophilia product for a GLP-1 name, and the stock went -0.4% in the 30 minutes after the headline. The market isn't treating it as new."},
+    {"symbol": "REGN", "lean": "long", "confidence": 0.45, "category": "results",
+     "why_not": "The 13:01 heart disease study (lower standing heart rate, better symptoms) left the stock flat (+0.4% on the day, -0.0% in 30 minutes). I can't size the trial's commercial weight, so I have no reason to expect a delayed reaction."},
+    {"symbol": "CHTR", "lean": "short", "confidence": 0.45, "category": "flow",
+     "why_not": "Up 3.8% with no headline, either here or on the web, and it is giving back (-0.67% in 30 minutes, now 70% of range after 86% at 10:30). A fade of a no-news defensive bid is plausible, but I can't call the move too big without knowing what drove it."},
+    {"symbol": "AZN", "lean": "none", "confidence": 0.5, "category": "management",
+     "why_not": "Cutting 600 US sales staff is a cost-savings detail that Bloomberg had at 11:55. The stock is flat, which is what you'd expect: it's immaterial for a $280B company."},
+    {"symbol": "AMD", "lean": "long", "confidence": 0.45, "category": "flow",
+     "why_not": "Still -10.6% at 7% of range after three check-ins, and I still can't name an AMD-specific driver. A late-day fade could pay, but with peers also near their lows a bounce is a sector call, not an edge over random."}
+  ],
+  "close": []
+}

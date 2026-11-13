@@ -1,0 +1,44 @@
+  done 1/274
+  done 51/274
+  done 101/274
+  done 151/274
+  done 201/274
+  done 251/274
+stocks 274 (274 with data); eligible name-days 635659, median names a day 235
+names by year: 2016:272  2017:272  2018:272  2019:271  2020:272  2021:270  2022:269  2023:266  2024:267  2025:272  2026:273
+
+== PRIMARY: fade R decile 15:31 -> 15:59, all stocks, 2016-26
+  n=127131 on 2711 days, net -3.00 bps (gross +1.00; per-trade t -18.28, day t -12.87), win 46%, median -3.3, top-1% share -79%
+  by year: 2016:-4.2/11817  2017:-3.3/11630  2018:-2.5/11742  2019:-2.9/11747  2020:-3.0/12239  2021:-4.0/11517  2022:-2.8/11860  2023:-1.8/11436  2024:-3.9/11054  2025:-3.3/11547  2026:-1.3/10542
+  2016-20 -3.17, 2021-26 -2.85; top symbol HAL 12%; long -3.8 (n=62607), short -2.2 (n=64524); at 4 bps/side -7.00
+  replication rank 1-100: n=40776, net -3.47, day t -8.97
+  replication rank 101-277: n=74529, net -2.55, day t -8.81
+    ok   n >= 300
+    FAIL mean net >= 3
+    FAIL per-trade t >= 2.5
+    FAIL day t >= 2.5
+    FAIL years+ >= 70%
+    ok   same sign 2016-20 / 2021-26
+    ok   top symbol <= 25%
+    FAIL rank 1-100 same sign, day t >= 2
+    FAIL rank 101-277 same sign, day t >= 2
+  verdict: FAIL (3/9)
+  net at 1 bps/side -1.00
+  daily P&L corr with spike_mom rank 1-25: -0.08 on 729 shared days
+
+== reported: long leg (losers)
+  n=62607 on 2702 days, net -3.78 bps (gross +0.22; per-trade t -15.64, day t -5.63), win 46%, median -4.0, top-1% share -66%
+  by year: 2016:-3.7/5796  2017:-3.9/5707  2018:-4.8/5779  2019:-2.5/5776  2020:-1.7/6124  2021:-7.8/5655  2022:-3.8/5854  2023:-3.5/5638  2024:-4.8/5428  2025:-5.2/5670  2026:+0.3/5180
+  2016-20 -3.29, 2021-26 -4.20; top symbol HAL 14%; long -3.8 (n=62607), short +nan (n=0); at 4 bps/side -7.78
+
+== reported: short leg (winners)
+  n=64524 on 2706 days, net -2.25 bps (gross +1.75; per-trade t -10.08, day t -3.53), win 47%, median -2.4, top-1% share -99%
+  by year: 2016:-4.7/6021  2017:-2.7/5923  2018:-0.3/5963  2019:-3.3/5971  2020:-4.3/6115  2021:-0.3/5862  2022:-1.8/6006  2023:-0.0/5798  2024:-3.0/5626  2025:-1.4/5877  2026:-2.9/5362
+  2016-20 -3.06, 2021-26 -1.54; top symbol AA 6%; long +nan (n=0), short -2.2 (n=64524); at 4 bps/side -6.25
+
+== reported: top/bottom 5%
+  n=63496 on 2711 days, net -3.23 bps (gross +0.77; per-trade t -12.23, day t -10.39), win 47%, median -3.9, top-1% share -83%
+  by year: 2016:-5.2/5902  2017:-3.5/5804  2018:-1.8/5881  2019:-2.5/5862  2020:-3.4/6111  2021:-3.9/5762  2022:-3.4/5930  2023:-1.8/5706  2024:-4.9/5528  2025:-3.5/5777  2026:-1.6/5233
+  2016-20 -3.27, 2021-26 -3.19; top symbol TAL 9%; long -4.1 (n=30505), short -2.4 (n=32991); at 4 bps/side -7.23
+
+VERDICT end-of-day-reversal: FAIL

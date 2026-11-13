@@ -1053,3 +1053,18 @@ losers, attributed to closing-time liquidity demand. Our version, fixed now:
 - Reported, not gated: win rate, median, top-1% share, long (losers) and short (winners) legs separately, top and
   bottom 5% instead of 10%, net at 1 bps/side, daily P&L correlation with spike_mom rank 1-25.
 Script: scripts/research/end_of_day_reversal.py. Log: research/end_of_day_reversal.log.
+
+**Result: FAIL, 3 of 9 checks. The reversal is there in sign but is about 1 bp, a quarter of the cost.** Log:
+research/end_of_day_reversal.log. 274 stocks with data, every year 2016-26 (266-273 names a year), 635,659
+eligible name-days, median 235 names a day.
+- Primary (top/bottom decile): n=127,131 on 2,711 days, gross +1.00, net -3.00 bps, per-trade t -18.3, day t
+  -12.9, win 46%, median -3.3, 0/11 years positive (every year -1.3 to -4.2), 2016-20 -3.17 and 2021-26 -2.85, top
+  symbol HAL 12%. At 1 bps/side still -1.00. Daily P&L correlation with spike_mom rank 1-25: -0.08 (729 days).
+- Replication: rank 1-100 -3.47 (day t -9.0), rank 101-277 -2.55 (day t -8.8).
+- Legs: losers bought +0.22 gross (net -3.78), winners shorted +1.75 gross (net -2.25), so here the reversal
+  sits in the winners, not the losers as the paper reports. Top/bottom 5%: gross +0.77, net -3.23.
+- Caveat, not a rule change: entry is the 15:31 open and exit the 15:59 bar's close, so the 15:30 minute and the
+  official closing auction print are both outside the trade; the paper's after-cost case would have to come from
+  those two prints, which a market order at 15:31 can't capture anyway.
+Verdict: FAIL. Not loosened. In the 274 most liquid names the last-half-hour reversal is about +1 bp gross, far
+under 4 bps round trip, in every year and both halves of the list. Price-only FAIL number 21.

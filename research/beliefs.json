@@ -91,13 +91,13 @@
   },
   {
     "id": "mean-reversion-short-horizon",
-    "claim": "Fading short-term moves pays: spike_fade, vwap_fade, RSI2, weekly reversal.",
+    "claim": "Fading short-term moves pays: spike_fade, vwap_fade, RSI2, weekly reversal, end-of-day reversal.",
     "status": "rejected",
-    "evidence": "Fades negative. RSI2 +6 bps excess is under 10 bps cost. Weekly reversal -4.9 excess, t -1.0; held out +4.0, t 0.9. Down spikes with no headline: -3.7 bps following the move on rank 1-25, a post-hoc cut, but +1.9 (t 1.02, n=1785) on rank 26-100, so no reversal there. Intraday pairs (2026-11-10): a 3-sd split in a highly correlated pair reverts only +4 gross by the close (13% fully revert), under the 8 bps four-leg cost; -3.95 net, held out -5.15.",
+    "evidence": "Fades negative. RSI2 +6 bps excess is under 10 bps cost. Weekly reversal -4.9 excess, t -1.0; held out +4.0, t 0.9. Down spikes with no headline: -3.7 bps following the move on rank 1-25, a post-hoc cut, but +1.9 (t 1.02, n=1785) on rank 26-100, so no reversal there. Intraday pairs (2026-11-10): a 3-sd split in a highly correlated pair reverts only +4 gross by the close (13% fully revert), under the 8 bps four-leg cost; -3.95 net, held out -5.15. End-of-day reversal (2026-11-13): fading the open-to-15:29 top/bottom decile of 274 stocks from 15:31 to 15:59 earns +1.0 gross, -3.0 net (day t -12.9, n=127,131), every year negative; the reversal is real but spread-sized, and sits in the winners.",
     "confidence": "high",
     "reopen_if": "A volatility split (ideas.md 11); the news split found nothing on rank 26-100.",
-    "journal": "2026-10 table; 2026-11-03 short-term-reversal; 2026-11-06 spike-down-no-news; 2026-11-10 intraday-pairs",
-    "updated": "2026-11-10"
+    "journal": "2026-10 table; 2026-11-03 short-term-reversal; 2026-11-06 spike-down-no-news; 2026-11-10 intraday-pairs; 2026-11-13 end-of-day-reversal",
+    "updated": "2026-11-13"
   },
   {
     "id": "earnings-timing",
@@ -163,11 +163,11 @@
     "id": "price-only-research-exhausted",
     "claim": "New edge in these liquid names is more likely from new data (news, filings, flows, options) than from more price rules.",
     "status": "open",
-    "evidence": "11 straight FAILs, nearly all price patterns on the same data. A pattern, not a test; the news and filing tests will challenge it. So far the first two news tests also FAILED: spike-news and spike-down-no-news, both using only headline timing, not content. headline-family S1 (2026-11-08): headline CONTENT by word list also failed all three tests (T1 -3.4 net, day t -7.5, n=56,217; T2 day t 1.53; T3 -4.9). steady-movers (2026-11-09), price only: big + smooth midday movers -5.8 net, day t -5.6, n=48,796. intraday-pairs (2026-11-10), price plus headline absence: fading 3-sd splits in the 50 most correlated pairs -3.95 net per pair (gross +4.05 vs 8 bps cost), day t -9.0, n=57,073; held out -5.15. crypto-fee-check (2026-11-11), price only on 7 coins: 4-hour long-only trend gross -0.1 bps per trade (net -50.1 at Alpaca's 25 bps/side, day t -13.4, n=12,929); the spike rule on crypto -1.5 gross. spike-regime-filter (2026-11-12): a monthly-retrained filter on market trend, volatility and time cut the spike mean (-0.79 bps vs taking all, Welch t -0.35; held out -1.88).",
+    "evidence": "11 straight FAILs, nearly all price patterns on the same data. A pattern, not a test; the news and filing tests will challenge it. So far the first two news tests also FAILED: spike-news and spike-down-no-news, both using only headline timing, not content. headline-family S1 (2026-11-08): headline CONTENT by word list also failed all three tests (T1 -3.4 net, day t -7.5, n=56,217; T2 day t 1.53; T3 -4.9). steady-movers (2026-11-09), price only: big + smooth midday movers -5.8 net, day t -5.6, n=48,796. intraday-pairs (2026-11-10), price plus headline absence: fading 3-sd splits in the 50 most correlated pairs -3.95 net per pair (gross +4.05 vs 8 bps cost), day t -9.0, n=57,073; held out -5.15. crypto-fee-check (2026-11-11), price only on 7 coins: 4-hour long-only trend gross -0.1 bps per trade (net -50.1 at Alpaca's 25 bps/side, day t -13.4, n=12,929); the spike rule on crypto -1.5 gross. spike-regime-filter (2026-11-12): a monthly-retrained filter on market trend, volatility and time cut the spike mean (-0.79 bps vs taking all, Welch t -0.35; held out -1.88). end-of-day-reversal (2026-11-13), price only: last-half-hour fade of the day's extreme movers +1.0 gross, -3.0 net, day t -12.9, n=127,131, 0/11 years positive.",
     "confidence": "low",
     "reopen_if": "New-data tests fail as often as price tests have: rethink the universe and horizon instead.",
-    "journal": "docs/stratton-revamp-plan.md; 2026-11-06 spike-news; 2026-11-06 spike-down-no-news; 2026-11-07 headline-family; 2026-11-09 steady-movers; 2026-11-10 intraday-pairs; 2026-11-11 crypto-fee-check; 2026-11-12 spike-regime-filter",
-    "updated": "2026-11-12"
+    "journal": "docs/stratton-revamp-plan.md; 2026-11-06 spike-news; 2026-11-06 spike-down-no-news; 2026-11-07 headline-family; 2026-11-09 steady-movers; 2026-11-10 intraday-pairs; 2026-11-11 crypto-fee-check; 2026-11-12 spike-regime-filter; 2026-11-13 end-of-day-reversal",
+    "updated": "2026-11-13"
   },
   {
     "id": "data-raw-bars-carry-splits",
@@ -278,5 +278,15 @@
     "reopen_if": "A new input known at entry (headlines, sector, macro calendar for CPI/jobs) is added and pre-registered as its own filter test.",
     "journal": "2026-11-12 spike-regime-filter",
     "updated": "2026-11-12"
+  },
+  {
+    "id": "end-of-day-reversal",
+    "claim": "Among the 274 liquid 1-min stocks, the day's top/bottom decile by open-to-15:29 return reverses from 15:31 to 15:59 by enough to pay 2 bps/side.",
+    "status": "rejected",
+    "evidence": "2016-26, n=127,131 on 2,711 days: gross +1.00, net -3.00 (per-trade t -18.3, day t -12.9), win 46%, 0/11 years positive; rank 1-100 -3.47, rank 101-277 -2.55; losers leg +0.22 gross, winners leg +1.75 gross; 5% tails +0.77 gross; -1.00 net even at 1 bps/side. Daily corr with spike_mom -0.08.",
+    "confidence": "high",
+    "reopen_if": "A closing-auction (MOC) entry/exit test with real auction prints shows the 15:30 minute plus the auction carry well over 4 bps gross, pre-registered as its own idea.",
+    "journal": "2026-11-13 end-of-day-reversal",
+    "updated": "2026-11-13"
   }
 ]

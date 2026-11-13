@@ -129,7 +129,7 @@ C. DONE, FAIL 2026-11-12, see journal. spike-regime-filter: retrain monthly on a
     2010). Long/short the 62 (+215) names in each half-hour by their mean
     same-half-hour return over the prior 20 days. 1-min; 2 bps/side vs
     half-hour returns is the hurdle.
-13. end-of-day-reversal: a stock's return from the open to 15:30 predicts
+13. DONE, FAIL 2026-11-13, see journal. end-of-day-reversal: a stock's return from the open to 15:30 predicts
     a reversal in its last half hour (cross-sectional, opposite to index
     intraday momentum); the paper notes it vanishes once the next open is
     included. Baltussen, Da et al., "End-of-day reversal" working paper

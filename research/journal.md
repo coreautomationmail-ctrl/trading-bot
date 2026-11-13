@@ -1022,3 +1022,12 @@ test it in shadow instead; owner's OK 2026-11-13 (cost about $0.03 a day, inside
 - Report-only: the category table (follow60 and fade60 by category) feeds T3 later; not judged here.
 - Any change to either prompt, the shadow thresholds or the scoring voids this test. Counted in
   pods/bench/forward_registry.json (entry triage-shadow).
+
+**2026-11-13 u-family stage 3 (data, no return looked at).** Cost fixed first, as pre-registered
+(scripts/u_data/u_stage3.py cost; VPS /opt/stratton-data/u/cost.txt): 50 names, 2024, 869,829 quiet minutes,
+pooled median half-spread 0.00 bps, so **per-side cost = 10 bps (the floor)**. Caveat, not a rule change: in
+these names most below-median-volume minutes are a single print (high = low), so the pre-registered measure
+cannot see the spread and the floor binds; 7 of 50 names had per-name medians of 2.4-12.2 bps (MARA 12.2).
+If U passes at 10 bps, the result should be read against that. The 1-min pass (u_stage3.py bars: U3 trades and
+U1/U2 day prices for the 2,134 names, raw bars not kept) started 2026-11-13 07:30 UTC on the VPS (container
+u-stage3), off-market hours only; then the family test runs unchanged on its outputs.

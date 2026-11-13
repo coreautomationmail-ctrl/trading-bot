@@ -53,7 +53,42 @@ FUTILITY_N = 100         # from here, a desk whose day t vs random is <= 0 stops
 # Inactivity, per desk: (sessions looked at, fewest trades a session on average). Revamp review G3.
 INACTIVE = {"thesis": (20, 1.5), "intraday": (15, 1.0), "flash": (40, 0.5)}
 FIELDS = ["date", "id", "symbol", "direction", "hold_days", "stop_pct", "confidence", "exit_date", "stopped",
-          "net_bps", "spy_bps", "random_bps", "vs_spy", "vs_random", "why", "version", "net_5bps"]
+          "net_bps", "spy_bps", "random_bps", "vs_spy", "vs_random", "why", "version", "net_5bps", "category"]
+# Version-2 desk files (jarvis docs/plans/stratton-prompts.md C2/C5): every trade names the kind of news
+# behind it, from this fixed list, so results can be counted by kind; and up to 5 names the desk weighed and
+# didn't trade ("considered"), scored as if traded into their own file, never into the pass test.
+CATEGORIES = ("results", "guidance", "deal", "regulatory", "contract", "management", "product", "analyst",
+              "macro", "flow", "recap", "other")
+MAX_CONSIDERED = 5
+CONSIDERED_CSV = os.path.join(STATE_DIR, "theses_considered.csv")
+CONSIDERED_FIELDS = ["date", "id", "symbol", "direction", "confidence", "category", "net_bps", "vs_random", "version"]
+
+
+def category(t: dict) -> str:
+    c = str(t.get("category") or "").strip().lower()
+    return c if c in CATEGORIES else "other"
+
+
+def clean_considered(body: dict) -> list:
+    """The desk's considered names, kept only if they can be scored: a known symbol and a lean."""
+    out = []
+    for c in (body.get("considered") or [])[:MAX_CONSIDERED]:
+        if isinstance(c, dict) and c.get("symbol") in UNIVERSE and c.get("lean") in ("long", "short"):
+            conf = c.get("confidence")
+            out.append({"symbol": c["symbol"], "lean": c["lean"], "category": category(c),
+                        "confidence": conf if isinstance(conf, (int, float)) else "",
+                        "why_not": str(c.get("why_not", ""))[:200]})
+    return out
+
+
+def by_category(rows: list) -> dict:
+    """Mean result per kind of news, for the desk's next session (shown for 10+ trades only)."""
+    groups: dict[str, list] = {}
+    for r in rows:
+        groups.setdefault(r.get("category") or "other", []).append(r)
+    return {c: {"n": len(rs), "net_bps": round(sum(float(r["net_bps"]) for r in rs) / len(rs), 1),
+                "vs_random": round(sum(float(r["vs_random"]) for r in rs) / len(rs), 1)}
+            for c, rs in sorted(groups.items()) if len(rs) >= 10}
 
 
 def write_rows(path: str, fields: list, new: list) -> None:
@@ -106,6 +141,7 @@ def seal(now: datetime) -> str:
     os.makedirs(SEALED_DIR, exist_ok=True)
     with open(os.path.join(SEALED_DIR, f"{date}.json"), "w") as f:
         json.dump({"sealed_at": now.isoformat(), "prompt_version": int(json.loads(r.text).get("prompt_version") or 1),
+                   "considered": clean_considered(json.loads(r.text)),
                    "theses": kept,
                    "rejected": [{"id": t.get("id"), "why": valid(t, date)} for t in theses if valid(t, date)]}, f, indent=1)
     return f"sealed {len(kept)} of {len(theses)} theses for {date}"
@@ -173,7 +209,7 @@ def score_day(sealed: dict, date: str, sessions: list, bars: dict) -> list:
                      "net_bps": round(net, 1), "spy_bps": round(spy, 1), "random_bps": round(rand, 1),
                      "vs_spy": round(net - spy, 1), "vs_random": round(net - rand, 1),
                      "why": str(t.get("why", ""))[:200], "version": sealed.get("prompt_version", 1),
-                     "net_5bps": round(net - 2 * (HIGH_COST_BPS - COST_BPS), 1)})
+                     "net_5bps": round(net - 2 * (HIGH_COST_BPS - COST_BPS), 1), "category": category(t)})
     return rows
 
 
@@ -219,11 +255,20 @@ def summarize(rows: list, desk: str = "thesis", sessions: list | None = None, k:
         verdict = "running"
     net5 = [float(r["net_5bps"]) for r in rows if r.get("net_5bps") not in ("", None)]
     return {"n": n, "of": EXIT_N, "days": len(by_day), "version": version, "older_versions_n": older,
+            "by_category": by_category(rows),
             "net_bps_at_5bps": round(sum(net5) / len(net5), 1) if net5 else None,
             "bar": need, "inactive": inactive, "net_bps": mean("net_bps"), "vs_spy": mean("vs_spy"),
             "vs_random": mean("vs_random"), "day_t_vs_spy": t_spy, "day_t_vs_random": t_rand,
             "hit_rate": round(sum(float(r["net_bps"]) > 0 for r in rows) / n, 2) if n else None,
             "stopped": sum(int(r["stopped"]) for r in rows), "by_confidence": tiers, "verdict": verdict}
+
+
+def considered_summary(path: str, version: int) -> dict:
+    """Report only (prompts spec T6): did the names the desk passed on do better than the ones it took?"""
+    rows = [r for r in (list(csv.DictReader(open(path))) if os.path.exists(path) else [])
+            if int(r.get("version") or 1) == version]
+    vs = [float(r["vs_random"]) for r in rows if r.get("vs_random") not in ("", None)]
+    return {"n": len(vs), "vs_random": round(sum(vs) / len(vs), 1) if vs else None}
 
 
 def score(now: datetime) -> str:
@@ -241,20 +286,27 @@ def score(now: datetime) -> str:
         bars = {}
         for i in range(0, len(symbols), 100):
             bars.update(daily_bars(symbols[i:i + 100], start, end))
-        new = []
+        new, considered = [], []
         for d in todo:
             if d not in closed:
                 continue
             rows = score_day(sealed[d], d, closed, bars)
+            leans = [{"id": f"{d}-c{i + 1}", "symbol": c["symbol"], "direction": c["lean"], "hold_days": 0,
+                      "stop_pct": None, "confidence": c["confidence"], "category": c["category"]}
+                     for i, c in enumerate(sealed[d].get("considered") or [])]
+            considered += [{k: r.get(k, "") for k in CONSIDERED_FIELDS}
+                           for r in score_day({**sealed[d], "theses": leans}, d, closed, bars)]
             if rows or not sealed[d]["theses"] or all(
                     closed.index(d) + t["hold_days"] < len(closed) for t in sealed[d]["theses"]):
                 new += rows  # every exit has closed: the day is final, even if a name had no data
                 with open(path(d), "w") as f:
                     json.dump({**sealed[d], "scored_at": now.isoformat(), "scored": len(rows)}, f, indent=1)
         write_rows(SCORES_CSV, FIELDS, new)
+        write_rows(CONSIDERED_CSV, CONSIDERED_FIELDS, considered)
     rows = list(csv.DictReader(open(SCORES_CSV))) if os.path.exists(SCORES_CSV) else []
     sessions = [len(sealed[d]["theses"]) for d in sorted(sealed)]   # every morning a file was sealed, empty ones too
     summary = summarize(rows, "thesis", sessions)
+    summary["considered"] = considered_summary(CONSIDERED_CSV, summary["version"])
     with open(SUMMARY_JSON, "w") as f:
         json.dump({"at": now.isoformat(), **summary}, f, indent=1)
     return f"scored {len(rows)} theses so far: {json.dumps(summary)}"

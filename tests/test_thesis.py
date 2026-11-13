@@ -14,6 +14,16 @@ from spike_pod import ET  # noqa: E402
 DAYS = ["2026-11-10", "2026-11-11", "2026-11-12"]
 
 
+import pytest  # noqa: E402
+
+
+@pytest.fixture(autouse=True)
+def version_1(monkeypatch):
+    """The summary maths is version-independent; these rows carry no version, i.e. 1."""
+    import registry
+    monkeypatch.setattr(registry, "current_version", lambda desk, tests=None: 1)
+
+
 def bar(o, h, l, c):  # noqa: E741
     return {"o": o, "h": h, "l": l, "c": c}
 
@@ -136,3 +146,24 @@ def test_old_score_files_get_the_version_column_without_losing_rows(tmp_path):
     thesis.write_rows(path, thesis.FIELDS, [{**{k: "2" for k in old}, "version": 2}])
     rows = list(csv.DictReader(open(path)))
     assert [r["version"] for r in rows] == ["", "2"] and rows[0]["id"] == "1"
+
+
+def test_version_2_fields_categories_and_considered_names(tmp_path):
+    """Prompts spec C2/C5: a fixed category list and scorable 'considered' leans."""
+    assert thesis.category({"category": "Deal"}) == "deal" and thesis.category({"category": "vibes"}) == "other"
+    body = {"considered": [{"symbol": "AAPL", "lean": "long", "confidence": 0.4, "category": "results"},
+                           {"symbol": "ZZZZ", "lean": "long"}, {"symbol": "MSFT", "lean": "none"}] + [
+        {"symbol": "NVDA", "lean": "short"}] * 6}
+    kept = thesis.clean_considered(body)
+    assert [c["symbol"] for c in kept] == ["AAPL", "NVDA", "NVDA"]   # first 5 read; unknown and "none" dropped
+    rows = [{"category": "deal", "net_bps": 10, "vs_random": 4}] * 10 + [{"category": "recap", "net_bps": 1, "vs_random": 1}] * 3
+    assert thesis.by_category(rows) == {"deal": {"n": 10, "net_bps": 10.0, "vs_random": 4.0}}   # 10+ only
+    sealed = {"theses": [{"id": "2026-11-10-c1", "symbol": "AAPL", "direction": "long", "hold_days": 0,
+                          "stop_pct": None, "confidence": 0.4, "category": "results"}]}
+    scored = thesis.score_day(sealed, "2026-11-10", DAYS, flat_bars(thesis.UNIVERSE + ["SPY"], 0.01))
+    assert scored and scored[0]["category"] == "results"
+    path = tmp_path / "c.csv"
+    thesis.write_rows(str(path), thesis.CONSIDERED_FIELDS, [{**{k: "" for k in thesis.CONSIDERED_FIELDS},
+                                                            "vs_random": "5", "version": 2}])
+    assert thesis.considered_summary(str(path), 2) == {"n": 1, "vs_random": 5.0}
+    assert thesis.considered_summary(str(path), 1) == {"n": 0, "vs_random": None}

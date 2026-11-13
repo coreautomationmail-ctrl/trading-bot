@@ -58,9 +58,10 @@ FLAG_SUMMARY = os.path.join(thesis.STATE_DIR, "flash_ledger_summary.json")
 FLAG_LAG_MIN, FLAG_HOLDS = 4, (30, 60)
 FLAG_FIELDS = ["date", "id", "symbol", "flagged_at", "move_pct", "volume_x", "headline", "triage", "triage_why",
                "session", "minutes", "cost_usd_est", "claude_trades", "claude_net_bps", "claude_vs_random",
-               "follow30", "fade30", "follow60", "fade60"]
+               "follow30", "fade30", "follow60", "fade60", "category", "size", "triage_usd"]
 FIELDS = ["date", "id", "symbol", "direction", "confidence", "entry_at", "exit_at", "exit_why", "net_bps",
-          "spy_bps", "random_bps", "vs_spy", "vs_random", "why", "version", "net_5bps"]
+          "spy_bps", "random_bps", "vs_spy", "vs_random", "why", "version", "net_5bps", "category"]
+CONSIDERED_CSV = os.path.join(thesis.STATE_DIR, "theses_intraday_considered.csv")
 
 
 def minutes(hhmm: str) -> int:
@@ -121,6 +122,7 @@ def _seal_one(body: dict, path: str, date: str, code: str, now: datetime, max_ne
     with open(path, "w") as f:
         json.dump({"sealed_at": now.isoformat(), "checkin": code, "read": str(body.get("read", ""))[:300],
                    "prompt_version": int(body.get("prompt_version") or 1),
+                   "considered": thesis.clean_considered(body),
                    "theses": [t for t in theses if not valid(t, date, code)],
                    "close": [i for i in body.get("close") or [] if i in earlier],
                    "rejected": [{"id": t.get("id"), "why": valid(t, date, code)} for t in theses if valid(t, date, code)]},
@@ -267,7 +269,8 @@ def score_day(date: str, files: list, bars: dict) -> list:
                          "spy_bps": round(spy[0], 1), "random_bps": round(rand, 1), "vs_spy": round(net - spy[0], 1),
                          "vs_random": round(net - rand, 1), "why": str(t.get("why", ""))[:200],
                          "version": s.get("prompt_version", 1),
-                         "net_5bps": round(net - 2 * (thesis.HIGH_COST_BPS - thesis.COST_BPS), 1)})
+                         "net_5bps": round(net - 2 * (thesis.HIGH_COST_BPS - thesis.COST_BPS), 1),
+                         "category": thesis.category(t)})
     return rows
 
 
@@ -277,7 +280,7 @@ def score(now: datetime) -> str:
     after_close = now.astimezone(ET).hour >= 17
     days = sorted({f[:10] for f in os.listdir(DIR) if f.endswith(".json")})
     done = {r["date"] for r in csv.DictReader(open(SCORES_CSV))} if os.path.exists(SCORES_CSV) else set()
-    new = []
+    new, considered = [], []
     for d in days:
         if d in done or (d == today and not after_close) or d > today:
             continue
@@ -287,7 +290,14 @@ def score(now: datetime) -> str:
         end = min(now - timedelta(minutes=20), datetime.fromisoformat(f"{d}T23:00:00+00:00"))
         bars = minute_bars(sorted(set(thesis.UNIVERSE) | {"SPY"}), d, utc_z(end))
         new += score_day(d, files, bars)
+        # The names each session weighed and passed on, as if traded to 15:55 with no stop (report only).
+        leans = [{**f, "close": [], "theses": [
+            {"id": f"{d}-{f.get('checkin', 'x')}-c{i + 1}", "symbol": c["symbol"], "direction": c["lean"],
+             "exit_by": "15:55", "stop_pct": None, "confidence": c["confidence"], "category": c["category"]}
+            for i, c in enumerate(f.get("considered") or [])]} for f in files]
+        considered += [{k: r.get(k, "") for k in thesis.CONSIDERED_FIELDS} for r in score_day(d, leans, bars)]
     thesis.write_rows(SCORES_CSV, FIELDS, new)
+    thesis.write_rows(CONSIDERED_CSV, thesis.CONSIDERED_FIELDS, considered)
     rows = [{**r, "stopped": int(r["exit_why"] == "stop")}
             for r in (list(csv.DictReader(open(SCORES_CSV))) if os.path.exists(SCORES_CSV) else [])]
     flash = lambda i: "-F" in i  # noqa: E731  flash-desk trade ids carry the flag code
@@ -301,6 +311,7 @@ def score(now: datetime) -> str:
     flash_sessions = [flash_days.get(d, 0) for d in sorted({f[:10] for f in sealed_files}) if d >= "2026-11-11"]
     summary = {**thesis.summarize([r for r in rows if not flash(r["id"])], "intraday", checkins),
                "flash": thesis.summarize([r for r in rows if flash(r["id"])], "flash", flash_sessions)}
+    summary["considered"] = thesis.considered_summary(CONSIDERED_CSV, summary["version"])
     with open(SUMMARY_JSON, "w") as f:
         json.dump({"at": now.isoformat(), **summary}, f, indent=1)
     return f"intraday: {len(new)} new, {len(rows)} scored so far: {json.dumps(summary)}"
@@ -335,7 +346,10 @@ def score_flag_day(date: str, flags: list, ledger: dict, claude: dict, bars: dic
                "cost_usd_est": led["cost_usd_est"] if led.get("cost_usd_est") is not None else "",
                "claude_trades": len(mine),
                "claude_net_bps": round(sum(float(r["net_bps"]) for r in mine), 1) if mine else "",
-               "claude_vs_random": round(sum(float(r["vs_random"]) for r in mine), 1) if mine else ""}
+               "claude_vs_random": round(sum(float(r["vs_random"]) for r in mine), 1) if mine else "",
+               # version-2 triage (jarvis stratton_flash): the kind and size of news, and what the call cost
+               "category": led.get("category", ""), "size": led.get("size", ""),
+               "triage_usd": led.get("triage_usd") if led.get("triage_usd") is not None else ""}
         for hold in FLAG_HOLDS:
             exit_at = entry_at + timedelta(minutes=hold)
             for name, sign in (("follow", up), ("fade", -up)):
@@ -361,6 +375,16 @@ def flag_summary(rows: list) -> dict:
         if group:
             out[name or "no_ledger"] = {"n": len(group), **{k: _mean([r[k] for r in group])
                                                              for k in ("follow30", "fade30", "follow60", "fade60")}}
+    # The base rate per kind of news, for the flash desk's prompt (10+ flags a category).
+    cats: dict[str, list] = {}
+    for r in rows:
+        if r.get("category"):
+            cats.setdefault(r["category"], []).append(r)
+    out["by_category"] = {c: {"n": len(rs), "follow60": _mean([r["follow60"] for r in rs]),
+                              "fade60": _mean([r["fade60"] for r in rs])}
+                          for c, rs in sorted(cats.items()) if len(rs) >= 10}
+    usd = [float(r["triage_usd"]) for r in rows if r.get("triage_usd") not in ("", None)]
+    out["triage_usd"] = {"calls": len(usd), "total": round(sum(usd), 5)}
     traded = [r for r in rows if int(r["claude_trades"] or 0)]
     out["claude"] = {"sessions": sum(1 for r in rows if r["session"]),
                      "cost_usd_est": round(sum(float(r["cost_usd_est"]) for r in rows if r["cost_usd_est"] != ""), 2),
@@ -392,13 +416,7 @@ def score_flags(now: datetime) -> str:
         end = min(now - timedelta(minutes=20), datetime.fromisoformat(f"{d}T23:00:00+00:00"))
         bars = minute_bars(sorted({f["sym"] for f in flags} | {"SPY"}), d, utc_z(end))
         new += score_flag_day(d, flags, ledger, claude, bars)
-    if new:
-        first = not os.path.exists(FLAG_CSV)
-        with open(FLAG_CSV, "a", newline="") as f:
-            w = csv.DictWriter(f, fieldnames=FLAG_FIELDS)
-            if first:
-                w.writeheader()
-            w.writerows(new)
+    thesis.write_rows(FLAG_CSV, FLAG_FIELDS, new)   # migrates an older header without losing rows
     rows = list(csv.DictReader(open(FLAG_CSV))) if os.path.exists(FLAG_CSV) else []
     summary = flag_summary(rows)
     with open(FLAG_SUMMARY, "w") as f:

@@ -40,6 +40,35 @@
       "version": 1,
       "instructions": "research/theses/flash.md as of 2026-11-11",
       "test": "300 scored trades; day t vs random >= bar"
+    },
+    {
+      "registered": "2026-11-13",
+      "kind": "desk",
+      "version": 2,
+      "id": "thesis-desk-v2",
+      "desk": "thesis",
+      "instructions": "research/theses/agent.md version 2 (2026-11-13)",
+      "test": "300 scored theses over 60+ trading days; day t vs SPY and vs random both >= bar; early stop at 100 if day t vs random <= 0",
+      "secondary": "theses at confidence >= 0.6 beat those at 0.5-0.59"
+    },
+    {
+      "registered": "2026-11-13",
+      "kind": "desk",
+      "version": 2,
+      "id": "intraday-desk-v2",
+      "desk": "intraday",
+      "instructions": "research/theses/intraday.md version 2 (2026-11-13)",
+      "test": "300 scored trades over 60+ trading days; day t vs SPY and vs random both >= bar; inactive under 1 trade a session over 15",
+      "report_only": "considered leans vs trades taken after 100 of each (T6)"
+    },
+    {
+      "registered": "2026-11-13",
+      "kind": "desk",
+      "version": 2,
+      "id": "flash-desk-v2",
+      "desk": "flash",
+      "instructions": "research/theses/flash.md version 2 (2026-11-13)",
+      "test": "300 scored trades; day t vs random >= bar; early stops at 60 (mean vs random <= 0) and 150 (day t < 1)"
     }
   ]
 }

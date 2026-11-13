@@ -1005,8 +1005,11 @@ the edge's dependence on a few days isn't predictable from these inputs. Price-o
 **Written before any shadow flag exists.** The flash desk's live sample is about one LOOK a day, so judging the
 triage by the desk's trades would take a year. The revamp review (G6.2) and the prompts spec (section 5, T1-T2)
 test it in shadow instead; owner's OK 2026-11-13 (cost about $0.03 a day, inside the $0.05 triage cap).
-- Data: the screener's shadow flags (pods/spike/flash_screener.py: the same check at >= 1.5x volume and a 0.1%
-  move, up to 400 a day, the live cooldown). After the close Vision draws a random sample of up to 150 a day
+- Data: the screener's shadow flags (pods/spike/flash_screener.py: the same check with no volume or move line,
+  i.e. every single-name headline 09:35-15:30 ET, up to 400 a day, the live 30-minute cooldown; a count-only
+  replay of 11/12 gave 133, against 32 at 1.5x volume and 0.1%, so the looser line was chosen to reach the
+  sample in about 11 sessions; no outcome was looked at). Each row keeps volume_x and the move, so the subset
+  that would pass the live screener can be read as report-only. After the close Vision draws a random sample of up to 150 a day
   (seeded by the date) and labels each with both prompts: version 2 (live since 11/13) and version 1 (the 11/11
   text, kept word for word in jarvis ops/stratton_shadow.py). Scored by pods/bench/flash_shadow.py: from 4 minutes
   after the flag (the live flags' entry lag), 60 minutes, |stock minus SPY| in bps.

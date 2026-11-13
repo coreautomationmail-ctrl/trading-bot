@@ -15,8 +15,9 @@ Each flag is one JSON line in STATE_DIR/world/flags/<date>.jsonl: the headline(s
 whether it's worth a look, and only then starts a Claude session (research/theses/flash.md). IEX bars:
 real trades, IEX's share of volume only, so ratios compare IEX with IEX. No orders.
 
-Shadow flags (revamp review G6.2, owner's OK 2026-11-13): the same check with looser lines (SHADOW_VOL_X,
-SHADOW_MOVE_PCT, SHADOW_CAP a day, the same cooldown) goes to STATE_DIR/world/flags/shadow/<date>.jsonl with
+Shadow flags (revamp review G6.2, owner's OK 2026-11-13): the same check with no volume or move line by default
+(SHADOW_VOL_X, SHADOW_MOVE_PCT = 0: every single-name headline in the window, SHADOW_CAP a day, the same
+cooldown; a replay of 11/12 gave 133, against 32 at 1.5x and 0.1%) goes to STATE_DIR/world/flags/shadow/<date>.jsonl with
 its own state. Nothing reads them during the session: after the close Vision labels a random sample with both
 triage prompts (jarvis ops/stratton_shadow.py) and the bench scores them (intraday_book.py score_shadow), for
 the pre-registered triage test T1/T2. The live flags and their cap are unchanged.
@@ -39,8 +40,8 @@ MOVE_PCT = float(os.environ.get("FLASH_MOVE_PCT", 0.3))   # and the price moved 
 COOLDOWN_MIN, DAILY_CAP = 30, int(os.environ.get("FLASH_CAP", 15))
 START, END = 9 * 60 + 35, 15 * 60 + 30
 SINGLE_NAME = 3
-SHADOW_VOL_X = float(os.environ.get("FLASH_SHADOW_VOL_X", 1.5))
-SHADOW_MOVE_PCT = float(os.environ.get("FLASH_SHADOW_MOVE_PCT", 0.1))
+SHADOW_VOL_X = float(os.environ.get("FLASH_SHADOW_VOL_X", 0))
+SHADOW_MOVE_PCT = float(os.environ.get("FLASH_SHADOW_MOVE_PCT", 0))
 SHADOW_CAP = int(os.environ.get("FLASH_SHADOW_CAP", 400))
 INDEXES = ["SPY", "QQQ"]
 FLAG_DIR = os.path.join(WORLD_DIR, "flags")

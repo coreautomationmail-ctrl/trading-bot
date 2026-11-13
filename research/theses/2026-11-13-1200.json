@@ -1,0 +1,19 @@
+{
+  "prompt_version": 2,
+  "written_at": "2026-11-13T12:04:00-05:00",
+  "read": "The semis liquidation has paused, not reversed. QQQ is -2.1% at 14% of range and flat over 30 minutes. LITE/TER/AVGO/INTC bounced 0.5-1% off the lows, but AMD (-10.9%, 1% of range) and CSCO (2%) are still pinned. Defensives and payments lead. The new headlines are an activist adding to a stake (FISV), an SMCI denial, a Microsoft 365 outage and price-target trims on names that already moved. None of these is a fresh catalyst the price hasn't absorbed, and web search found no same-day primary source (the index lags). No trade. The morning book has no intraday positions to close.",
+  "theses": [],
+  "considered": [
+    {"symbol": "FISV", "lean": "long", "confidence": 0.5, "category": "flow",
+     "why_not": "Jana raised its Fiserv stake 13% to 4.15M shares (11:41). This looks like a holdings disclosure of buying done in Q3, not a new demand. The stock was already +2.8% since open and at 90% of range before the headline, so the news only confirms a move that's already in the price."},
+    {"symbol": "AMD", "lean": "long", "confidence": 0.45, "category": "flow",
+     "why_not": "Down 10.9%, at 1% of range, still falling (-0.8% in 30 minutes) while peers bounce. That makes it a relative-weakness laggard, and I still can't name the driver, so I can't argue the move is too big. Fading it remains knife-catching."},
+    {"symbol": "CSCO", "lean": "short", "confidence": 0.45, "category": "analyst",
+     "why_not": "Three more target cuts since 10:20 (Piper $112, Barclays $109, Wells $130), and it sits at 2% of range. But this is post-earnings recap flow on a stock already -6%; continuation from here is roughly what random names in a weak tape would do."},
+    {"symbol": "SMCI", "lean": "long", "confidence": 0.45, "category": "regulatory",
+     "why_not": "The 11:46 statement denies Megaspeed was ever a customer and says SMCI cooperated with US, Taiwan and Singapore authorities. The probe it answers is unconfirmed by me, and the stock is -3% alongside semis, so a denial isn't enough to separate it from sector flow."},
+    {"symbol": "MSFT", "lean": "none", "confidence": 0.5, "category": "product",
+     "why_not": "The Microsoft 365 outage (Outlook, Teams, Copilot) isn't moving the stock, which is flat on the day and +0.6% since open. Past outages haven't changed the earnings view, so there's no trade either way."}
+  ],
+  "close": []
+}

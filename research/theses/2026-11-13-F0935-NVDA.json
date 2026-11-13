@@ -1,0 +1,11 @@
+{
+  "prompt_version": 2,
+  "written_at": "2026-11-13T09:40:00-05:00",
+  "read": "Truist cut NVDA to Hold, target lowered to $174 (09:35). A web search found no primary source; it only showed Truist's earlier Buy ratings. The slide started at the 09:30 open (170 pre-market to 167.2), before the headline, amid the ongoing CEO turmoil. The new $174 target is still above the 163.8 price, so this is a routine rating change on a mega-cap. My two earlier NVDA shorts lost. No trade.",
+  "theses": [],
+  "considered": [
+    {"symbol": "NVDA", "lean": "long", "confidence": 0.45, "category": "analyst",
+     "why_not": "This is a Hold, not a Sell, and its $174 target sits 6% above the price. About 3.6% of the drop from pre-market came before the headline, so the downgrade is piling onto a CEO-turmoil selloff the market is already pricing. Dip buyers have beaten my NVDA shorts twice, which argues for a mild fade lean. But the selling is still heavy and I couldn't verify the note within a minute, so I'm not trading it."}
+  ],
+  "close": []
+}

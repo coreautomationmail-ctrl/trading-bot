@@ -1031,3 +1031,25 @@ cannot see the spread and the floor binds; 7 of 50 names had per-name medians of
 If U passes at 10 bps, the result should be read against that. The 1-min pass (u_stage3.py bars: U3 trades and
 U1/U2 day prices for the 2,134 names, raw bars not kept) started 2026-11-13 07:30 UTC on the VPS (container
 u-stage3), off-market hours only; then the family test runs unchanged on its outputs.
+
+## 2026-11-13 end-of-day-reversal: fade the day's extreme movers in the last half hour (ideas.md 13)
+
+**Pre-registered, before any return was computed.** U is still BLOCKED locally (its stage-3 outputs are on the
+VPS, not in the cache) and idea 4 can't reach n >= 300 (146 SIP afternoon spikes for the 12 names in 2025-26),
+so the desk takes the next intraday idea. Hypothesis: Baltussen, Da & Soebhag, "End-of-Day Reversal" (working
+paper 2024-25, 2nd place Quantpedia Awards 2025; CXO's recap: about 8.8% a year long-short, value-weighted,
+1993-2019, before costs) find a stock's intraday return to 15:30 reverses in the last 30 minutes, strongest for
+losers, attributed to closing-time liquidity demand. Our version, fixed now:
+- Names: the 277 1-min names minus SPY, QQQ, IWM (stocks only), every cached year 2016-26 (missing files skipped,
+  names counted in the log). Rank by PRIOR-year dollar volume (as steady-movers).
+- Signal: R = log(close of the 15:29 bar / open of the 09:30 bar); a name-day is eligible only if its first bar is
+  09:30 and it has >= 90% of minutes 09:30-15:29. Each day, R in the bottom decile -> long, top decile -> short.
+- Entry: open of the 15:31 bar (one bar after the signal bar closes, as trades()); exit: close of the 15:59 bar.
+  The bars are raw, but nothing is held overnight, so splits don't matter.
+- Costs: 2 bps/side (4 round trip).
+- Gate (intraday): n >= 300; mean net >= +3 bps; per-trade t >= 2.5 AND t on summed daily net >= 2.5; >= 70% of
+  years positive; same sign 2016-20 and 2021-26; no symbol > 25% of positive P&L. Replication (held-out slices,
+  part of the gate): rank 1-100 and rank 101-277 each same sign with day t >= 2.
+- Reported, not gated: win rate, median, top-1% share, long (losers) and short (winners) legs separately, top and
+  bottom 5% instead of 10%, net at 1 bps/side, daily P&L correlation with spike_mom rank 1-25.
+Script: scripts/research/end_of_day_reversal.py. Log: research/end_of_day_reversal.log.

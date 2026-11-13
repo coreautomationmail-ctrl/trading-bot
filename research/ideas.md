@@ -94,6 +94,9 @@ C. DONE, FAIL 2026-11-12, see journal. spike-regime-filter: retrain monthly on a
    no ETFs: use the 1-min cache for SPY/QQQ, resampled).
 4. spike-afternoon-wide-iex: does spike_mom's afternoon edge hold on IEX
    detection for the 12 core names in 2025-26 (the live pod's feed)?
+   SKIPPED by the desk 2026-11-13: the SIP-detected afternoon spikes for these 12 names in 2025-26
+   number 146 (.cache/spike_wide_trades.csv), so n >= 300 is impossible by construction; it is a
+   live-pod monitoring question (the pod's own forward log answers it), not a gate test.
 5. 52wk-high-momentum: buy pool names within 2% of their 52-week high,
    hold 20 sessions (George & Hwang 2004). Daily, excess vs pool.
 6. last-half-hour-continuation: SPY/QQQ, if the first 30 minutes and the
@@ -173,3 +176,8 @@ C. DONE, FAIL 2026-11-12, see journal. spike-regime-filter: retrain monthly on a
     read the paper first. Test: pool names, peers = the 5 highest-correlation names over the prior 60 sessions
     (no industry data cached), fade the focal name's open-to-close when peers' overnight return is extreme.
     Daily open/close, 5 bps/side.
+21. index-lunch-effect: index ETFs' returns over the midday "lunch" window behave differently from the rest of
+    the session (a time-of-day pattern in US index returns). Quantpedia, "Lunch Effect in the U.S. Stock Market
+    Indices" (blog research, ~2024-25); seen in a search result only, read the page first for the exact window
+    and whether costs are counted. Test: SPY/QQQ 1-min 2016-26, fixed window from the page, long or short by
+    the documented sign only; one trade a day per ETF, so n is fine but 2 bps/side vs a midday drift is the hurdle.

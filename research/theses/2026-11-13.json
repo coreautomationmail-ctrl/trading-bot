@@ -1,0 +1,58 @@
+{
+  "prompt_version": 2,
+  "written_at": "2026-11-13T08:50:00-05:00",
+  "regime": "Risk-off Friday: SPY -0.35% and QQQ -0.32% yesterday, both below 50d, QQQ 20d vol 36%; NVDA CEO turmoil still dominates, bitcoin broke to $69k, semis (MU, AVGO) heavy. Stock-specific edge today is in rating changes. Web search could not find today's notes (index lags); it only confirmed the prior ratings each change starts from, so all three rest on the 08:20 feed and are kept at 0.50.",
+  "theses": [
+    {
+      "id": "2026-11-13-1",
+      "symbol": "LOW",
+      "direction": "short",
+      "hold_days": 0,
+      "stop_pct": 2.5,
+      "confidence": 0.5,
+      "category": "analyst",
+      "premarket_pct": null,
+      "why": "Stifel downgraded Lowe's to Sell from Hold with a $190 target (12:47 UTC), and Piper Sandler cut its target the same morning; Piper also cut Home Depot. An outright Sell from a large house on a mega-cap retailer is rare (Stifel had sat at Hold since its Dec-2023 downgrade), and the Bernstein Sell on CI two days ago beat random by 60 bps.",
+      "left": "Sell-rated notes on a low-volatility name are absorbed through the session as long-only holders trim, not all in the opening print, and a weak tape gives no bid to offset it.",
+      "wrong_if": "LOW holds above its open through the first hour, or housing/retail names rally on the day."
+    },
+    {
+      "id": "2026-11-13-2",
+      "symbol": "ADSK",
+      "direction": "long",
+      "hold_days": 0,
+      "stop_pct": 3.0,
+      "confidence": 0.5,
+      "category": "analyst",
+      "premarket_pct": null,
+      "why": "Loop Capital upgraded Autodesk to Buy from Hold with a $310 target (12:02/12:12 UTC). Loop had held Hold since initiating in July 2025 (targets $235-$265), so this is a real change in view, not a target tweak, and software has no direct link to the NVDA turmoil hitting semis.",
+      "left": "An upgrade from a long-time holdout gives funds that are underweight a reason to buy during the day, and the first print of a mid-tier broker upgrade rarely prices it all.",
+      "wrong_if": "ADSK gives back the gap in the first 30 minutes or trades below the open with the software group."
+    },
+    {
+      "id": "2026-11-13-3",
+      "symbol": "PANW",
+      "direction": "long",
+      "hold_days": 0,
+      "stop_pct": 3.0,
+      "confidence": 0.5,
+      "category": "analyst",
+      "premarket_pct": null,
+      "why": "KeyBanc upgraded Palo Alto Networks to Overweight (11:32 UTC) and the stock is already up pre-market (12:07 headline). KeyBanc had cut it to Sector Weight over the CyberArk deal, so reversing that call reads as the deal worry fading, which is a specific reason to own it on a risk-off day.",
+      "left": "A broker reversing its own deal-concern downgrade invites the holders who left on that call to return, which happens over the session rather than at 09:30.",
+      "wrong_if": "PANW fades below its open by 11:00 ET or cybersecurity peers (CRWD, FTNT) sell off together."
+    }
+  ],
+  "considered": [
+    {"symbol": "AVGO", "lean": "short", "confidence": 0.45, "category": "analyst",
+     "why_not": "Rothschild cut it to Neutral with a $398 target, but the same morning analysts name Broadcom the main winner of NVDA's turmoil; the rotation bid could swamp the downgrade, and the web could not confirm the note."},
+    {"symbol": "NVDA", "lean": "short", "confidence": 0.4, "category": "management",
+     "why_not": "My two NVDA governance shorts lost (-12.7 and -361.8 bps vs random); the story is priced in and dip buyers show up. Not writing it a third time."},
+    {"symbol": "TJX", "lean": "short", "confidence": 0.4, "category": "analyst",
+     "why_not": "Gordon Haskett cut it to Hold and JPMorgan trimmed the target to $166, but a Hold from a small house is a weak catalyst, and LOW already covers retail."},
+    {"symbol": "CTSH", "lean": "short", "confidence": 0.4, "category": "analyst",
+     "why_not": "Deutsche Bank cut it to Hold, a mild move; IT services is already priced as an AI loser, so there's little left to do."},
+    {"symbol": "MRK", "lean": "long", "confidence": 0.4, "category": "regulatory",
+     "why_not": "Positive CHMP opinions for Welireg and Enflonsia are label expansions that were expected; too small to move a $250B name."}
+  ]
+}

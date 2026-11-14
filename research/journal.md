@@ -1290,3 +1290,27 @@ pipeline is the same method in our own code: scripts/research/factor_composite.p
 
 Also run now, unchanged as pre-registered 2026-11-12: u-family (U1-U3) on the stage-3 outputs, design 2016-2022,
 held out 2023-26, combined bar t 2.9, 10 bps/side.
+
+**u-family result (2026-11-14): FAIL, all three, by wide margins.** Log: research/u_family.log. 2,134 names,
+2,029,573 universe days, 112,884 news days. Costs 10 bps/side (20 round trip) as fixed on 11-13.
+- U1 (news + first-15-min direction, 09:50 -> close): design n 55,262, net -14.8 bps (gross about +5), day t -6.4,
+  0/7 years positive; held out -15.6.
+- U2 (same signal, next session): design n 54,462, net -14.0 (gross about +6), 0/7 years; held out -25.2.
+- U3 (spike rule followed, 60 min): gross +1.35 over 289,455 trades; design net -19.2, 0/7 years; held out -18.2.
+Reading: in mid/small caps the news and spike follow-through exists in sign but is a few bps, a quarter of what it
+costs to trade these names. Less-watched does not mean slower here, at least not by enough to pay the spread.
+
+**factor-composite result (2026-11-14): KILL. Gate (1) and (2) fail; STRATTON's research closes as agreed.**
+Logs: research/factor_composite_U.log, research/factor_composite_L.log. Split rule applied (686 U, 42 L splits).
+- U (primary), 2,134 names, 787 a week, held out 2024-01..2026-10 (142 weeks): model IC +0.0200 (t 2.39, bar
+  2.87); long-short gross +23.9 bps/wk, net -4.4 (t -0.21) at 10 bps/side, turnover 1.41 a week. Deflated Sharpe
+  P(SR>0 | N=20) 0.053. Net negative in 7 of 8 years 2019-26 (2026 +25.0). B1 (textbook average) IC +0.027,
+  net +3.0 (t 0.11), turnover 0.96; B2 (momentum + reversal) IC +0.004, net -23.7. Model - B2 IC +0.016 (t 1.55).
+- L (replication), 274 names: held-out IC +0.013 (t 1.30), same sign as U; net +9.7 bps/wk (t 0.51) at 5 bps/side;
+  B2 beat the model (IC +0.029). Fails its own gate as well.
+- Single factors in U with the same sign and |IC| ~0.02 in both periods: 52-week high (+), size (+), share issuance
+  (-), volatility and lottery (-), news count (-). The daily-rank gap-reversal lead (newsgap) is zero here.
+Reading: the textbook effects exist at IC ~0.02 in mid/small caps and are worth ~20 bps a week gross, but weekly
+rebalancing pays more than that in costs. The only design that could survive is a slow one (monthly rebalancing of
+the textbook average, turnover far lower); logged as an idea, not run. Owner's rule: a fail closes STRATTON
+research; the desks and the spike pod keep running on paper as a log.

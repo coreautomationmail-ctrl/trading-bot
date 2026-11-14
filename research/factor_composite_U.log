@@ -1,0 +1,48 @@
+===== universe U =====
+daily bars: 2134 names, 2732 sessions, splits adjusted 686
+formation dates 533 (2016-03-31..2026-10-28), name-weeks 404333, names/week 787; coverage: logcap 100%, ey 100%, bm 100%, issuance 99%, newsgap 99%
+  feature importance (model for 2024): news5 1480, newsgap 1258, mom12_1 482, ey 480, gap1 467, hi52 461, vol63 424, bm 421, ret1 419, issuance 391
+-- design 2019-2023
+  model: IC +0.0045 (t +0.60, weeks 252); L/S gross +2.9, net -25.6 bps/wk (t -1.50), turnover 1.42, ann. Sharpe -0.68
+  b1: IC +0.0189 (t +1.50, weeks 252); L/S gross +12.7, net -6.7 bps/wk (t -0.25), turnover 0.97, ann. Sharpe -0.11
+  b2: IC +0.0143 (t +1.38, weeks 252); L/S gross +20.6, net -7.3 bps/wk (t -0.31), turnover 1.40, ann. Sharpe -0.14
+-- HELD OUT 2024-01..2026-10 (verdict)
+  model: IC +0.0200 (t +2.39, weeks 142); L/S gross +23.9, net -4.4 bps/wk (t -0.21), turnover 1.41, ann. Sharpe -0.13
+  b1: IC +0.0267 (t +2.06, weeks 142); L/S gross +22.3, net +3.0 bps/wk (t +0.11), turnover 0.96, ann. Sharpe +0.07
+  b2: IC +0.0040 (t +0.40, weeks 142); L/S gross +3.8, net -23.7 bps/wk (t -0.97), turnover 1.38, ann. Sharpe -0.59
+-- single factors (rank IC vs 5-day excess; design | held out):
+  ret1      +0.0029 (t +0.37) | -0.0041 (t -0.40)
+  ret5      -0.0137 (t -1.44) | +0.0059 (t +0.67)
+  ret21     -0.0041 (t -0.42) | -0.0041 (t -0.43)
+  mom12_1   +0.0094 (t +0.78) | +0.0142 (t +1.24)
+  hi52      +0.0147 (t +1.04) | +0.0278 (t +2.20)
+  vol21     -0.0147 (t -1.09) | -0.0215 (t -1.46)
+  vol63     -0.0159 (t -1.12) | -0.0226 (t -1.44)
+  max21     -0.0139 (t -1.23) | -0.0193 (t -1.49)
+  amihud    -0.0156 (t -2.90) | -0.0064 (t -1.09)
+  volratio  -0.0026 (t -0.56) | -0.0025 (t -0.42)
+  dv60      +0.0104 (t +2.04) | -0.0041 (t -0.66)
+  logcap    +0.0119 (t +2.06) | +0.0142 (t +2.19)
+  gap1      +0.0088 (t +0.95) | -0.0023 (t -0.20)
+  newsgap   -0.0007 (t -0.27) | +0.0002 (t +0.05)
+  news5     -0.0087 (t -1.95) | -0.0087 (t -2.01)
+  issuance  -0.0158 (t -1.74) | -0.0197 (t -2.02)
+  ey        +0.0032 (t +0.38) | +0.0080 (t +1.13)
+  bm        +0.0058 (t +0.58) | +0.0049 (t +0.58)
+-- regimes (held out, model net bps/wk):
+  universe 63d up: n 119, net -1.8 (t -0.08)
+  universe 63d down: n 23, net -17.8 (t -0.32)
+  high vol: n 75, net +4.9 (t +0.17)
+  low vol: n 67, net -14.7 (t -0.51)
+-- per year, model (IC, net bps/wk):
+  2019: IC +0.0259, net -4.6, weeks 51
+  2020: IC -0.0085, net -30.6, weeks 50
+  2021: IC -0.0041, net -34.4, weeks 51
+  2022: IC +0.0036, net -18.4, weeks 50
+  2023: IC +0.0053, net -39.9, weeks 50
+  2024: IC +0.0141, net -10.7, weeks 50
+  2025: IC +0.0191, net -22.7, weeks 50
+  2026: IC +0.0280, net +25.0, weeks 42
+-- GATE (U): 1 IC >= 0.02 and t >= 2.87: FAIL; 2 L/S net > 0 with t >= 2.87: FAIL; 3 model IC - B2 IC > 0, t >= 2: FAIL; 4 >= 2 of 3 held-out years net > 0: FAIL; 5 top 5 weeks < 50% of net: FAIL; 6 design IC same sign: ok
+   model - B2 IC +0.0159 (t +1.55); top-5-week share nan%; deflated Sharpe P(SR>0 | N=20) 0.053
+   held-out model IC mean +0.0200 (sign for L replication)

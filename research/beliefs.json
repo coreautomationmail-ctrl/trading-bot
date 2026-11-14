@@ -262,12 +262,12 @@
  {
   "id": "u-family",
   "claim": "News-follow (U1, U2) or the spike rule (U3) earns after >= 10 bps/side on less-watched US common stocks ($300M-$5B cap, > $5, > $5M median daily $vol).",
-  "status": "blocked",
-  "evidence": "Pre-registered 2026-11-12 (combined bar t 2.9). Cache check: 0 shares-outstanding files, 0 of 727 candidate pool names with 1-min bars or headlines; the daily pool is 2016 survivors skewed large (median $39-92M a day). Nothing tested.",
+  "status": "rejected",
+  "evidence": "Pre-registered 2026-11-12 (combined bar t 2.9). Cache check: 0 shares-outstanding files, 0 of 727 candidate pool names with 1-min bars or headlines; the daily pool is 2016 survivors skewed large (median $39-92M a day). Nothing tested. Data landed 11-13; ran 11-14: all three FAIL (see u-family-results).",
   "confidence": "low",
   "reopen_if": "SEC companyfacts, full-market daily bars, 1-min bars and Benzinga headlines for the universe are cached (journal 2026-11-12 u-family lists them).",
   "journal": "2026-11-12 PRE-REGISTRATION u-family",
-  "updated": "2026-11-12"
+  "updated": "2026-11-14"
  },
  {
   "id": "spike-regime-filter",
@@ -337,6 +337,26 @@
   "confidence": "medium",
   "reopen_if": "Never for LLM judgment at these horizons unless a new model class shows post-cutoff IC >= 0.05 elsewhere.",
   "journal": "2026-11-14 daily-rank",
+  "updated": "2026-11-14"
+ },
+ {
+  "id": "u-family-results",
+  "claim": "News-follow (U1, U2) or the spike rule (U3) earns after 10 bps/side on $300M-$5B names.",
+  "status": "rejected",
+  "evidence": "2,134 names 2016-26: U1 net -14.8 (gross ~+5), U2 -14.0 (gross ~+6), U3 gross +1.35 over 289,455 trades; 0/7 design years positive, held out the same sign.",
+  "confidence": "high",
+  "reopen_if": "A cost model under 3 bps/side for these names.",
+  "journal": "2026-11-14 u-family result",
+  "updated": "2026-11-14"
+ },
+ {
+  "id": "factor-composite",
+  "claim": "18 published factors combined by walk-forward LightGBM, weekly long-short, earn after costs in mid/small caps.",
+  "status": "rejected",
+  "evidence": "Held out 2024-26 U: IC +0.020 (t 2.39 < 2.87), gross +23.9 bps/wk, net -4.4 at 10 bps/side (turnover 1.41/wk), deflated P 0.05; 7/8 years net negative. L: IC +0.013, net +9.7 (t 0.51). Textbook factors (52wk high, size, issuance, vol) carry IC ~0.02.",
+  "confidence": "medium",
+  "reopen_if": "A monthly-rebalanced textbook composite (turnover far lower) is pre-registered as its own idea.",
+  "journal": "2026-11-14 factor-composite",
   "updated": "2026-11-14"
  }
 ]

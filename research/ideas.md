@@ -181,3 +181,5 @@ C. DONE, FAIL 2026-11-12, see journal. spike-regime-filter: retrain monthly on a
     Indices" (blog research, ~2024-25); seen in a search result only, read the page first for the exact window
     and whether costs are counted. Test: SPY/QQQ 1-min 2016-26, fixed window from the page, long or short by
     the documented sign only; one trade a day per ETF, so n is fine but 2 bps/side vs a midday drift is the hurdle.
+
+- 2026-11-14 monthly textbook composite (parked, owner closed research): equal-weight 52wk-high, size, -issuance, -vol, -max ranks on U, monthly rebalance, 10 bps/side. factor-composite showed IC ~0.02 and ~20 bps/wk gross but weekly turnover ate it.

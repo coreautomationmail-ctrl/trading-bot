@@ -1182,3 +1182,21 @@ instead of rating each alone (flash-judgment showed one-shot p clustered at 0.46
 **Final: all three arms KILL.** Forcing a spread removed the fade habit but not the lack of skill; neither numbers,
 charts, nor both give Claude a measurable read on 60-minute flash moves. Charts add nothing here. The flash desk's
 judgment layer has no offline evidence; its forward v3 record is scored as usual but expectations are ~zero.
+
+## 2026-11-14 PRE-REGISTRATION: daily-rank (Claude ranks the overnight-news names for the day; STOP RULE)
+Owner's call (2026-11-14): this is the last real test of Claude-as-trader. If it fails, STRATTON stops spending
+effort on LLM trading judgment and becomes a cheap automated research log; effort moves to content.
+- Data: the 277-name cache (SIP 1-min, Benzinga headlines). Days: every trading day 2026-07-01..2026-10-26 (after
+  Opus 5.5's training data). The U (mid/small-cap) universe reruns the same script unchanged when its download ends.
+- Universe each day D: names with >= 1 single-name headline (<= 3 symbols) from the prior session's 16:00 to D 09:25
+  ET (weekends/holidays roll to the next session). Expected ~100 names/day.
+- Claude sees per name: up to 3 latest headlines in that window (with times), prior-day return, gap (09:30 open vs
+  prior close), 09:30-09:34 move, and SPY's gap and 09:30-09:34 move. Nothing after 09:34.
+- Task: one call per day, Opus 5.5 via claude -p --safe-mode, no tools; rank all names 1 (best expected return vs
+  SPY from 09:35 open to the 15:59 close) to N (worst). One sample per day (plan usage; 3 samples was the plan's
+  ideal, noted as a deviation).
+- Outcome: r = stock (09:35 open -> last close <= 15:59) minus SPY same, in bps. Costs don't enter the IC.
+- Primary: mean daily Spearman IC between (N+1-rank) and r; t = mean/sd*sqrt(days). PASS: IC >= 0.05 and t >= 2.0.
+  KILL (stop rule fires): IC < 0.02. Between: inconclusive, the U-universe run decides with the same bars.
+- Reported: long top quintile / short bottom quintile, net of 4 bps per side, mean daily bps and t; IC by gap sign
+  and by headline count; baselines on the same days: gap-reversal (rank by -gap) and the 09:30-09:34 move.

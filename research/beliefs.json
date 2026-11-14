@@ -163,11 +163,11 @@
   "id": "price-only-research-exhausted",
   "claim": "New edge in these liquid names is more likely from new data (news, filings, flows, options) than from more price rules.",
   "status": "open",
-  "evidence": "11 straight FAILs, nearly all price patterns on the same data. A pattern, not a test; the news and filing tests will challenge it. So far the first two news tests also FAILED: spike-news and spike-down-no-news, both using only headline timing, not content. headline-family S1 (2026-11-08): headline CONTENT by word list also failed all three tests (T1 -3.4 net, day t -7.5, n=56,217; T2 day t 1.53; T3 -4.9). steady-movers (2026-11-09), price only: big + smooth midday movers -5.8 net, day t -5.6, n=48,796. intraday-pairs (2026-11-10), price plus headline absence: fading 3-sd splits in the 50 most correlated pairs -3.95 net per pair (gross +4.05 vs 8 bps cost), day t -9.0, n=57,073; held out -5.15. crypto-fee-check (2026-11-11), price only on 7 coins: 4-hour long-only trend gross -0.1 bps per trade (net -50.1 at Alpaca's 25 bps/side, day t -13.4, n=12,929); the spike rule on crypto -1.5 gross. spike-regime-filter (2026-11-12): a monthly-retrained filter on market trend, volatility and time cut the spike mean (-0.79 bps vs taking all, Welch t -0.35; held out -1.88). end-of-day-reversal (2026-11-13), price only: last-half-hour fade of the day's extreme movers +1.0 gross, -3.0 net, day t -12.9, n=127,131, 0/11 years positive.",
+  "evidence": "11 straight FAILs, nearly all price patterns on the same data. A pattern, not a test; the news and filing tests will challenge it. So far the first two news tests also FAILED: spike-news and spike-down-no-news, both using only headline timing, not content. headline-family S1 (2026-11-08): headline CONTENT by word list also failed all three tests (T1 -3.4 net, day t -7.5, n=56,217; T2 day t 1.53; T3 -4.9). steady-movers (2026-11-09), price only: big + smooth midday movers -5.8 net, day t -5.6, n=48,796. intraday-pairs (2026-11-10), price plus headline absence: fading 3-sd splits in the 50 most correlated pairs -3.95 net per pair (gross +4.05 vs 8 bps cost), day t -9.0, n=57,073; held out -5.15. crypto-fee-check (2026-11-11), price only on 7 coins: 4-hour long-only trend gross -0.1 bps per trade (net -50.1 at Alpaca's 25 bps/side, day t -13.4, n=12,929); the spike rule on crypto -1.5 gross. spike-regime-filter (2026-11-12): a monthly-retrained filter on market trend, volatility and time cut the spike mean (-0.79 bps vs taking all, Welch t -0.35; held out -1.88). end-of-day-reversal (2026-11-13), price only: last-half-hour fade of the day's extreme movers +1.0 gross, -3.0 net, day t -12.9, n=127,131, 0/11 years positive. 52wk-high-momentum (2026-11-14), price only, daily: near-high longs +2.2 excess after 10 bps (t 0.30), held out -16.0.",
   "confidence": "low",
   "reopen_if": "New-data tests fail as often as price tests have: rethink the universe and horizon instead.",
-  "journal": "docs/stratton-revamp-plan.md; 2026-11-06 spike-news; 2026-11-06 spike-down-no-news; 2026-11-07 headline-family; 2026-11-09 steady-movers; 2026-11-10 intraday-pairs; 2026-11-11 crypto-fee-check; 2026-11-12 spike-regime-filter; 2026-11-13 end-of-day-reversal",
-  "updated": "2026-11-13"
+  "journal": "docs/stratton-revamp-plan.md; 2026-11-06 spike-news; 2026-11-06 spike-down-no-news; 2026-11-07 headline-family; 2026-11-09 steady-movers; 2026-11-10 intraday-pairs; 2026-11-11 crypto-fee-check; 2026-11-12 spike-regime-filter; 2026-11-13 end-of-day-reversal; 2026-11-14 52wk-high-momentum",
+  "updated": "2026-11-14"
  },
  {
   "id": "data-raw-bars-carry-splits",
@@ -317,6 +317,16 @@
   "confidence": "medium",
   "reopen_if": "A different horizon or a ranking across many more names shows IC >= 0.05 forward.",
   "journal": "2026-11-14 flash-chart",
+  "updated": "2026-11-14"
+ },
+ {
+  "id": "52wk-high-momentum",
+  "claim": "Pool names within 2% of their 52-week high beat the pool over the next 20 sessions by enough to pay 5 bps/side.",
+  "status": "rejected",
+  "evidence": "Pool daily 2017-26, 122 monthly formations. Design ranks 1-500: n=9,891, excess +2.2 bps, t 0.30, per-formation t -1.03, 5/10 years. Held out 501-1000: -16.0, t -1.78, 2/10 years. George-Hwang top decile long leg -30 / -36 bps (t -3.0) in both slices; decile long-short -18.5 / -8.0.",
+  "confidence": "high",
+  "reopen_if": "A longer hold (6-12 months, the paper's horizon) is wanted for the long-term sleeve, tested as its own pre-registered idea; or news conditioning (ideas.md 16).",
+  "journal": "2026-11-14 52wk-high-momentum",
   "updated": "2026-11-14"
  }
 ]

@@ -1222,3 +1222,15 @@ overstates); win rate, median, top-1% share; the George-Hwang long-short (top vs
 dates, excess of long minus short, 20 bps round trip per leg pair). Spike-pod correlation skipped (20-day holds vs
 60-minute pod; not easy). Caveat: the pool is Q1-2016 survivors, which flatters a long-only leg.
 Script: scripts/research/high_52wk.py.
+
+**Result: FAIL.** Log: research/high_52wk.log. 122 formations, entries 2017-01..2026-09.
+- Design (ranks 1-500), long names within 2% of the 52-week high: n=9,891, excess +2.2 bps (gate 15), t +0.30,
+  per-formation t -1.03; median -2.2, win 50%, 5/10 years positive; 2017-20 +0.5 / 2021-26 +3.6; top symbol 3% (CAR);
+  top-1% share 1317% (the mean is ~0, so the tail is all of it). Years swing -76..+90 with the market regime.
+- Held out (ranks 501-1000): n=8,254, excess -16.0, t -1.78, per-formation t -1.33, 2/10 years positive.
+- George-Hwang decile long-short (not gated), per leg-trade: design -18.5 (t -1.96), held out -8.0 (t -0.69). The
+  top-decile long leg loses in both slices: -30.2 (t -3.02) and -35.6 (t -3.06) per trade, per-formation t -1.0/-1.4.
+- Split filter dropped 833 / 740 trades; 992 / 1,302 kept trades had a real <= -25% overnight gap.
+Reading: in this 2016-survivor pool, being at the 52-week high earns nothing over the next month after 10 bps; the
+paper's 6-12 month horizon and older sample didn't carry to a one-month hold in 2017-26 large caps. Idea 9
+(reversal near the 52-week high) uses the same ratio; it stays queued but this result lowers its prior.

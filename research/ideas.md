@@ -97,7 +97,7 @@ C. DONE, FAIL 2026-11-12, see journal. spike-regime-filter: retrain monthly on a
    SKIPPED by the desk 2026-11-13: the SIP-detected afternoon spikes for these 12 names in 2025-26
    number 146 (.cache/spike_wide_trades.csv), so n >= 300 is impossible by construction; it is a
    live-pod monitoring question (the pod's own forward log answers it), not a gate test.
-5. 52wk-high-momentum: buy pool names within 2% of their 52-week high,
+5. DONE, FAIL 2026-11-14, see journal. 52wk-high-momentum: buy pool names within 2% of their 52-week high,
    hold 20 sessions (George & Hwang 2004). Daily, excess vs pool.
 6. last-half-hour-continuation: SPY/QQQ, if the first 30 minutes and the
    13:30-15:30 return agree, ride the last 30 minutes (Gao, Han, Li & Zhou

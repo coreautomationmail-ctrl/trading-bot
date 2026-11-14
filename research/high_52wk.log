@@ -1,0 +1,32 @@
+C:\Users\Silvine Raza\projects\vision-worktrees\trading-bot-task103\scripts\research\high_52wk.py:45: RuntimeWarning: All-NaN slice encountered
+  hi = np.nanmax(win, axis=0)
+
+=== design ranks 1-500: 500 names; split-suspect trades dropped 833, kept trades with a <= -25% gap 992 ===
+
+near 52wk high (ratio >= 0.98), long only, design ranks 1-500: n=9,891  excess +2.2 bps (t=+0.30, per-formation t=-1.03, 122 formations)  median -2.2  win 50%  years+ 5/10  17-20 +0.5 / 21-26 +3.6  top symbol 3% (CAR)  top-1% share 1317%  -> FAIL
+   excess by year: 2017:-1  2018:+7  2019:-54  2020:+78  2021:-36  2022:+90  2023:-76  2024:+44  2025:+33  2026:-46
+
+  George-Hwang top/bottom decile, per leg-trade: n=11,754  excess -18.5 bps (t=-1.96, per-formation t=-0.59, 122 formations)  median -1.5  win 50%  years+ 3/10  17-20 -17.4 / 21-26 -19.3  top symbol 3% (GME)  top-1% share -194%
+   excess by year: 2017:-32  2018:-26  2019:-7  2020:-4  2021:-124  2022:+8  2023:-49  2024:+64  2025:+13  2026:-51
+
+    top decile long: n=5,877  excess -30.2 bps (t=-3.02, per-formation t=-1.00, 122 formations)  median -31.0  win 48%  years+ 3/10  17-20 -45.0 / 21-26 -19.5  top symbol 3% (ANF)  top-1% share -98%
+   excess by year: 2017:-45  2018:-18  2019:-105  2020:-17  2021:-81  2022:+13  2023:-45  2024:+23  2025:+19  2026:-74
+
+    bottom decile short: n=5,877  excess -6.8 bps (t=-0.43, per-formation t=-0.18, 122 formations)  median +48.2  win 52%  years+ 5/10  17-20 +10.1 / 21-26 -19.2  top symbol 4% (GME)  top-1% share -568%
+   excess by year: 2017:-19  2018:-33  2019:+91  2020:+8  2021:-168  2022:+4  2023:-52  2024:+104  2025:+8  2026:-29
+C:\Users\Silvine Raza\projects\vision-worktrees\trading-bot-task103\scripts\research\high_52wk.py:45: RuntimeWarning: All-NaN slice encountered
+  hi = np.nanmax(win, axis=0)
+
+=== held-out ranks 501-1000: 500 names; split-suspect trades dropped 740, kept trades with a <= -25% gap 1302 ===
+
+near 52wk high (ratio >= 0.98), long only, held-out ranks 501-1000: n=8,254  excess -16.0 bps (t=-1.78, per-formation t=-1.33, 122 formations)  median -29.9  win 48%  years+ 2/10  17-20 -10.2 / 21-26 -21.4  top symbol 5% (NKTR)  top-1% share -218%
+   excess by year: 2017:-14  2018:-18  2019:-51  2020:+70  2021:-102  2022:-23  2023:-84  2024:+66  2025:-9  2026:-14
+
+  George-Hwang top/bottom decile, per leg-trade: n=11,400  excess -8.0 bps (t=-0.69, per-formation t=-0.27, 122 formations)  median -6.5  win 50%  years+ 3/10  17-20 -41.0 / 21-26 +15.6  top symbol 3% (PACB)  top-1% share -562%
+   excess by year: 2017:-64  2018:-43  2019:-12  2020:-43  2021:-90  2022:+75  2023:-48  2024:+92  2025:+66  2026:-34
+
+    top decile long: n=5,700  excess -35.6 bps (t=-3.06, per-formation t=-1.42, 122 formations)  median -43.5  win 47%  years+ 2/10  17-20 -39.2 / 21-26 -33.0  top symbol 6% (NKTR)  top-1% share -110%
+   excess by year: 2017:-43  2018:-66  2019:-80  2020:+32  2021:-119  2022:-51  2023:-60  2024:+46  2025:-7  2026:-5
+
+    bottom decile short: n=5,700  excess +19.5 bps (t=+0.98, per-formation t=+0.43, 122 formations)  median +70.2  win 52%  years+ 4/10  17-20 -42.9 / 21-26 +64.3  top symbol 4% (CABO)  top-1% share 236%
+   excess by year: 2017:-85  2018:-20  2019:+57  2020:-117  2021:-61  2022:+202  2023:-36  2024:+139  2025:+140  2026:-63

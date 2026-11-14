@@ -1113,3 +1113,26 @@ money on 10 years of history.** Log: research/flash_replay.log; flags: .cache/fl
 Verdict: FAIL. The screener finds the right moments to look at, but the obvious trade on them has no edge either
 way, matching the 11/10 trigger replay on all years. So the flash desk lives or dies on Claude's judgment beating
 -5.5 bps (follow) and -2.5 (fade) per flag. The 10x+ slice is a candidate to pre-register on forward flags only.
+
+## 2026-11-14 flash-judgment: does Claude's call on a flash flag beat the obvious read? (PRE-REGISTERED, offline)
+
+**Pre-registered, before any Claude call or look at these flags' outcomes.** Redesign plan (reports/STRATTON
+redesign plan.md, item 3; owner "yes" 2026-11-14). The flash-replay flags dated 2026-07-01 .. 2026-10-27 are after
+the training data of the model used (Claude Opus 5.5, cutoff June 2026), so Claude can judge them without knowing
+how they ended. 267 flags, 256 with a 60-min outcome, on 78 days.
+- Input per flag = what the live desk sees at the flag minute, nothing later: symbol, headline, the name's other
+  single-name headlines earlier that day, flag time, volume multiple, move since headline, day change vs prior
+  close, SPY day change and since-headline change, and the name's 1-min bars from 09:30 (or the 30 before the
+  headline, whichever is longer, capped at 60) to the flag minute as % from the pre-headline close with volume.
+  No outcome, no later bar. Built by scripts/research/flash_judgment.py build; answers by `ask` (claude -p, Opus
+  5.5, no tools, batches of 16 in date order, one sample per flag); scored by `score`.
+- Question: probability p that, entering 5 minutes after the flag and holding 60 minutes, the stock beats SPY in
+  the direction of the move since the headline (follow). Plus a category word and one-line reason.
+- Pick = follow if p >= 0.5 else fade; its net = follow60 or fade60 from flash_replay (own - SPY - 4 bps).
+- Primary: rank IC = Spearman(p, follow60) over flags; significance by permuting p within day (10,000 draws),
+  one-sided. PASS if IC >= 0.10 and permutation p < 0.05. KILL (desk judgment adds nothing worth building on) if
+  IC < 0.02. Between: inconclusive, carry to the forward scorecard.
+- Reported: pick mean net vs always-follow and always-fade on the same flags; Brier score of p vs a 0.5 baseline
+  and vs the period's base rate; calibration by p bucket; by Claude's category; day-clustered t of pick net.
+- Caveat fixed now: n=256 only sees large skill (IC ~0.12+ at 80% power); a FAIL means "not large", not "none".
+  The chart arm (same flags as images, then both) runs after this one, as a separate pre-registered step.

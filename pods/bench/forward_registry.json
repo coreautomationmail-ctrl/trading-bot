@@ -77,6 +77,36 @@
       "desk": "flash-triage",
       "instructions": "jarvis ops/stratton_flash.py SYSTEM (version 2, 2026-11-13); comparison arm ops/stratton_shadow.py V1_SYSTEM",
       "test": "research/journal.md 2026-11-13 (T1): at >= 1,500 scored shadow flags, LOOK minus SKIP mean absolute 60-minute move vs SPY under the version-2 prompt, Welch t >= max(2.5, bar). T2 (a decision rule, not a test): the prompt with the larger gap is kept"
+    },
+    {
+      "id": "thesis-desk-v3",
+      "registered": "2026-11-14",
+      "kind": "desk",
+      "desk": "thesis",
+      "version": 3,
+      "instructions": "research/theses/agent.md version 3 (2026-11-14)",
+      "test": "300 scored theses over 60+ trading days; day t vs SPY and vs random both >= bar",
+      "note": "No confidence floor and a minimum number of calls a session (redesign plan item 1, owner OK 2026-11-14). Exception to the one-rewrite-a-quarter rule, owner's call: v2 had 3 scored theses and 0 intraday/flash trades."
+    },
+    {
+      "id": "intraday-desk-v3",
+      "registered": "2026-11-14",
+      "kind": "desk",
+      "desk": "intraday",
+      "version": 3,
+      "instructions": "research/theses/intraday.md version 3 (2026-11-14)",
+      "test": "300 scored trades over 60+ trading days; day t vs SPY and vs random both >= bar",
+      "note": "No confidence floor and a minimum number of calls a session (redesign plan item 1, owner OK 2026-11-14). Exception to the one-rewrite-a-quarter rule, owner's call: v2 had 3 scored theses and 0 intraday/flash trades."
+    },
+    {
+      "id": "flash-desk-v3",
+      "registered": "2026-11-14",
+      "kind": "desk",
+      "desk": "flash",
+      "version": 3,
+      "instructions": "research/theses/flash.md version 3 (2026-11-14)",
+      "test": "300 scored trades; day t vs random >= bar",
+      "note": "No confidence floor and a minimum number of calls a session (redesign plan item 1, owner OK 2026-11-14). Exception to the one-rewrite-a-quarter rule, owner's call: v2 had 3 scored theses and 0 intraday/flash trades."
     }
   ]
 }

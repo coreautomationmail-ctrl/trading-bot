@@ -1200,3 +1200,25 @@ effort on LLM trading judgment and becomes a cheap automated research log; effor
   KILL (stop rule fires): IC < 0.02. Between: inconclusive, the U-universe run decides with the same bars.
 - Reported: long top quintile / short bottom quintile, net of 4 bps per side, mean daily bps and t; IC by gap sign
   and by headline count; baselines on the same days: gap-reversal (rank by -gap) and the 09:30-09:34 move.
+
+## 2026-11-14 52wk-high-momentum: buy pool names within 2% of their 52-week high, hold 20 sessions (ideas.md 5)
+
+**Pre-registered.** Hypothesis: investors anchor on the 52-week high, so good news pushes a stock toward it too
+slowly and names near it keep drifting up (George & Hwang, "The 52-Week High and Momentum Investing", J. Finance
+2004). Data: pool daily SIP bars 2016-01..2026-10-02 (`backtest_swing`), unadjusted.
+Rules: formation every 20th session t (non-overlapping), first t once 252 prior sessions exist (so entries start
+2017). Eligible: close[t] >= $5, >= 240 closes in the 252 sessions ending t, open[t+1] and close[t+20] present.
+ratio = close[t] / max(close[t-251..t]), known at the close of t. Long every eligible name with ratio >= 0.98.
+Enter the open of t+1, exit the close of t+20. Each name-month is one trade. Costs 5 bps/side. Score: excess =
+ret - pool20 - 10 bps (pool20 = `pool_benchmark` hold 20, same entry day).
+Splits (cache is unadjusted): a trade is dropped if any overnight gap open[d]/close[d-1] in t-251..t+20 is within
++-2% of a split ratio (1/20, 1/10, 1/5, 1/4, 1/3, 1/2, 2/3, 3/2, 2, 3, 4, 5, 8, 10, 20). Drops are counted, and
+the remaining gaps <= -25% are counted too.
+Design slice: pool ranks 1-500; held out: ranks 501-1000, same rules, reported regardless.
+PASS (design) needs ALL: n >= 300; mean excess >= 15 bps; t >= 2.5; positive in >= 70% of years 2017-2026; same
+sign 2017-20 and 2021-26 (no 2016 entries possible); no symbol > 25% of P&L.
+Also reported, not gated: t on per-formation mean excess (all trades of a month enter the same day, so per-trade t
+overstates); win rate, median, top-1% share; the George-Hwang long-short (top vs bottom decile of ratio, same
+dates, excess of long minus short, 20 bps round trip per leg pair). Spike-pod correlation skipped (20-day holds vs
+60-minute pod; not easy). Caveat: the pool is Q1-2016 survivors, which flatters a long-only leg.
+Script: scripts/research/high_52wk.py.

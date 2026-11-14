@@ -1148,3 +1148,35 @@ Reading: on what the flash desk sees, Claude's one-shot read added nothing measu
 in" by habit. Not a kill by the rule fixed above, so it carries to the forward scorecard, but the flash desk as a
 judgment desk has no evidence for it. Next: the chart arm runs as pre-registered (same flags as images), to answer
 the owner's chart question directly; a numeric arm that forces a spread (rank the day's flags) is a better design.
+
+## 2026-11-14 PRE-REGISTRATION: flash-chart (forced ranking; numbers vs chart vs both)
+Owner's question: can STRATTON read charts? Same 256 post-cutoff flags as flash-judgment, but Claude must RANK
+instead of rating each alone (flash-judgment showed one-shot p clustered at 0.46 with no spread).
+- Batches: the same 16 chronological batches of 16 flags. In each, Claude ranks the 16 from 1 (most likely to beat
+  SPY in the direction of the move since the headline, entering +5 min, holding 60) to 16 (most likely to fade).
+  Forced: ranks must be a permutation of 1..16 (a non-permutation is re-ranked by its given order, ties by input
+  order; counted and reported). Top 8 = follow, bottom 8 = fade.
+- Three arms, one sample per flag each, Opus 5.5 via claude -p --safe-mode:
+  N  = headline + earlier headlines + the numeric fields and bar list (flash-judgment items, unchanged).
+  C  = headline + earlier headlines + day/SPY change fields + a chart image instead of the bar list (no tools
+       except Read, confined by safe mode to a folder holding only the 16 charts; tool calls audited, any read
+       outside that folder voids the batch).
+  NC = both.
+  Chart: 1-min candles from 09:30 to the flag minute (the whole session so far), y = % from
+  the pre-headline close, SPY % as a grey line, volume panel, dashed line at the headline minute. Nothing after the
+  flag minute.
+- Primary per arm: IC = mean over the 16 batches of Spearman(17 - rank, follow60); significance by permuting ranks
+  within batch (10,000 draws, seed 20261114), one-sided. PASS if IC >= 0.10 and p < 0.05; KILL if IC < 0.02.
+- Chart question: charts help only if IC(C) or IC(NC) beats IC(N) by >= 0.02 AND that arm passes on its own.
+  Paired difference reported with a within-batch permutation of the arm labels. Power is low (n 256 detects ~0.12+);
+  a null means "no large chart skill", not "none".
+- Reported per arm: pick net (top 8 follow, bottom 8 fade) mean bps and day-clustered t; top-quarter vs bottom-
+  quarter follow60 spread.
+
+**Result (partial: N and C complete, NC 2 of 16 batches; usage limit hit).** Log: research/flash_chart.log.
+- N (numbers, forced ranking): IC -0.011, p 0.57 -> KILL. Pick net +0.1 bps.
+- C (chart image, forced ranking; 256/256 charts read, audit clean): IC +0.010, p 0.43 -> KILL. Pick net +0.4 bps.
+- C minus N: +0.022 (label-swap p 0.34): above the 0.02 line but C fails on its own, so charts do not help.
+- NC: finish the remaining 14 batches (`flash_chart.py ask NC`, resumable) and re-score.
+Reading: forcing a spread removed the fade habit but not the lack of skill; neither numbers nor charts give Claude a
+measurable read on 60-minute flash moves.

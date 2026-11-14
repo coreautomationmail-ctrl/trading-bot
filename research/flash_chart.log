@@ -1,0 +1,11 @@
+N: batches 16, flags 256, non-permutation batches 0, charts read 0
+  IC -0.011, within-batch permutation p 0.5720 -> KILL
+  pick net +0.07 bps (day t +0.01); top-4 follow60 +23.8 vs bottom-4 +9.3
+C: batches 16, flags 256, non-permutation batches 0, charts read 256
+  IC +0.010, within-batch permutation p 0.4343 -> KILL
+  pick net +0.35 bps (day t +0.04); top-4 follow60 +15.1 vs bottom-4 -7.2
+NC: batches 2, flags 32, non-permutation batches 0, charts read 32
+  IC -0.213, within-batch permutation p 0.8804 -> KILL
+  pick net -4.63 bps (day t -0.20); top-4 follow60 -12.3 vs bottom-4 +43.8
+C minus N: IC diff +0.022, label-swap p 0.3373
+NC minus N: IC diff +0.071, label-swap p 0.3123

@@ -1234,3 +1234,13 @@ Script: scripts/research/high_52wk.py.
 Reading: in this 2016-survivor pool, being at the 52-week high earns nothing over the next month after 10 bps; the
 paper's 6-12 month horizon and older sample didn't carry to a one-month hold in 2017-26 large caps. Idea 9
 (reversal near the 52-week high) uses the same ratio; it stays queued but this result lowers its prior.
+
+**Result: KILL, the stop rule fires.** Log: research/daily_rank.log. 82 days, 6,000 name-days (73/day), 81 of 82
+answers were exact permutations (1 re-ranked by order).
+- Claude rank IC -0.014 (t -0.70). Long top fifth / short bottom fifth: -11.3 bps/day net (t -1.72).
+- Baselines on the same days: gap reversal (rank by -gap) IC +0.065, t +2.28; first-5-min move IC -0.003.
+- No subgroup rescues it (gap down +0.018, gap up -0.029; by headline count all within noise).
+Decision (owner's call 2026-11-14): Claude stops as trader. The desks keep running on paper only as a log; no
+more LLM-judgment research. The one thing worth carrying forward is the gap-reversal baseline among news names
+(t 2.28, reported baseline, NOT pre-registered as primary; 1 of 2 baselines; one 82-day window): it goes into the
+multi-factor composite as a candidate, to be confirmed on 2016-2026 and the U universe before any belief.

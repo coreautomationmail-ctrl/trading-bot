@@ -328,5 +328,15 @@
   "reopen_if": "A longer hold (6-12 months, the paper's horizon) is wanted for the long-term sleeve, tested as its own pre-registered idea; or news conditioning (ideas.md 16).",
   "journal": "2026-11-14 52wk-high-momentum",
   "updated": "2026-11-14"
+ },
+ {
+  "id": "daily-rank",
+  "claim": "Claude ranking the overnight-news names each morning predicts 09:35-to-close return vs SPY.",
+  "status": "rejected",
+  "evidence": "82 post-cutoff days (Jul-Oct 2026), 6,000 name-days: IC -0.014 (t -0.70), quintile long-short -11.3 bps/day. Same days: gap reversal IC +0.065 (t 2.28), first-5-min 0.00. Stop rule for Claude-as-trader fired.",
+  "confidence": "medium",
+  "reopen_if": "Never for LLM judgment at these horizons unless a new model class shows post-cutoff IC >= 0.05 elsewhere.",
+  "journal": "2026-11-14 daily-rank",
+  "updated": "2026-11-14"
  }
 ]

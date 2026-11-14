@@ -1,0 +1,15 @@
+days 82, name-days 6000, non-permutation days 1, names/day 73
+PRIMARY Claude rank: IC -0.0136, t -0.70, days 82
+  verdict: KILL (stop rule fires)
+long top fifth / short bottom fifth, net 4 bps/side: -11.28 bps/day (t -1.72)
+baselines (same days):
+  gap reversal (-gap): IC +0.0647, t +2.28, days 82
+  first-5-min move: IC -0.0032, t -0.18, days 82
+by gap sign (Claude IC within day, then averaged):
+  gap down: IC +0.0178, t +0.66, days 82
+  gap flat: IC +0.8000, t +nan, days 1
+  gap up: IC -0.0286, t -1.23, days 82
+by headline count:
+  1 headline(s): IC -0.0267, t -1.13, days 82
+  2 headline(s): IC +0.0055, t +0.15, days 81
+  3 headline(s): IC -0.0073, t -0.21, days 82

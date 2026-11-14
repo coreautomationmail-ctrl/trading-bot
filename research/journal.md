@@ -1173,10 +1173,12 @@ instead of rating each alone (flash-judgment showed one-shot p clustered at 0.46
 - Reported per arm: pick net (top 8 follow, bottom 8 fade) mean bps and day-clustered t; top-quarter vs bottom-
   quarter follow60 spread.
 
-**Result (partial: N and C complete, NC 2 of 16 batches; usage limit hit).** Log: research/flash_chart.log.
+**Result.** Log: research/flash_chart.log.
 - N (numbers, forced ranking): IC -0.011, p 0.57 -> KILL. Pick net +0.1 bps.
 - C (chart image, forced ranking; 256/256 charts read, audit clean): IC +0.010, p 0.43 -> KILL. Pick net +0.4 bps.
 - C minus N: +0.022 (label-swap p 0.34): above the 0.02 line but C fails on its own, so charts do not help.
-- NC: finish the remaining 14 batches (`flash_chart.py ask NC`, resumable) and re-score.
-Reading: forcing a spread removed the fade habit but not the lack of skill; neither numbers nor charts give Claude a
-measurable read on 60-minute flash moves.
+- NC (numbers + chart; completed 2026-11-14, 256/256 charts read): IC -0.013, p 0.57 -> KILL. Pick net +2.3 bps.
+- NC minus N: -0.001 (p 0.50).
+**Final: all three arms KILL.** Forcing a spread removed the fade habit but not the lack of skill; neither numbers,
+charts, nor both give Claude a measurable read on 60-minute flash moves. Charts add nothing here. The flash desk's
+judgment layer has no offline evidence; its forward v3 record is scored as usual but expectations are ~zero.

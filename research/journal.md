@@ -1136,3 +1136,15 @@ how they ended. 267 flags, 256 with a 60-min outcome, on 78 days.
   and vs the period's base rate; calibration by p bucket; by Claude's category; day-clustered t of pick net.
 - Caveat fixed now: n=256 only sees large skill (IC ~0.12+ at 80% power); a FAIL means "not large", not "none".
   The chart arm (same flags as images, then both) runs after this one, as a separate pre-registered step.
+
+**Result: INCONCLUSIVE, leaning no skill.** Log: research/flash_judgment.log. 256 of 256 flags answered (16 calls).
+- Rank IC(p, follow60) = +0.024, within-day permutation p = 0.87: just above the 0.02 kill line, nowhere near 0.10.
+- Claude barely took a view: p mean 0.464, sd 0.031 (238 of 256 between 0.35 and 0.50), and faded 213 of 256.
+  Its picks netted -7.6 bps (day t -1.06) while always-follow made +7.2 and always-fade -15.2 on these flags.
+- Brier 0.2528, worse than a flat 0.5 (0.2500). The few p > 0.5 calls (n 18) did follow +34: too few to mean much.
+- By its category (exploratory, small n): deal n 15 pick +65, analyst n 91 pick -28 (it faded analyst notes that
+  then ran).
+Reading: on what the flash desk sees, Claude's one-shot read added nothing measurable and leaned to "it's priced
+in" by habit. Not a kill by the rule fixed above, so it carries to the forward scorecard, but the flash desk as a
+judgment desk has no evidence for it. Next: the chart arm runs as pre-registered (same flags as images), to answer
+the owner's chart question directly; a numeric arm that forces a spread (rank the day's flags) is a better design.

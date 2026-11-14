@@ -298,5 +298,15 @@
   "reopen_if": "Forward flags at volume >= 10x, pre-registered, show follow60 >= +3 net with day t >= bar over 300+ flags; or Claude's flash calls beat follow and fade on scored forward trades.",
   "journal": "2026-11-14 flash-replay",
   "updated": "2026-11-14"
+ },
+ {
+  "id": "flash-judgment",
+  "claim": "Claude (Opus 5.5), shown what the flash desk sees at a flag, predicts whether following the move beats SPY over the next hour.",
+  "status": "inconclusive",
+  "evidence": "256 post-cutoff flags Jul-Oct 2026: rank IC +0.024 (within-day perm p 0.87); p sd 0.031, faded 213/256; picks -7.6 bps vs always-follow +7.2; Brier 0.2528 vs 0.2500 flat.",
+  "confidence": "medium",
+  "reopen_if": "A forced-ranking or chart-arm design on post-cutoff flags shows IC >= 0.10 with perm p < 0.05.",
+  "journal": "2026-11-14 flash-judgment",
+  "updated": "2026-11-14"
  }
 ]

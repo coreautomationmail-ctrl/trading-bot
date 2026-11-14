@@ -1,292 +1,302 @@
 [
-  {
-    "id": "spike-momentum-afternoon",
-    "claim": "A 1-min spike (volume >= 8x, move >= 5 sigma) in top-dollar-volume names keeps running for the next hour in the afternoon.",
-    "status": "live",
-    "evidence": "SIP 2022-26 top 25: +15.8 bps, t 2.7. IEX detection keeps about half (+7..10 gross). All years +7.1 net, t 3.08, n=1485. Live pod since 2026-10-30, too few trades to judge. Signals cluster on the same days: rank 1-25 +8.6 net is t 3.34 per trade but 1.33 on summed daily P&L and 0.34 with days weighted equally (2026-11-06). Without its 3 best days, none of them FOMC days and all picked after the fact, rank 1-25 is +0.2 net (t 0.11, n=1403); with the 4-position cap +2.0 (t 0.86), and those days' 13 trades are 65% of capped P&L (2026-11-07).",
-    "confidence": "low",
-    "reopen_if": "Live plus shadow evidence averages under the pause rule after 30+ trades.",
-    "journal": "2026-10 table; pods/spike; 2026-11-07 spike-events",
-    "updated": "2026-11-07"
-  },
-  {
-    "id": "spike-tail-driven",
-    "claim": "Spike P&L comes from a small share of trades; the median trade loses a little.",
-    "status": "open",
-    "evidence": "Median -0.8 bps, win rate 48%, top 1% of trades = 45-63% of P&L. Split by FOMC days: not the source. Three non-FOMC days (2025-04-09, 2022-11-30, 2019-08-01; 41 of 1,444 trades) are +12,139 of the +12,463 summed bps on rank 1-25; without them +0.2 net, t 0.11. Those days were picked after the fact, and dropping the 3 worst days too (all FOMC, -7,079) leaves +5.5, so the total rests on about 6 days either way. A walk-forward filter on SPY trend/volatility/time (2026-11-12) couldn't pick them out in advance: skipped trades earned more than taken ones.",
-    "confidence": "high",
-    "reopen_if": "A fixed calendar or a rule known at entry identifies these shock days in advance; CPI and jobs days aren't split yet.",
-    "journal": "project notes 2026-10-29; 2026-11-07 spike-events; 2026-11-12 spike-regime-filter",
-    "updated": "2026-11-12"
-  },
-  {
-    "id": "spike-wider-universe",
-    "claim": "Adding names beyond the top 25 by dollar volume improves the spike pod.",
-    "status": "rejected",
-    "evidence": "Rank 26-100 held out +3.3 bps net, t 1.28, 2 of 5 years. With the 4-position cap, weak names crowd out better ones.",
-    "confidence": "high",
-    "reopen_if": "A filter separates the good signals among those names.",
-    "journal": "2026-11-04 spike-wide-universe",
-    "updated": "2026-11-05"
-  },
-  {
-    "id": "spike-size-effect",
-    "claim": "Bigger spikes (sigma or volume) run further.",
-    "status": "rejected",
-    "evidence": "Design big-small +17.3 bps (t 3.29), held out -1.2. The biggest-volume third is the worst held out.",
-    "confidence": "medium",
-    "reopen_if": "News or event conditioning changes what size means.",
-    "journal": "2026-11-02 spike-size-bucket",
-    "updated": "2026-11-05"
-  },
-  {
-    "id": "spike-learned-exit",
-    "claim": "A learned exit beats the fixed 60-minute hold.",
-    "status": "rejected",
-    "evidence": "Top 25: +1.9 bps held out, t 1.35. Wider names: -1.2 held out, -0.9 fresh. In-sample fitting.",
-    "confidence": "high",
-    "reopen_if": "New inputs (news, regime) exist that the first tests lacked.",
-    "journal": "2026-11-03 spike-exit-rl; 2026-11-04 spike-exit-rl-wide",
-    "updated": "2026-11-05"
-  },
-  {
-    "id": "kronos-forecasts",
-    "claim": "Kronos-small adds tradable information, alone or as a filter.",
-    "status": "rejected",
-    "evidence": "Standalone best +3.1 bps gross. As a spike filter, disagreeing beat agreeing by about 11 bps in both windows, t < 2.",
-    "confidence": "high",
-    "reopen_if": "The disagreement effect is tested and pre-registered as its own idea.",
-    "journal": "2026-11-02 kronos-spike-filter",
-    "updated": "2026-11-05"
-  },
-  {
-    "id": "orb",
-    "claim": "Opening-range breakouts have an edge at real costs, fixed list or stocks in play.",
-    "status": "rejected",
-    "evidence": "A few bps gross. Live since 9/14, paused 11/02.",
-    "confidence": "high",
-    "reopen_if": "A regime or news filter passes on it as a pre-registered test.",
-    "journal": "2026-10 table",
-    "updated": "2026-11-05"
-  },
-  {
-    "id": "gap-and-go",
-    "claim": "Gap continuation, including SSR-filtered short gaps, pays at real costs.",
-    "status": "rejected",
-    "evidence": "Best +0.13R at 5 bps, 3 of 5 windows. Rerun at lower costs doesn't flip it.",
-    "confidence": "medium",
-    "reopen_if": "Gap cause (news type) can be separated.",
-    "journal": "2026-10 table; 2026-11-02 low-cost-rerun",
-    "updated": "2026-11-05"
-  },
-  {
-    "id": "index-intraday-momentum",
-    "claim": "The first half hour predicts the index's last half hour after costs.",
-    "status": "rejected",
-    "evidence": "No edge at real costs, including 0.5 bps.",
-    "confidence": "medium",
-    "reopen_if": "Only with a new conditioning variable.",
-    "journal": "2026-10 table; 2026-11-02 low-cost-rerun",
-    "updated": "2026-11-05"
-  },
-  {
-    "id": "mean-reversion-short-horizon",
-    "claim": "Fading short-term moves pays: spike_fade, vwap_fade, RSI2, weekly reversal, end-of-day reversal.",
-    "status": "rejected",
-    "evidence": "Fades negative. RSI2 +6 bps excess is under 10 bps cost. Weekly reversal -4.9 excess, t -1.0; held out +4.0, t 0.9. Down spikes with no headline: -3.7 bps following the move on rank 1-25, a post-hoc cut, but +1.9 (t 1.02, n=1785) on rank 26-100, so no reversal there. Intraday pairs (2026-11-10): a 3-sd split in a highly correlated pair reverts only +4 gross by the close (13% fully revert), under the 8 bps four-leg cost; -3.95 net, held out -5.15. End-of-day reversal (2026-11-13): fading the open-to-15:29 top/bottom decile of 274 stocks from 15:31 to 15:59 earns +1.0 gross, -3.0 net (day t -12.9, n=127,131), every year negative; the reversal is real but spread-sized, and sits in the winners.",
-    "confidence": "high",
-    "reopen_if": "A volatility split (ideas.md 11); the news split found nothing on rank 26-100.",
-    "journal": "2026-10 table; 2026-11-03 short-term-reversal; 2026-11-06 spike-down-no-news; 2026-11-10 intraday-pairs; 2026-11-13 end-of-day-reversal",
-    "updated": "2026-11-13"
-  },
-  {
-    "id": "earnings-timing",
-    "claim": "Earnings dates give a daily-bar edge: post-earnings drift or pre-earnings run-up.",
-    "status": "rejected",
-    "evidence": "PEAD on real 8-K dates: excess -29..+13 bps, no t > 2.5. Run-up -14 bps, t -4.7, held out the same.",
-    "confidence": "high",
-    "reopen_if": "Earnings surprise size or text is available, since dates alone carried nothing.",
-    "journal": "2026-11-02 pead-real-dates; pre-earnings-runup",
-    "updated": "2026-11-05"
-  },
-  {
-    "id": "event-drift-any-big-move",
-    "claim": "Any big move on heavy volume drifts afterwards.",
-    "status": "rejected",
-    "evidence": "No excess vs the pool. Event drifts in liquid names price in within a session.",
-    "confidence": "high",
-    "reopen_if": "Never on price alone.",
-    "journal": "2026-10 table",
-    "updated": "2026-11-05"
-  },
-  {
-    "id": "overnight-drift",
-    "claim": "Holding liquid names close-to-open only earns enough to trade.",
-    "status": "rejected",
-    "evidence": "About +2 bps gross a night vs 4 bps round trip, faded since 2021, negative every year hedged against SPY.",
-    "confidence": "high",
-    "reopen_if": "A cross-sectional signal earns well over 4 bps (ideas.md 10).",
-    "journal": "2026-11-04 overnight-drift",
-    "updated": "2026-11-05"
-  },
-  {
-    "id": "turn-of-month",
-    "claim": "Stocks earn outsized returns around the month turn, tradably.",
-    "status": "rejected",
-    "evidence": "The 62 excess -7.2 bps, t -1.04. Timing +8.3, t 0.46, driven by 2020.",
-    "confidence": "high",
-    "reopen_if": "Not expected.",
-    "journal": "2026-11-05 turn-of-month",
-    "updated": "2026-11-05"
-  },
-  {
-    "id": "low-cost-rescues-signals",
-    "claim": "The near-misses only fail because of costs.",
-    "status": "rejected",
-    "evidence": "Rerun with limit-order costs: nothing flips. The signals themselves are weak.",
-    "confidence": "high",
-    "reopen_if": "Never on costs alone.",
-    "journal": "2026-11-02 low-cost-rerun",
-    "updated": "2026-11-05"
-  },
-  {
-    "id": "pod-allocation-inverse-vol",
-    "claim": "Inverse-volatility weighting beats equal weight across pods.",
-    "status": "open",
-    "evidence": "Spike vs sleeve 2018-26: Sharpe 1.01, max drawdown -6.9% vs 0.94, -16.9%. Only two streams.",
-    "confidence": "low",
-    "reopen_if": "Retest when three pods are live.",
-    "journal": "2026-10 table",
-    "updated": "2026-11-05"
-  },
-  {
-    "id": "price-only-research-exhausted",
-    "claim": "New edge in these liquid names is more likely from new data (news, filings, flows, options) than from more price rules.",
-    "status": "open",
-    "evidence": "11 straight FAILs, nearly all price patterns on the same data. A pattern, not a test; the news and filing tests will challenge it. So far the first two news tests also FAILED: spike-news and spike-down-no-news, both using only headline timing, not content. headline-family S1 (2026-11-08): headline CONTENT by word list also failed all three tests (T1 -3.4 net, day t -7.5, n=56,217; T2 day t 1.53; T3 -4.9). steady-movers (2026-11-09), price only: big + smooth midday movers -5.8 net, day t -5.6, n=48,796. intraday-pairs (2026-11-10), price plus headline absence: fading 3-sd splits in the 50 most correlated pairs -3.95 net per pair (gross +4.05 vs 8 bps cost), day t -9.0, n=57,073; held out -5.15. crypto-fee-check (2026-11-11), price only on 7 coins: 4-hour long-only trend gross -0.1 bps per trade (net -50.1 at Alpaca's 25 bps/side, day t -13.4, n=12,929); the spike rule on crypto -1.5 gross. spike-regime-filter (2026-11-12): a monthly-retrained filter on market trend, volatility and time cut the spike mean (-0.79 bps vs taking all, Welch t -0.35; held out -1.88). end-of-day-reversal (2026-11-13), price only: last-half-hour fade of the day's extreme movers +1.0 gross, -3.0 net, day t -12.9, n=127,131, 0/11 years positive.",
-    "confidence": "low",
-    "reopen_if": "New-data tests fail as often as price tests have: rethink the universe and horizon instead.",
-    "journal": "docs/stratton-revamp-plan.md; 2026-11-06 spike-news; 2026-11-06 spike-down-no-news; 2026-11-07 headline-family; 2026-11-09 steady-movers; 2026-11-10 intraday-pairs; 2026-11-11 crypto-fee-check; 2026-11-12 spike-regime-filter; 2026-11-13 end-of-day-reversal",
-    "updated": "2026-11-13"
-  },
-  {
-    "id": "data-raw-bars-carry-splits",
-    "claim": "The 1-min cache is unadjusted, so tests held across an overnight must filter splits.",
-    "status": "fact",
-    "evidence": "GE's 1:8 reverse split scored +682% in the first turn-of-month run. Overnight-drift wasn't filtered; about -1.4 bps a name-night, verdict unchanged.",
-    "confidence": "high",
-    "reopen_if": "The cache gets adjusted bars.",
-    "journal": "2026-11-05 turn-of-month",
-    "updated": "2026-11-05"
-  },
-  {
-    "id": "spike-news",
-    "claim": "Spikes with a single-name headline in the prior 60 minutes run further than spikes without.",
-    "status": "open",
-    "evidence": "Rank 1-25: news +15.9 net (t 2.98, n=321, 9/10 years), no news +6.5 (t 2.22, n=1123). Gap +9.4, t 1.54, under the t 2 gate: FAIL. The 15-minute window (-0.6) and since-close window (-5.4) disagree. Stocks only: t 1.14. The down-spike lead behind the gap didn't replicate on rank 26-100 (-0.9, t -0.11, n=116). Headline-family T2 (2026-11-08, all 277 names, 09:35-14:58): spikes whose headline tone agrees +12.3 net (day t 1.53, n=301), disagreeing +21.0 (day t 2.44, n=278), so a headline helps regardless of its word-list sign.",
-    "confidence": "low",
-    "reopen_if": "Forward shadow signals joined to recorded headlines show the same gap.",
-    "journal": "2026-11-06 spike-news; 2026-11-06 spike-down-no-news; 2026-11-07 headline-family",
-    "updated": "2026-11-08"
-  },
-  {
-    "id": "spike-down-no-news",
-    "claim": "Down spikes with no headline don't continue, so the pod should skip them.",
-    "status": "rejected",
-    "evidence": "Found by looking on rank 1-25: down + no news -3.7 (n=550), down + news +16.1 (n=145), gap t 2.74. Pre-registered on rank 26-100: skipped n=1785 +1.9, kept n=2269 +1.8, improvement -0.03 bps, t -0.02, 2017-21 -2.99 and 2022-26 +2.55. Down + news minus down + no news -0.9, t -0.11, n=116, so the news half stays poorly measured. Doesn't test the pod's own names.",
-    "confidence": "medium",
-    "reopen_if": "Forward shadow signals in the pod's names, joined to recorded headlines, show down + no news losing over 30+ trades.",
-    "journal": "2026-11-06 spike-news; 2026-11-06 spike-down-no-news",
-    "updated": "2026-11-06"
-  },
-  {
-    "id": "spike-events",
-    "claim": "The spike edge is concentrated on scheduled FOMC decision days.",
-    "status": "rejected",
-    "evidence": "Rank 1-25, 2017-26: event n=308 -3.0 net (t -0.52, by day -0.18), 6/10 years; ordinary n=1136 +11.8 (t 4.09, by day 1.70). Gap -14.8, clustered t -0.83; +17.0 in 2017-21, -45.1 in 2022-26. Rank 26-100 agrees: -12.7 vs +4.0, gap clustered t -1.01. Skipping FOMC days isn't supported either: with the 4-position cap they are +8.3 vs +5.3, t 1.00.",
-    "confidence": "medium",
-    "reopen_if": "Only for a different event calendar (CPI, jobs) or a pre-registered 14:30 press-conference exit; the FOMC sign flip between periods is not a rule by itself.",
-    "journal": "2026-11-07 spike-events",
-    "updated": "2026-11-07"
-  },
-  {
-    "id": "price-triggers-no-edge",
-    "claim": "Simple intraday price/volume move triggers (follow or fade, 1-60 min holds) on the 277 liquid names have no edge after 2 bps/side.",
-    "status": "rejected",
-    "evidence": "grammar-zmove 2026-11-07: 0 of 432 rules passed; best design day t 2.23 (needed 3.5) and it reversed held out (-4.7 bps, t -1.23). No rule had held-out t >= 2. steady-movers 2026-11-09: following top/bottom-decile moves since the open at 12:00 to 15:55 is -0.7 gross, -1.8 gross with the smoothness filter.",
-    "confidence": "high",
-    "reopen_if": "A new information source (headline direction, filings) changes which moves are taken; test that as its own family.",
-    "journal": "2026-11-07 grammar-zmove; 2026-11-09 steady-movers",
-    "updated": "2026-11-09"
-  },
-  {
-    "id": "headline-tone-wordlist",
-    "claim": "The Loughran-McDonald word-list tone of single-name headlines gives a tradable intraday direction (after a headline, with a spike, or on earnings mornings).",
-    "status": "rejected",
-    "evidence": "Pre-registered family, 277 names 2016-26, 2 bps/side, bar day t >= 2.9. T1 follow the headline 60 min: n=56,217, -3.41 net (gross +0.6), day t -7.51. T2 spike agrees with tone: n=301, +12.3, day t 1.53; held out +20.6, day t 1.56; disagreeing +21.0. T3 earnings 10:00-15:55 in the tone's direction: n=1,956, -4.85, day t -0.79. 73% of headlines score neutral.",
-    "confidence": "high",
-    "reopen_if": "A better scorer (S2 Claude labels, under the pre-registered rule) beats S1 by >= 3 bps on post-training T1 trades.",
-    "journal": "2026-11-07 PRE-REGISTRATION headline-family (S1 results 2026-11-08)",
-    "updated": "2026-11-08"
-  },
-  {
-    "id": "steady-movers",
-    "claim": "Names whose move since the open is in the day's top or bottom decile AND unusually smooth (efficiency ratio top decile) keep moving from midday to 15:55.",
-    "status": "rejected",
-    "evidence": "277 names 2016-26, 12:00 entry +1 bar, exit 15:55, 2 bps/side: n=48,796, -5.76 net (gross -1.76), day t -5.59, 1/11 years positive; rank 1-100 -4.05, rank 101-277 -6.40. 11:00 and 13:00 also about -1 gross. Without the smoothness filter gross -0.67, so smoothness hurts slightly.",
-    "confidence": "high",
-    "reopen_if": "A non-price input (headline absence or presence, filings) picks which steady movers continue, tested as its own pre-registered idea.",
-    "journal": "2026-11-09 steady-movers",
-    "updated": "2026-11-09"
-  },
-  {
-    "id": "intraday-pairs",
-    "claim": "Fading a > 3-sd intraday split (vs the 10:00 value) in the month's 50 most correlated pairs of the 277, with no single-name headline in the prior hour, pays after 2 bps/side per leg.",
-    "status": "rejected",
-    "evidence": "277 names 2016-26, 8 bps a pair trade: n=57,073, -3.95 net (gross +4.05), per-trade t -13.8, day t -8.98, 0/11 years positive. Held out (pairs among rank 101-277): n=56,067, -5.15 net, day t -7.62. Median hold 195 min, 13% revert to the 10:00 value before 15:55. Without the headline filter -4.14. At 1 bps/side per leg +0.05. Gross is positive every year, so the reversion is real but spread-sized.",
-    "confidence": "high",
-    "reopen_if": "A passive (maker) execution test shows legs can be filled at or inside mid at about 0 cost, or a filter known at entry lifts gross well above 8 bps; tested as its own pre-registered idea.",
-    "journal": "2026-11-10 intraday-pairs",
-    "updated": "2026-11-10"
-  },
-  {
-    "id": "crypto-fee-check",
-    "claim": "A price rule on Alpaca's 7 cached coins (spike follow or 4-hour long-only time-series momentum) clears the 25 bps/side taker fee.",
-    "status": "rejected",
-    "evidence": "2021-01..2026-11 1-min. Spike rule (vol x8, 5 sd, hold 60) followed: n=33,288, gross -1.5, 19% of trades beat +50 bps but the mean is zero. 4-hour TSMOM long only on BTC ETH SOL DOGE: n=12,929, gross -0.1, net -50.1 (-30.1 at 15 bps/side), day t -13.4, every year negative; held windows earn 1.76 bps less than always holding (t -1.01). Held out LTC AVAX LINK: gross -2.8, net -52.8, day t -15.0.",
-    "confidence": "high",
-    "reopen_if": "Maker (limit) fills near 15 bps/side or lower are shown, AND a rule known at entry shows >= +40 bps gross per trade on a pre-registered test.",
-    "journal": "2026-11-11 crypto-fee-check",
-    "updated": "2026-11-11"
-  },
-  {
-    "id": "u-family",
-    "claim": "News-follow (U1, U2) or the spike rule (U3) earns after >= 10 bps/side on less-watched US common stocks ($300M-$5B cap, > $5, > $5M median daily $vol).",
-    "status": "blocked",
-    "evidence": "Pre-registered 2026-11-12 (combined bar t 2.9). Cache check: 0 shares-outstanding files, 0 of 727 candidate pool names with 1-min bars or headlines; the daily pool is 2016 survivors skewed large (median $39-92M a day). Nothing tested.",
-    "confidence": "low",
-    "reopen_if": "SEC companyfacts, full-market daily bars, 1-min bars and Benzinga headlines for the universe are cached (journal 2026-11-12 u-family lists them).",
-    "journal": "2026-11-12 PRE-REGISTRATION u-family",
-    "updated": "2026-11-12"
-  },
-  {
-    "id": "spike-regime-filter",
-    "claim": "A take/skip filter retrained monthly on earlier spike_mom trades (side, SPY trend today and over 20 sessions, SPY 60-min and 20-day volatility, time) lifts the mean net per trade.",
-    "status": "rejected",
-    "evidence": "Ridge, alpha 10, walk-forward 2018-01..2026-10. Rank 1-25: all +9.90 net (n=1,291), taken +9.11 (n=834, day t 1.10), skipped +11.34; gap -0.79, Welch t -0.35. Held out rank 26-100: gap -1.88, Welch t -1.10. Model leans on SPY 60-min vol and doesn't carry forward.",
-    "confidence": "medium",
-    "reopen_if": "A new input known at entry (headlines, sector, macro calendar for CPI/jobs) is added and pre-registered as its own filter test.",
-    "journal": "2026-11-12 spike-regime-filter",
-    "updated": "2026-11-12"
-  },
-  {
-    "id": "end-of-day-reversal",
-    "claim": "Among the 274 liquid 1-min stocks, the day's top/bottom decile by open-to-15:29 return reverses from 15:31 to 15:59 by enough to pay 2 bps/side.",
-    "status": "rejected",
-    "evidence": "2016-26, n=127,131 on 2,711 days: gross +1.00, net -3.00 (per-trade t -18.3, day t -12.9), win 46%, 0/11 years positive; rank 1-100 -3.47, rank 101-277 -2.55; losers leg +0.22 gross, winners leg +1.75 gross; 5% tails +0.77 gross; -1.00 net even at 1 bps/side. Daily corr with spike_mom -0.08.",
-    "confidence": "high",
-    "reopen_if": "A closing-auction (MOC) entry/exit test with real auction prints shows the 15:30 minute plus the auction carry well over 4 bps gross, pre-registered as its own idea.",
-    "journal": "2026-11-13 end-of-day-reversal",
-    "updated": "2026-11-13"
-  }
+ {
+  "id": "spike-momentum-afternoon",
+  "claim": "A 1-min spike (volume >= 8x, move >= 5 sigma) in top-dollar-volume names keeps running for the next hour in the afternoon.",
+  "status": "live",
+  "evidence": "SIP 2022-26 top 25: +15.8 bps, t 2.7. IEX detection keeps about half (+7..10 gross). All years +7.1 net, t 3.08, n=1485. Live pod since 2026-10-30, too few trades to judge. Signals cluster on the same days: rank 1-25 +8.6 net is t 3.34 per trade but 1.33 on summed daily P&L and 0.34 with days weighted equally (2026-11-06). Without its 3 best days, none of them FOMC days and all picked after the fact, rank 1-25 is +0.2 net (t 0.11, n=1403); with the 4-position cap +2.0 (t 0.86), and those days' 13 trades are 65% of capped P&L (2026-11-07).",
+  "confidence": "low",
+  "reopen_if": "Live plus shadow evidence averages under the pause rule after 30+ trades.",
+  "journal": "2026-10 table; pods/spike; 2026-11-07 spike-events",
+  "updated": "2026-11-07"
+ },
+ {
+  "id": "spike-tail-driven",
+  "claim": "Spike P&L comes from a small share of trades; the median trade loses a little.",
+  "status": "open",
+  "evidence": "Median -0.8 bps, win rate 48%, top 1% of trades = 45-63% of P&L. Split by FOMC days: not the source. Three non-FOMC days (2025-04-09, 2022-11-30, 2019-08-01; 41 of 1,444 trades) are +12,139 of the +12,463 summed bps on rank 1-25; without them +0.2 net, t 0.11. Those days were picked after the fact, and dropping the 3 worst days too (all FOMC, -7,079) leaves +5.5, so the total rests on about 6 days either way. A walk-forward filter on SPY trend/volatility/time (2026-11-12) couldn't pick them out in advance: skipped trades earned more than taken ones.",
+  "confidence": "high",
+  "reopen_if": "A fixed calendar or a rule known at entry identifies these shock days in advance; CPI and jobs days aren't split yet.",
+  "journal": "project notes 2026-10-29; 2026-11-07 spike-events; 2026-11-12 spike-regime-filter",
+  "updated": "2026-11-12"
+ },
+ {
+  "id": "spike-wider-universe",
+  "claim": "Adding names beyond the top 25 by dollar volume improves the spike pod.",
+  "status": "rejected",
+  "evidence": "Rank 26-100 held out +3.3 bps net, t 1.28, 2 of 5 years. With the 4-position cap, weak names crowd out better ones.",
+  "confidence": "high",
+  "reopen_if": "A filter separates the good signals among those names.",
+  "journal": "2026-11-04 spike-wide-universe",
+  "updated": "2026-11-05"
+ },
+ {
+  "id": "spike-size-effect",
+  "claim": "Bigger spikes (sigma or volume) run further.",
+  "status": "rejected",
+  "evidence": "Design big-small +17.3 bps (t 3.29), held out -1.2. The biggest-volume third is the worst held out.",
+  "confidence": "medium",
+  "reopen_if": "News or event conditioning changes what size means.",
+  "journal": "2026-11-02 spike-size-bucket",
+  "updated": "2026-11-05"
+ },
+ {
+  "id": "spike-learned-exit",
+  "claim": "A learned exit beats the fixed 60-minute hold.",
+  "status": "rejected",
+  "evidence": "Top 25: +1.9 bps held out, t 1.35. Wider names: -1.2 held out, -0.9 fresh. In-sample fitting.",
+  "confidence": "high",
+  "reopen_if": "New inputs (news, regime) exist that the first tests lacked.",
+  "journal": "2026-11-03 spike-exit-rl; 2026-11-04 spike-exit-rl-wide",
+  "updated": "2026-11-05"
+ },
+ {
+  "id": "kronos-forecasts",
+  "claim": "Kronos-small adds tradable information, alone or as a filter.",
+  "status": "rejected",
+  "evidence": "Standalone best +3.1 bps gross. As a spike filter, disagreeing beat agreeing by about 11 bps in both windows, t < 2.",
+  "confidence": "high",
+  "reopen_if": "The disagreement effect is tested and pre-registered as its own idea.",
+  "journal": "2026-11-02 kronos-spike-filter",
+  "updated": "2026-11-05"
+ },
+ {
+  "id": "orb",
+  "claim": "Opening-range breakouts have an edge at real costs, fixed list or stocks in play.",
+  "status": "rejected",
+  "evidence": "A few bps gross. Live since 9/14, paused 11/02.",
+  "confidence": "high",
+  "reopen_if": "A regime or news filter passes on it as a pre-registered test.",
+  "journal": "2026-10 table",
+  "updated": "2026-11-05"
+ },
+ {
+  "id": "gap-and-go",
+  "claim": "Gap continuation, including SSR-filtered short gaps, pays at real costs.",
+  "status": "rejected",
+  "evidence": "Best +0.13R at 5 bps, 3 of 5 windows. Rerun at lower costs doesn't flip it.",
+  "confidence": "medium",
+  "reopen_if": "Gap cause (news type) can be separated.",
+  "journal": "2026-10 table; 2026-11-02 low-cost-rerun",
+  "updated": "2026-11-05"
+ },
+ {
+  "id": "index-intraday-momentum",
+  "claim": "The first half hour predicts the index's last half hour after costs.",
+  "status": "rejected",
+  "evidence": "No edge at real costs, including 0.5 bps.",
+  "confidence": "medium",
+  "reopen_if": "Only with a new conditioning variable.",
+  "journal": "2026-10 table; 2026-11-02 low-cost-rerun",
+  "updated": "2026-11-05"
+ },
+ {
+  "id": "mean-reversion-short-horizon",
+  "claim": "Fading short-term moves pays: spike_fade, vwap_fade, RSI2, weekly reversal, end-of-day reversal.",
+  "status": "rejected",
+  "evidence": "Fades negative. RSI2 +6 bps excess is under 10 bps cost. Weekly reversal -4.9 excess, t -1.0; held out +4.0, t 0.9. Down spikes with no headline: -3.7 bps following the move on rank 1-25, a post-hoc cut, but +1.9 (t 1.02, n=1785) on rank 26-100, so no reversal there. Intraday pairs (2026-11-10): a 3-sd split in a highly correlated pair reverts only +4 gross by the close (13% fully revert), under the 8 bps four-leg cost; -3.95 net, held out -5.15. End-of-day reversal (2026-11-13): fading the open-to-15:29 top/bottom decile of 274 stocks from 15:31 to 15:59 earns +1.0 gross, -3.0 net (day t -12.9, n=127,131), every year negative; the reversal is real but spread-sized, and sits in the winners.",
+  "confidence": "high",
+  "reopen_if": "A volatility split (ideas.md 11); the news split found nothing on rank 26-100.",
+  "journal": "2026-10 table; 2026-11-03 short-term-reversal; 2026-11-06 spike-down-no-news; 2026-11-10 intraday-pairs; 2026-11-13 end-of-day-reversal",
+  "updated": "2026-11-13"
+ },
+ {
+  "id": "earnings-timing",
+  "claim": "Earnings dates give a daily-bar edge: post-earnings drift or pre-earnings run-up.",
+  "status": "rejected",
+  "evidence": "PEAD on real 8-K dates: excess -29..+13 bps, no t > 2.5. Run-up -14 bps, t -4.7, held out the same.",
+  "confidence": "high",
+  "reopen_if": "Earnings surprise size or text is available, since dates alone carried nothing.",
+  "journal": "2026-11-02 pead-real-dates; pre-earnings-runup",
+  "updated": "2026-11-05"
+ },
+ {
+  "id": "event-drift-any-big-move",
+  "claim": "Any big move on heavy volume drifts afterwards.",
+  "status": "rejected",
+  "evidence": "No excess vs the pool. Event drifts in liquid names price in within a session.",
+  "confidence": "high",
+  "reopen_if": "Never on price alone.",
+  "journal": "2026-10 table",
+  "updated": "2026-11-05"
+ },
+ {
+  "id": "overnight-drift",
+  "claim": "Holding liquid names close-to-open only earns enough to trade.",
+  "status": "rejected",
+  "evidence": "About +2 bps gross a night vs 4 bps round trip, faded since 2021, negative every year hedged against SPY.",
+  "confidence": "high",
+  "reopen_if": "A cross-sectional signal earns well over 4 bps (ideas.md 10).",
+  "journal": "2026-11-04 overnight-drift",
+  "updated": "2026-11-05"
+ },
+ {
+  "id": "turn-of-month",
+  "claim": "Stocks earn outsized returns around the month turn, tradably.",
+  "status": "rejected",
+  "evidence": "The 62 excess -7.2 bps, t -1.04. Timing +8.3, t 0.46, driven by 2020.",
+  "confidence": "high",
+  "reopen_if": "Not expected.",
+  "journal": "2026-11-05 turn-of-month",
+  "updated": "2026-11-05"
+ },
+ {
+  "id": "low-cost-rescues-signals",
+  "claim": "The near-misses only fail because of costs.",
+  "status": "rejected",
+  "evidence": "Rerun with limit-order costs: nothing flips. The signals themselves are weak.",
+  "confidence": "high",
+  "reopen_if": "Never on costs alone.",
+  "journal": "2026-11-02 low-cost-rerun",
+  "updated": "2026-11-05"
+ },
+ {
+  "id": "pod-allocation-inverse-vol",
+  "claim": "Inverse-volatility weighting beats equal weight across pods.",
+  "status": "open",
+  "evidence": "Spike vs sleeve 2018-26: Sharpe 1.01, max drawdown -6.9% vs 0.94, -16.9%. Only two streams.",
+  "confidence": "low",
+  "reopen_if": "Retest when three pods are live.",
+  "journal": "2026-10 table",
+  "updated": "2026-11-05"
+ },
+ {
+  "id": "price-only-research-exhausted",
+  "claim": "New edge in these liquid names is more likely from new data (news, filings, flows, options) than from more price rules.",
+  "status": "open",
+  "evidence": "11 straight FAILs, nearly all price patterns on the same data. A pattern, not a test; the news and filing tests will challenge it. So far the first two news tests also FAILED: spike-news and spike-down-no-news, both using only headline timing, not content. headline-family S1 (2026-11-08): headline CONTENT by word list also failed all three tests (T1 -3.4 net, day t -7.5, n=56,217; T2 day t 1.53; T3 -4.9). steady-movers (2026-11-09), price only: big + smooth midday movers -5.8 net, day t -5.6, n=48,796. intraday-pairs (2026-11-10), price plus headline absence: fading 3-sd splits in the 50 most correlated pairs -3.95 net per pair (gross +4.05 vs 8 bps cost), day t -9.0, n=57,073; held out -5.15. crypto-fee-check (2026-11-11), price only on 7 coins: 4-hour long-only trend gross -0.1 bps per trade (net -50.1 at Alpaca's 25 bps/side, day t -13.4, n=12,929); the spike rule on crypto -1.5 gross. spike-regime-filter (2026-11-12): a monthly-retrained filter on market trend, volatility and time cut the spike mean (-0.79 bps vs taking all, Welch t -0.35; held out -1.88). end-of-day-reversal (2026-11-13), price only: last-half-hour fade of the day's extreme movers +1.0 gross, -3.0 net, day t -12.9, n=127,131, 0/11 years positive.",
+  "confidence": "low",
+  "reopen_if": "New-data tests fail as often as price tests have: rethink the universe and horizon instead.",
+  "journal": "docs/stratton-revamp-plan.md; 2026-11-06 spike-news; 2026-11-06 spike-down-no-news; 2026-11-07 headline-family; 2026-11-09 steady-movers; 2026-11-10 intraday-pairs; 2026-11-11 crypto-fee-check; 2026-11-12 spike-regime-filter; 2026-11-13 end-of-day-reversal",
+  "updated": "2026-11-13"
+ },
+ {
+  "id": "data-raw-bars-carry-splits",
+  "claim": "The 1-min cache is unadjusted, so tests held across an overnight must filter splits.",
+  "status": "fact",
+  "evidence": "GE's 1:8 reverse split scored +682% in the first turn-of-month run. Overnight-drift wasn't filtered; about -1.4 bps a name-night, verdict unchanged.",
+  "confidence": "high",
+  "reopen_if": "The cache gets adjusted bars.",
+  "journal": "2026-11-05 turn-of-month",
+  "updated": "2026-11-05"
+ },
+ {
+  "id": "spike-news",
+  "claim": "Spikes with a single-name headline in the prior 60 minutes run further than spikes without.",
+  "status": "open",
+  "evidence": "Rank 1-25: news +15.9 net (t 2.98, n=321, 9/10 years), no news +6.5 (t 2.22, n=1123). Gap +9.4, t 1.54, under the t 2 gate: FAIL. The 15-minute window (-0.6) and since-close window (-5.4) disagree. Stocks only: t 1.14. The down-spike lead behind the gap didn't replicate on rank 26-100 (-0.9, t -0.11, n=116). Headline-family T2 (2026-11-08, all 277 names, 09:35-14:58): spikes whose headline tone agrees +12.3 net (day t 1.53, n=301), disagreeing +21.0 (day t 2.44, n=278), so a headline helps regardless of its word-list sign.",
+  "confidence": "low",
+  "reopen_if": "Forward shadow signals joined to recorded headlines show the same gap.",
+  "journal": "2026-11-06 spike-news; 2026-11-06 spike-down-no-news; 2026-11-07 headline-family",
+  "updated": "2026-11-08"
+ },
+ {
+  "id": "spike-down-no-news",
+  "claim": "Down spikes with no headline don't continue, so the pod should skip them.",
+  "status": "rejected",
+  "evidence": "Found by looking on rank 1-25: down + no news -3.7 (n=550), down + news +16.1 (n=145), gap t 2.74. Pre-registered on rank 26-100: skipped n=1785 +1.9, kept n=2269 +1.8, improvement -0.03 bps, t -0.02, 2017-21 -2.99 and 2022-26 +2.55. Down + news minus down + no news -0.9, t -0.11, n=116, so the news half stays poorly measured. Doesn't test the pod's own names.",
+  "confidence": "medium",
+  "reopen_if": "Forward shadow signals in the pod's names, joined to recorded headlines, show down + no news losing over 30+ trades.",
+  "journal": "2026-11-06 spike-news; 2026-11-06 spike-down-no-news",
+  "updated": "2026-11-06"
+ },
+ {
+  "id": "spike-events",
+  "claim": "The spike edge is concentrated on scheduled FOMC decision days.",
+  "status": "rejected",
+  "evidence": "Rank 1-25, 2017-26: event n=308 -3.0 net (t -0.52, by day -0.18), 6/10 years; ordinary n=1136 +11.8 (t 4.09, by day 1.70). Gap -14.8, clustered t -0.83; +17.0 in 2017-21, -45.1 in 2022-26. Rank 26-100 agrees: -12.7 vs +4.0, gap clustered t -1.01. Skipping FOMC days isn't supported either: with the 4-position cap they are +8.3 vs +5.3, t 1.00.",
+  "confidence": "medium",
+  "reopen_if": "Only for a different event calendar (CPI, jobs) or a pre-registered 14:30 press-conference exit; the FOMC sign flip between periods is not a rule by itself.",
+  "journal": "2026-11-07 spike-events",
+  "updated": "2026-11-07"
+ },
+ {
+  "id": "price-triggers-no-edge",
+  "claim": "Simple intraday price/volume move triggers (follow or fade, 1-60 min holds) on the 277 liquid names have no edge after 2 bps/side.",
+  "status": "rejected",
+  "evidence": "grammar-zmove 2026-11-07: 0 of 432 rules passed; best design day t 2.23 (needed 3.5) and it reversed held out (-4.7 bps, t -1.23). No rule had held-out t >= 2. steady-movers 2026-11-09: following top/bottom-decile moves since the open at 12:00 to 15:55 is -0.7 gross, -1.8 gross with the smoothness filter.",
+  "confidence": "high",
+  "reopen_if": "A new information source (headline direction, filings) changes which moves are taken; test that as its own family.",
+  "journal": "2026-11-07 grammar-zmove; 2026-11-09 steady-movers",
+  "updated": "2026-11-09"
+ },
+ {
+  "id": "headline-tone-wordlist",
+  "claim": "The Loughran-McDonald word-list tone of single-name headlines gives a tradable intraday direction (after a headline, with a spike, or on earnings mornings).",
+  "status": "rejected",
+  "evidence": "Pre-registered family, 277 names 2016-26, 2 bps/side, bar day t >= 2.9. T1 follow the headline 60 min: n=56,217, -3.41 net (gross +0.6), day t -7.51. T2 spike agrees with tone: n=301, +12.3, day t 1.53; held out +20.6, day t 1.56; disagreeing +21.0. T3 earnings 10:00-15:55 in the tone's direction: n=1,956, -4.85, day t -0.79. 73% of headlines score neutral.",
+  "confidence": "high",
+  "reopen_if": "A better scorer (S2 Claude labels, under the pre-registered rule) beats S1 by >= 3 bps on post-training T1 trades.",
+  "journal": "2026-11-07 PRE-REGISTRATION headline-family (S1 results 2026-11-08)",
+  "updated": "2026-11-08"
+ },
+ {
+  "id": "steady-movers",
+  "claim": "Names whose move since the open is in the day's top or bottom decile AND unusually smooth (efficiency ratio top decile) keep moving from midday to 15:55.",
+  "status": "rejected",
+  "evidence": "277 names 2016-26, 12:00 entry +1 bar, exit 15:55, 2 bps/side: n=48,796, -5.76 net (gross -1.76), day t -5.59, 1/11 years positive; rank 1-100 -4.05, rank 101-277 -6.40. 11:00 and 13:00 also about -1 gross. Without the smoothness filter gross -0.67, so smoothness hurts slightly.",
+  "confidence": "high",
+  "reopen_if": "A non-price input (headline absence or presence, filings) picks which steady movers continue, tested as its own pre-registered idea.",
+  "journal": "2026-11-09 steady-movers",
+  "updated": "2026-11-09"
+ },
+ {
+  "id": "intraday-pairs",
+  "claim": "Fading a > 3-sd intraday split (vs the 10:00 value) in the month's 50 most correlated pairs of the 277, with no single-name headline in the prior hour, pays after 2 bps/side per leg.",
+  "status": "rejected",
+  "evidence": "277 names 2016-26, 8 bps a pair trade: n=57,073, -3.95 net (gross +4.05), per-trade t -13.8, day t -8.98, 0/11 years positive. Held out (pairs among rank 101-277): n=56,067, -5.15 net, day t -7.62. Median hold 195 min, 13% revert to the 10:00 value before 15:55. Without the headline filter -4.14. At 1 bps/side per leg +0.05. Gross is positive every year, so the reversion is real but spread-sized.",
+  "confidence": "high",
+  "reopen_if": "A passive (maker) execution test shows legs can be filled at or inside mid at about 0 cost, or a filter known at entry lifts gross well above 8 bps; tested as its own pre-registered idea.",
+  "journal": "2026-11-10 intraday-pairs",
+  "updated": "2026-11-10"
+ },
+ {
+  "id": "crypto-fee-check",
+  "claim": "A price rule on Alpaca's 7 cached coins (spike follow or 4-hour long-only time-series momentum) clears the 25 bps/side taker fee.",
+  "status": "rejected",
+  "evidence": "2021-01..2026-11 1-min. Spike rule (vol x8, 5 sd, hold 60) followed: n=33,288, gross -1.5, 19% of trades beat +50 bps but the mean is zero. 4-hour TSMOM long only on BTC ETH SOL DOGE: n=12,929, gross -0.1, net -50.1 (-30.1 at 15 bps/side), day t -13.4, every year negative; held windows earn 1.76 bps less than always holding (t -1.01). Held out LTC AVAX LINK: gross -2.8, net -52.8, day t -15.0.",
+  "confidence": "high",
+  "reopen_if": "Maker (limit) fills near 15 bps/side or lower are shown, AND a rule known at entry shows >= +40 bps gross per trade on a pre-registered test.",
+  "journal": "2026-11-11 crypto-fee-check",
+  "updated": "2026-11-11"
+ },
+ {
+  "id": "u-family",
+  "claim": "News-follow (U1, U2) or the spike rule (U3) earns after >= 10 bps/side on less-watched US common stocks ($300M-$5B cap, > $5, > $5M median daily $vol).",
+  "status": "blocked",
+  "evidence": "Pre-registered 2026-11-12 (combined bar t 2.9). Cache check: 0 shares-outstanding files, 0 of 727 candidate pool names with 1-min bars or headlines; the daily pool is 2016 survivors skewed large (median $39-92M a day). Nothing tested.",
+  "confidence": "low",
+  "reopen_if": "SEC companyfacts, full-market daily bars, 1-min bars and Benzinga headlines for the universe are cached (journal 2026-11-12 u-family lists them).",
+  "journal": "2026-11-12 PRE-REGISTRATION u-family",
+  "updated": "2026-11-12"
+ },
+ {
+  "id": "spike-regime-filter",
+  "claim": "A take/skip filter retrained monthly on earlier spike_mom trades (side, SPY trend today and over 20 sessions, SPY 60-min and 20-day volatility, time) lifts the mean net per trade.",
+  "status": "rejected",
+  "evidence": "Ridge, alpha 10, walk-forward 2018-01..2026-10. Rank 1-25: all +9.90 net (n=1,291), taken +9.11 (n=834, day t 1.10), skipped +11.34; gap -0.79, Welch t -0.35. Held out rank 26-100: gap -1.88, Welch t -1.10. Model leans on SPY 60-min vol and doesn't carry forward.",
+  "confidence": "medium",
+  "reopen_if": "A new input known at entry (headlines, sector, macro calendar for CPI/jobs) is added and pre-registered as its own filter test.",
+  "journal": "2026-11-12 spike-regime-filter",
+  "updated": "2026-11-12"
+ },
+ {
+  "id": "end-of-day-reversal",
+  "claim": "Among the 274 liquid 1-min stocks, the day's top/bottom decile by open-to-15:29 return reverses from 15:31 to 15:59 by enough to pay 2 bps/side.",
+  "status": "rejected",
+  "evidence": "2016-26, n=127,131 on 2,711 days: gross +1.00, net -3.00 (per-trade t -18.3, day t -12.9), win 46%, 0/11 years positive; rank 1-100 -3.47, rank 101-277 -2.55; losers leg +0.22 gross, winners leg +1.75 gross; 5% tails +0.77 gross; -1.00 net even at 1 bps/side. Daily corr with spike_mom -0.08.",
+  "confidence": "high",
+  "reopen_if": "A closing-auction (MOC) entry/exit test with real auction prints shows the 15:30 minute plus the auction carry well over 4 bps gross, pre-registered as its own idea.",
+  "journal": "2026-11-13 end-of-day-reversal",
+  "updated": "2026-11-13"
+ },
+ {
+  "id": "flash-replay",
+  "claim": "The live flash screener's flag (single-name headline + 1-min bar >= 3x volume and >= 0.3% move) has an edge followed or faded at +4 min for 60 min.",
+  "status": "rejected",
+  "evidence": "SIP 2016-26, 7,188 flags (3.0/flag-day): follow60 -5.48 net (t -2.15, day t -2.22), 4/11 years +; fade60 -2.52 (t -0.99); held out 2023-26 follow -3.16, fade -4.84; ex SPY/QQQ/IWM same. Exploratory: volume >= 10x follow60 +15.7 (n 847) but +4.2 without top 1%. Jul-Oct 2026 n 256 follow60 +7.2 (t 0.96).",
+  "confidence": "high",
+  "reopen_if": "Forward flags at volume >= 10x, pre-registered, show follow60 >= +3 net with day t >= bar over 300+ flags; or Claude's flash calls beat follow and fade on scored forward trades.",
+  "journal": "2026-11-14 flash-replay",
+  "updated": "2026-11-14"
+ }
 ]

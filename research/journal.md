@@ -1068,3 +1068,48 @@ eligible name-days, median 235 names a day.
   those two prints, which a market order at 15:31 can't capture anyway.
 Verdict: FAIL. Not loosened. In the 274 most liquid names the last-half-hour reversal is about +1 bp gross, far
 under 4 bps round trip, in every year and both halves of the list. Price-only FAIL number 21.
+
+## 2026-11-14 flash-replay: does the live flash screener's flag have an edge on 10 years of history? (PRE-REGISTERED)
+
+**Pre-registered, before any return was computed.** Owner (2026-11-13): get more data faster than one live day at a
+time. The live flash desk has 3 sessions and 0 trades after 4 days; its scorer counts follow/fade per flag, but at
+~5 flags a day that takes months. This replays the EXACT live rule (pods/spike/flash_screener.py, FLASH_VOL_X 3,
+FLASH_MOVE_PCT 0.3, cap 15, cooldown 30) on cached SIP 1-min bars and headlines, 2016-01 .. 2026-10-27, and scores
+each flag exactly as pods/bench/intraday_book.py score_flag_day. It answers: is there anything for Claude's
+judgment to work with, and what is the base rate it must beat? The 11/10 trigger replay (2026 only, a different
+rule) found ~+1 bp left for news flags; this is the live rule over all years.
+- Names: the 277 1-min names. Single-name headline: its (created_at, headline) pair is in <= 3 of the 277 news
+  files (live: <= 3 symbols on the headline; the cache has no symbol list).
+- Flag: headline created 09:35-15:30 ET; start = its minute; trailing mean = volume of the 30 minutes before start
+  (missing minutes 0); ref = last close before start; flag on the first bar of minutes start..start+2 with
+  volume >= 3 x mean and max(|high/ref-1|, |low/ref-1|) >= 0.3%. Flagged at that bar's minute + 1 (when the cron
+  sees it closed). One flag per name per 30 minutes; at most 15 a day across names, in flag-time order.
+- Direction (follow) = sign of that bar's close vs ref (since_headline_pct). Entry = open of the bar at
+  flagged + 4 min 59 s floored (FLAG_LAG_MIN); exits at entry + 30 and + 60 min (open of that bar, same day only).
+  Score = sign x (own - SPY) over the same minutes, minus 4 bps (2 a side), as score_flag_day. Fade = -follow - 8.
+- Primary test: follow60. Secondary (same gate, counted in K): fade60. Reported, not gated: 30-min holds, flags per
+  day, by volume_x bucket (3-5, 5-10, 10+), by |move| bucket, morning/afternoon, 2026 Jul-Oct alone.
+- Gate (family gate as U): n >= 300; mean net >= +3 bps; per-trade t >= 2.9 AND day t >= 2.9; >= 70% of years
+  positive; same sign 2016-20 and 2021-26; no symbol > 25% of positive P&L. Design 2016-22; held out 2023-26 must
+  have the same sign with day t >= 2.
+- Caveats fixed now: live uses IEX bars, the cache is SIP, so volume ratios differ (count per day is reported to
+  show how close the replay is to live's ~5/day); headline timestamps are Benzinga created_at, as live.
+- By-product (no Claude call in this session): the flag list, with headlines and the 30 bars before each, goes to
+  .cache/flash_replay_flags.csv. Flags dated after the models' training data (2026-07-01 on) could test Claude's
+  triage and judgment offline without hindsight; that costs API money and needs the owner's OK.
+Script: scripts/research/flash_replay.py. Log: research/flash_replay.log.
+
+**Result: FAIL, both tests (3 of 8 checks each). The live flash rule's flag, read the obvious way or faded, loses
+money on 10 years of history.** Log: research/flash_replay.log; flags: .cache/flash_replay_flags.csv (7,188).
+- 7,188 flags on 2,421 days, 3.0 per flag-day (2.3-3.6 a year), never at the cap; live (IEX) gives ~5/day, so
+  SIP volume ratios flag a bit less, close enough.
+- follow60: n=6,839, net -5.48 bps (t -2.15, day t -2.22), win 45%, 4/11 years positive; design -6.83, held out
+  -3.16 (day t -1.13). fade60: -2.52 (t -0.99), held out -4.84. follow30 -3.93.
+- Without SPY/QQQ/IWM (SPY gets FOMC headlines; 3% of flags): follow60 -5.49, fade60 -2.51. Same.
+- Exploratory, NOT a pass (one of 11 slices, found after looking): volume >= 10x follow60 +15.7 (t 2.33, n 847;
+  ex-ETF +17.0, n 794, 8/11 years positive) but +4.2 without its top 1% of trades, so it's a few huge runners.
+  Bigger price moves do worse (2%+ -94, n 160): the obvious read of a big jump is to chase it, and it reverses.
+- Jul-Oct 2026 (after the models' training data): n=256, follow60 +7.2 (t 0.96), follow30 +5.9. Noise.
+Verdict: FAIL. The screener finds the right moments to look at, but the obvious trade on them has no edge either
+way, matching the 11/10 trigger replay on all years. So the flash desk lives or dies on Claude's judgment beating
+-5.5 bps (follow) and -2.5 (fade) per flag. The 10x+ slice is a candidate to pre-register on forward flags only.

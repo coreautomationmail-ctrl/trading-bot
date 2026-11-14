@@ -1244,3 +1244,49 @@ Decision (owner's call 2026-11-14): Claude stops as trader. The desks keep runni
 more LLM-judgment research. The one thing worth carrying forward is the gap-reversal baseline among news names
 (t 2.28, reported baseline, NOT pre-registered as primary; 1 of 2 baselines; one 82-day window): it goes into the
 multi-factor composite as a candidate, to be confirmed on 2016-2026 and the U universe before any belief.
+
+## 2026-11-14 PRE-REGISTRATION factor-composite: published factors + LightGBM, weekly, mid/small caps (owner: yes)
+**Written before any factor return, IC or model output was computed.** The owner's stop rule fired on Claude-as-
+trader (daily-rank). This is the quant-fund method instead: many weak, published, economically motivated signals,
+combined by a fixed model trained only on the past, judged out of sample. A FAIL closes STRATTON's research; the
+desks stay as a paper log. Qlib was tried and dropped before use (its install would downgrade pandas/numpy); the
+pipeline is the same method in our own code: scripts/research/factor_composite.py.
+- Universe U (primary): the u-family daily rows, .cache/u/universe_days.csv.gz (prior close > $5, prior-60-day
+  median $vol > $5M, cap $300M-$5B on the prior close from SEC shares known 90 days after period end, not in the
+  277), 2016-10..2026-10. Includes names later delisted where Alpaca still serves bars (survivorship reduced, not
+  removed: company_tickers.json lists current tickers only). L (replication): the 277 1-min names minus ETFs, using
+  the same daily-bar file.
+- Data hygiene, fixed now: raw prices carry splits, so any close-to-next-open ratio within 3% of 1/k or k
+  (k = 1.5, 2, 3, 4, 5, 10, 20) with |log ratio| > 0.3 is treated as a split and earlier prices are divided by it;
+  feature and target returns are winsorized at 1st/99th percentile per date before ranking.
+- Formation: every 5th session (fixed calendar from the first U day), at that session's close. Features use data
+  up to and including that close only; fundamentals known 90 days after period end; news up to 16:00 that day.
+- Target: open of session t+1 to open of t+6 (5 sessions), minus the universe's equal-weight mean; rank-normalized.
+- Features (18, rank-normalized per formation date, signs NOT fixed for the model): 1-day and 5-day return
+  (reversal), 21-day return, 12-1 month momentum (t-252..t-21), distance to 52-week high, 21- and 63-day daily
+  volatility, max daily return over 21 days (lottery), Amihud illiquidity (63 days), 5/60-day volume ratio, 60-day
+  median $vol, log market cap, last overnight gap, gap on the last day with overnight news (news names; else 0) as
+  the daily-rank gap-reversal lead, news count over 5 days, 1-year change in shares (issuance), earnings yield
+  (TTM net income / cap), book-to-market (equity / cap). Missing -> cross-sectional median.
+- Model: LightGBM regressor, fixed and untuned: 300 trees, learning rate 0.03, 31 leaves, min 500 rows a leaf,
+  feature and bagging fraction 0.8, seed 20261114. Walk-forward: for each year Y = 2019..2026, train on all
+  formation dates whose target ends >= 10 sessions before Y begins, predict Y. Design years 2019-2023 (reported);
+  HELD OUT 2024-01..2026-10 (the verdict). No refit, no feature or parameter change after any result.
+- Baselines (same dates): B1 = textbook composite, equal-weight average of the ranks with literature signs
+  (-ret1, -ret5, +mom12_1, +52wk, -vol21, -max21, -issuance, +earnings yield, +B/M); B2 = momentum + reversal
+  (+mom12_1, -ret5).
+- Portfolio: long top decile, short bottom decile by prediction, equal weight, entered at t+1 open, 5-session hold.
+  Cost charged on actual turnover: U 10 bps/side (the u-family floor), L 5 bps/side.
+- Bar: K counted here = 1 model + 2 baselines + 18 single factors = 21 looks; with the registry the bar is
+  t >= 2.87 (no lower).
+- PASS (U, held out 2024-01..2026-10), ALL: (1) mean weekly rank IC >= 0.02 with t >= 2.87; (2) long-short net
+  of costs > 0 with t >= 2.87; (3) model IC minus B2 IC > 0, paired weekly t >= 2.0; (4) >= 2 of the 3 held-out
+  calendar years with positive net; (5) top 5 weeks < 50% of summed net P&L; (6) design-year IC same sign;
+  (7) L replication: held-out IC same sign. Deflated Sharpe (N = 21) reported.
+- KILL: (1) or (2) fails. Then STRATTON's research closes as agreed; the desks and the spike pod stay as a log.
+- Reported, not gated: IC and net per year; by market regime (formation-date universe 63-day return up/down, and
+  above/below-median universe volatility); per-feature single IC (design and held out); LightGBM feature importance;
+  B1 and B2 full stats; turnover.
+
+Also run now, unchanged as pre-registered 2026-11-12: u-family (U1-U3) on the stage-3 outputs, design 2016-2022,
+held out 2023-26, combined bar t 2.9, 10 bps/side.

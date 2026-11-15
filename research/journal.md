@@ -1314,3 +1314,13 @@ Reading: the textbook effects exist at IC ~0.02 in mid/small caps and are worth 
 rebalancing pays more than that in costs. The only design that could survive is a slow one (monthly rebalancing of
 the textbook average, turnover far lower); logged as an idea, not run. Owner's rule: a fail closes STRATTON
 research; the desks and the spike pod keep running on paper as a log.
+
+## 2026-11-14 regime-gate diagnostic (owner "yes"; not a test: held-out years already inspected)
+Question (Perplexity, owner): switch models by market regime instead of independent pods? Perplexity verdict: no
+architecture; at most one frozen volatility gate on the factor composite, trade only in calm markets.
+Diagnostic from the existing factor_composite logs (held-out weeks, median split of universe volatility, net bps/wk):
+- U: low vol -14.7 (n 67, t -0.51), high vol +4.9 (n 75, t +0.17)
+- L: low vol -7.6 (n 67, t -0.34), high vol +25.4 (n 74, t +0.84)
+The calm-only gate loses in both universes: DEAD. The opposite side (trade only in high vol) is positive but
+t 0.17 / 0.84, chosen after seeing the data, far below the 2.87 bar: noise, not adopted, not a forward test.
+Regime-switching architecture: not built (no strategy has a positive conditional edge to switch to).

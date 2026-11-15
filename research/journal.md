@@ -1346,3 +1346,11 @@ RESULT tom-spy (2026-11-14): KILL. TOM +7.20 vs other +5.39 bps/day, diff +1.80 
 2021-26 -0.09 (gone in the recent half). Net 12 round trips/yr: +2.00%/yr, Sharpe 0.31 vs SPY 13.74%/yr,
 Sharpe 0.81; below exposure-matched SPY (+2.62%/yr). No variants on this data (per pre-registration).
 Log research/tom_spy.log. This month's one STRATTON test is used.
+
+## 2026-11-14 STRATTON RESEARCH CLOSED (owner: "Close down STRATTON research")
+Reason: no structural edge (free data, retail costs, most competitive market); paper profits pay $0 and the owner
+has no plan to trade real money; Perplexity power check: a +10 bps/week edge needs ~27 years of weekly data to
+confirm. The four-arm low-turnover forward plan was reviewed and NOT built.
+Still running as a free paper log only: spike pod, shadow bench, Haiku triage shadow (~$0.03/day); check-in is a
+health check. No new tests, no monthly test allowance. Reopen only with a genuine structural advantage (a market
+or data source most participants lack, or a real-money account decision by the owner).

@@ -1342,3 +1342,7 @@ lower cost": ~12 round trips a year). Prior: Ariel 1987, Lakonishok & Smidt 1988
   this data (no other day windows, no other ETFs, no RSI/rotation follow-ups from the same post).
 - Power note: SPY daily sd ~1.1%; a +0.10%/day effect gives t ~1.8 at this n, so a real effect can still
   come out inconclusive.
+RESULT tom-spy (2026-11-14): KILL. TOM +7.20 vs other +5.39 bps/day, diff +1.80 (t +0.34); 2016-20 +4.02,
+2021-26 -0.09 (gone in the recent half). Net 12 round trips/yr: +2.00%/yr, Sharpe 0.31 vs SPY 13.74%/yr,
+Sharpe 0.81; below exposure-matched SPY (+2.62%/yr). No variants on this data (per pre-registration).
+Log research/tom_spy.log. This month's one STRATTON test is used.

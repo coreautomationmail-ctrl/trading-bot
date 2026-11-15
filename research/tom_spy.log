@@ -1,0 +1,10 @@
+sessions 2682, TOM days 512 (19.1%), months 128
+TOM mean +7.20 bps/day, other +5.39 bps/day, diff +1.80 (Welch t +0.34, p 0.733)
+  2016-2020: diff +4.02 bps/day (t +0.50, TOM n 236)
+  2021-2026: diff -0.09 bps/day (t -0.01, TOM n 276)
+round trips 129 (12.1/yr), exposure 19.1%
+TOM net: +2.00%/yr, Sharpe +0.31, max DD -10.4%
+SPY buy & hold: +13.74%/yr, Sharpe +0.81, max DD -34.2%
+exposure-matched SPY (return x 19.1%): +2.62%/yr
+GATE: diff > 0 with t >= 2.0: FAIL; both halves diff > 0: FAIL; net Sharpe >= buy & hold: FAIL; net return > exposure-matched: FAIL
+VERDICT: KILL

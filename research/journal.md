@@ -1324,3 +1324,21 @@ Diagnostic from the existing factor_composite logs (held-out weeks, median split
 The calm-only gate loses in both universes: DEAD. The opposite side (trade only in high vol) is positive but
 t 0.17 / 0.84, chosen after seeing the data, far below the 2.87 bar: noise, not adopted, not a forward test.
 Regime-switching architecture: not built (no strategy has a positive conditional edge to switch to).
+
+## 2026-11-14 PRE-REGISTRATION: turn-of-the-month on SPY (tom-spy) — written before any result
+Owner: "Set it up" (from Instagram scan: low-turnover calendar rules; qualifies under testing-only as "much
+lower cost": ~12 round trips a year). Prior: Ariel 1987, Lakonishok & Smidt 1988, McConnell & Xu 2008.
+- Data: SPY daily closes, scripts/.cache/l_daily.csv.gz, 2016-01-04..2026-10-27 (2,720 sessions; prices not
+  dividend-adjusted: the quarterly ex-dividend drops fall on non-TOM days, a known small bias of roughly
+  +0.007%/day toward TOM, reported, not corrected).
+- TOM days: the last trading day of each month and the first 3 of the next (close-to-close returns of days
+  -1, +1, +2, +3). Rule: long SPY at the close of day -2, flat at the close of day +3; cash earns 0.
+- Cost: 5 bps per side (the L universe's cost), charged on every entry and exit.
+- Primary: mean TOM-day return minus mean other-day return, Welch t. PASS needs diff > 0 with t >= 2.0
+  (one pre-specified, literature-prior test, not a search) AND both halves (2016-2020, 2021-2026) diff > 0
+  AND net TOM strategy Sharpe >= SPY buy-and-hold Sharpe AND net TOM return > SPY return x TOM exposure
+  (timing value, exposure-matched).
+- KILL: diff <= 0, or net Sharpe < buy-and-hold. Anything between = INCONCLUSIVE, no further variants on
+  this data (no other day windows, no other ETFs, no RSI/rotation follow-ups from the same post).
+- Power note: SPY daily sd ~1.1%; a +0.10%/day effect gives t ~1.8 at this n, so a real effect can still
+  come out inconclusive.

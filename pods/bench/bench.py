@@ -181,6 +181,20 @@ class Engine:
         return done
 
 
+def write_swarm_manifest(path: str = None):
+    """What Vision's phone view needs to compute the allocator exactly as swarm.report does: the
+    bot list in the report's order, the start day and the registry bar. Data only, never code."""
+    names = sorted(swarm_bots.NAMES | daily_swarm.NAMES | set(swarm.SPIKE_INPUTS))
+    import registry
+    k = len(registry.load())
+    with open((path or os.path.join(STATE_DIR, "swarm_manifest.json")) + ".tmp", "w") as f:
+        json.dump({"test": swarm.TEST_ID, "start": swarm.START, "bar": registry.bar(k), "k": k,
+                   "eta": swarm.ETA, "lookback": swarm.LOOKBACK, "floor": swarm.FLOOR, "cap": swarm.CAP,
+                   "min_days": swarm.MIN_DAYS, "kill_days": swarm.KILL_DAYS, "names": names}, f)
+    os.replace((path or os.path.join(STATE_DIR, "swarm_manifest.json")) + ".tmp",
+               path or os.path.join(STATE_DIR, "swarm_manifest.json"))
+
+
 def write_trades(rows: list):
     """Bench strategies to bench_virtual.csv, the swarm's bots to swarm_virtual.csv."""
     append_csv(SWARM_CSV, VIRTUAL_FIELDS, [r for r in rows if r["strategy"] in swarm_bots.NAMES])
@@ -338,6 +352,7 @@ def main():
     strats = [s for s in strats if ladder.stage_of(lad, s.NAME) != "retired"]
     cost = {s.NAME: s.COST_BPS for s in strats}
     bots = list(swarm_bots.ALL)            # swarm-v1 inputs: never in the ladder, never ordering
+    write_swarm_manifest()
     universe = sorted({u for s in strats + bots for u in s.UNIVERSE})
     state = load_state()
     state.setdefault("seen", [])

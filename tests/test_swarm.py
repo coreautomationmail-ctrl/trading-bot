@@ -195,3 +195,11 @@ def test_report_reads_the_trade_files(tmp_path):
         w.writerow({"strategy": names[0], "date": "2026-11-10", "net_bps": 50.0})   # before START: ignored
     text = swarm.report(str(tmp_path), names)
     assert "2 bots, 1 with trades" in text and "day 1 of 60+" in text and "RUNNING" in text
+
+
+def test_the_manifest_lists_every_bot_in_the_reports_order(tmp_path):
+    import json
+    bench.write_swarm_manifest(str(tmp_path / "m.json"))
+    m = json.load(open(tmp_path / "m.json"))
+    assert len(m["names"]) == 153 and m["names"] == sorted(m["names"]) and m["test"] == "swarm-v1"
+    assert m["bar"] > 2.8 and m["start"] == swarm.START

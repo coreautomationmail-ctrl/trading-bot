@@ -107,6 +107,14 @@
       "instructions": "research/theses/flash.md version 3 (2026-11-14)",
       "test": "300 scored trades; day t vs random >= bar",
       "note": "No confidence floor and a minimum number of calls a session (redesign plan item 1, owner OK 2026-11-14). Exception to the one-rewrite-a-quarter rule, owner's call: v2 had 3 scored theses and 0 intraday/flash trades."
+    },
+    {
+      "id": "swarm-v1",
+      "registered": "2026-11-17",
+      "kind": "allocator",
+      "instructions": "docs/swarm-plan.md as of 2026-11-17; pods/bench/swarm.py, swarm_bots.py, daily_swarm.py",
+      "test": "from 2026-11-18, >= 60 trading days: day t of (allocator - equal-weight) daily bps >= bar(K) AND allocator mean daily bps > 0 AND allocator beats random on day t > 0 AND both halves of (allocator - equal) positive; KILL at >= 120 days if day t < 1 or allocator mean <= 0; else INCONCLUSIVE",
+      "inputs": "151 rule bots (98 intraday sw-*, 53 daily sw-d*/sw-night-*) plus spike-quiet and spike-news; bots are reported, never judged one by one"
     }
   ]
 }

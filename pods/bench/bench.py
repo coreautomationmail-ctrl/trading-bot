@@ -28,15 +28,19 @@ from datetime import datetime, timedelta, timezone
 
 import requests
 
+import daily_swarm
 import golive
 import ladder
 import spike_pod
 import strategies
+import swarm
+import swarm_bots
 from spike_pod import ET, PAPER_URL, fetch_bars, send_telegram
 
 STATE_DIR = spike_pod.STATE_DIR
 STATE_FILE = os.path.join(STATE_DIR, "bench_state.json")
 VIRTUAL_CSV = os.path.join(STATE_DIR, "bench_virtual.csv")
+SWARM_CSV = os.path.join(STATE_DIR, "swarm_virtual.csv")   # the swarm's intraday bots (swarm_bots.py)
 PAPER_CSV = os.path.join(STATE_DIR, "bench_paper.csv")
 LADDER_FILE = os.path.join(STATE_DIR, "ladder.json")
 KILL_FILE = os.path.join(STATE_DIR, "KILL")
@@ -64,9 +68,29 @@ def key(t: datetime) -> str:
 class Ctx:
     """What a strategy may look up besides bars. Live: Alpaca news, cached per symbol-hour."""
 
-    def __init__(self, news_source=None):
+    def __init__(self, news_source=None, prior_source=None):
         self.news_source = news_source or self._fetch_news
+        self.prior_source = prior_source or self._fetch_prior
         self.cache = {}
+        self.prior = {}
+
+    def _fetch_prior(self, day: str) -> dict:
+        """{sym: the last daily close before `day`} for the swarm's universe."""
+        end = datetime.fromisoformat(day).replace(tzinfo=ET)
+        daily = daily_swarm.fetch_daily(swarm_bots.Bot.UNIVERSE, end)
+        return {s: [b for b in bars if b["d"] < day][-1]["c"] for s, bars in daily.items()
+                if any(b["d"] < day for b in bars)}
+
+    def prior_close(self, sym: str):
+        if "_day" not in self.prior:
+            return None
+        if self.prior.get("_loaded") != self.prior["_day"]:
+            try:
+                self.prior.update(self.prior_source(self.prior["_day"]))
+            except Exception as e:  # no gap signals today rather than no bench
+                print(f"prior closes unavailable: {e}", flush=True)
+            self.prior["_loaded"] = self.prior["_day"]
+        return self.prior.get(sym)
 
     @staticmethod
     def et(t: str) -> datetime:
@@ -98,6 +122,7 @@ class Engine:
     def new_day(self, day: str):
         self.day, self.bars, self.by_t = day, {}, {}
         self.ctx.cache = {}
+        self.ctx.prior = {"_day": day}
         for s in self.strats:
             s.new_day()
         if self.state.get("day") != day:
@@ -154,6 +179,12 @@ class Engine:
                 keep.append(s)
         self.state["pending"] = keep
         return done
+
+
+def write_trades(rows: list):
+    """Bench strategies to bench_virtual.csv, the swarm's bots to swarm_virtual.csv."""
+    append_csv(SWARM_CSV, VIRTUAL_FIELDS, [r for r in rows if r["strategy"] in swarm_bots.NAMES])
+    append_csv(VIRTUAL_CSV, VIRTUAL_FIELDS, [r for r in rows if r["strategy"] not in swarm_bots.NAMES])
 
 
 def append_csv(path: str, fields: list, rows: list):
@@ -289,7 +320,11 @@ def maybe_review(state: dict, lad: dict, strats: list):
     ladder.save(LADDER_FILE, lad)
     case = golive.report(SPIKE_DIR, STATE_DIR, strats, spike_pod.UNIVERSE,
                          {s.NAME: ladder.stage_of(lad, s.NAME) for s in strats})
-    send_telegram("STRATTON ladder, weekly:\n" + ("\n".join(lines) or "no strategies") + "\n\n" + case)
+    try:
+        sw = swarm.report(STATE_DIR, sorted(swarm_bots.NAMES | daily_swarm.NAMES | set(swarm.SPIKE_INPUTS)))
+    except Exception as e:  # the swarm's report must never cost the ladder its message
+        sw = f"STRATTON swarm report failed: {str(e)[:200]}"
+    send_telegram("STRATTON ladder, weekly:\n" + ("\n".join(lines) or "no strategies") + "\n\n" + case + "\n\n" + sw)
     state["ladder_week"] = week
 
 
@@ -302,13 +337,15 @@ def main():
     ladder.save(LADDER_FILE, lad)
     strats = [s for s in strats if ladder.stage_of(lad, s.NAME) != "retired"]
     cost = {s.NAME: s.COST_BPS for s in strats}
-    universe = sorted({u for s in strats for u in s.UNIVERSE})
+    bots = list(swarm_bots.ALL)            # swarm-v1 inputs: never in the ladder, never ordering
+    universe = sorted({u for s in strats + bots for u in s.UNIVERSE})
     state = load_state()
     state.setdefault("seen", [])
     state.setdefault("pending", [])
-    engine, paper, last_err = Engine(strats, Ctx(), state), Paper(), ["", 0.0]
+    engine, paper, last_err = Engine(strats + bots, Ctx(), state), Paper(), ["", 0.0]
     send_telegram("STRATTON bench up: " + ", ".join(f"{s.NAME} [{ladder.stage_of(lad, s.NAME)}]"
-                                                    for s in strats) + " [paper]")
+                                                    for s in strats)
+                  + f"; swarm-v1: {len(bots)} intraday + {len(daily_swarm.ALL)} daily bots [paper, virtual]")
     while True:
         try:
             clock = spike_pod.api("GET", "/v2/clock")
@@ -318,8 +355,11 @@ def main():
                     for sym, bars in fetch_bars(now - timedelta(minutes=15), universe).items():
                         for b in bars:
                             engine.feed(sym, b)
-                    append_csv(VIRTUAL_CSV, VIRTUAL_FIELDS, engine.settle(final=True))
+                    write_trades(engine.settle(final=True))
                     engine.day = None
+                n = daily_swarm.maybe_run(now, append_csv)
+                if n is not None:
+                    print(f"swarm daily: {n} positions closed", flush=True)
                 maybe_review(state, lad, strats)
             else:
                 cutoff = now.replace(second=0, microsecond=0)
@@ -333,11 +373,13 @@ def main():
                         if utc(b["t"]) >= cutoff:
                             continue
                         for sig in engine.feed(sym, b):
+                            if sig["strategy"] in swarm_bots.NAMES:
+                                continue
                             try:
                                 paper_enter(paper, state, lad, sig, now)
                             except Exception as e:
                                 send_telegram(f"STRATTON bench order error: {str(e)[:200]}")
-                append_csv(VIRTUAL_CSV, VIRTUAL_FIELDS, engine.settle())
+                write_trades(engine.settle())
                 paper_exits(paper, state, now, cost)
             save_state(state)
         except Exception as e:

@@ -1354,3 +1354,14 @@ confirm. The four-arm low-turnover forward plan was reviewed and NOT built.
 Still running as a free paper log only: spike pod, shadow bench, Haiku triage shadow (~$0.03/day); check-in is a
 health check. No new tests, no monthly test allowance. Reopen only with a genuine structural advantage (a market
 or data source most participants lack, or a real-money account decision by the owner).
+
+## 2026-11-17 STRATTON swarm-v1 registered (owner reopened research, paper only)
+Owner: test a large population of simple bots forward only (no backtests), as a swarm, without
+Claude agents per trade (plan usage). Ideas sourced from social media the same day (Algovibes'
+million-bot evolution: the champion lost on an unseen year, the population didn't; AI Pathways'
+100,000-strategy scan: higher timeframes and a few filters held up). Plan: docs/swarm-plan.md.
+- 151 rule bots (98 intraday on the bench feed, 53 daily after each close) plus spike-quiet and
+  spike-news as inputs, on the 62-name SHADOW universe, 2 bps a side. Every grid point runs.
+- Only the allocator is judged (registry K 12 -> 13, bar z 2.89): multiplicative weights on the
+  bots' live daily returns vs equal weight vs random, from 2026-11-18, >= 60 trading days.
+- No bot is in the ladder or places paper orders. Expected outcome: INCONCLUSIVE or KILL.

@@ -372,7 +372,7 @@ def main():
     engine, paper, last_err = Engine(strats + bots, Ctx(), state), Paper(), ["", 0.0]
     send_telegram("STRATTON bench up: " + ", ".join(f"{s.NAME} [{ladder.stage_of(lad, s.NAME)}]"
                                                     for s in strats)
-                  + f"; swarm-v1: {len(bots)} intraday + {len(daily_swarm.ALL)} daily bots"
+                  + f"; swarm-v1: {len(swarm_bots.ALL)} intraday + {len(daily_swarm.ALL)} daily bots"
                   + f"; swarm-v2: {len(swarm_v2.ALL)} daily bots"
                   + f"; swarm-v3: {len(v3['pop']['e'])} eco + {len(v3['pop']['c'])} control bots [paper, virtual]")
     while True:

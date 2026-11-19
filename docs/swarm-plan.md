@@ -120,3 +120,77 @@ the bar rises to about 2.92.
 
 56 bots. The ridge model is plain Python: the bench container carries no ML libraries and has a
 160 MB memory limit, so gradient boosting was not used.
+
+## 9. swarm-v3: an evolving economy (planned 2026-11-18, build late December 2026)
+
+Not built yet. Written now so the design is fixed before any v1 or v2 result is known. Build only
+once v1 has 4-6 weeks and v2 about 4 weeks of live trades: meta-learning, evolution and the
+allocator upgrades below learn from the swarms' own trade history and would idle on less.
+
+**Principle: every bit of selection pressure comes from the real market.** No simulated market
+(an artificial-market sim, e.g. ABIDES, breeds champions of the simulator's quirks). Bots trade
+the live IEX feed virtually, as v1 and v2 do.
+
+### The economy (replaces the allocator's formula and scheduled culling)
+- **Capital is life.** Each bot starts with the same virtual stake. Real-market P&L, after
+  honest costs, grows or shrinks it. A bot whose capital falls below a floor dies.
+- **Births are earned.** A bot whose capital has grown past a threshold funds a child, a mutated
+  copy, from its own capital. A child starts with no record and is judged only on trades made
+  after its birth.
+- **Rent.** Every bot pays a small fixed fee per day, so idle or useless bots starve.
+- **Reputation.** Capital per signal scales with a shrunk, risk-adjusted score: a long, steady
+  record earns more trust than a short lucky one.
+- **Team income.** Part of a bot's income is its marginal contribution to the whole economy's
+  risk-adjusted result. Copies of others earn little; complements earn more. Bots in a crowded
+  niche share their score (fitness sharing).
+
+### What evolves
+- **Rules, not only settings.** Genetic programming over a small grammar of signal parts (returns,
+  volume, VWAP distance, volatility, time of day, news, the senses below) joined by AND/OR and
+  thresholds. Mutation swaps a part or a threshold; crossover swaps subtrees within a family.
+  There is a complexity penalty per node and a depth cap.
+- **Swarm-aware inputs.** How many bots agree on a symbol, which families are winning this week,
+  how crowded a trade is. This allows consensus, contrarian and gatekeeper bots.
+
+### New senses (free data)
+SEC Form 4 insider trades; the earnings calendar and surprises; FINRA short interest
+(twice a month); VIX and its term structure, and HYG/LQD credit spreads; the economic calendar
+(jobs, CPI, FOMC).
+
+### Honest costs
+Per-trade cost from the symbol's typical spread, the order's size against volume, and the time
+of day (the open costs more), replacing the flat 2 bps. This is required before any real-money
+discussion.
+
+### Hedger role
+Bots paid by the economy to offset its net market beta, so the economy's profit comes from
+selection rather than from the market rising.
+
+### Guards (they scale with ambition)
+- Forward-only judging after birth, and a minimum of 40 closed trades before a bot can breed or
+  be culled.
+- Scores shrunk toward zero; the complexity penalty.
+- The deflated Sharpe ratio and a permutation test of the verdict.
+- **Random-churn control:** the same economy, with births and deaths assigned at random.
+- **Frozen holdout:** a generation snapshot, judged on the months after it was frozen.
+
+### The test
+One registry entry, `swarm-v3`. Primary: the economy's daily net return minus v1's equal-weight
+book, and minus the random-churn control. Both use day t >= bar(K) over >= 60 trading days,
+with the same both-halves and kill rules as section 4.
+
+### Later, only if v3 beats its control (v4 candidates)
+Islands by market type, with migration; learning within a bot's life, which children inherit;
+partner choice by complementarity; evolving meta-rules (mutation rate, cull pace).
+
+### Phone extras (any time; no effect on the test)
+A family tree of lineages; "seed an idea": the owner describes a strategy and it becomes a new
+species (one Claude call per idea, never per trade).
+
+### If real money is ever considered (owner's decision)
+Trade only the allocator's or economy's top bots, netted per symbol. Daily bots first (the
+pattern-day-trader rule limits intraday under $25k). Limit orders. Hard caps, a daily loss stop,
+a drawdown breaker, a phone kill switch, duplicate-order protection and nightly reconciliation.
+A frozen snapshot trades; evolution continues on paper only. Paper incubation, then $500-1,000
+alongside paper for 1-2 months, then slow scaling only if live tracks paper. Plan for the live
+edge to be about half the paper one.

@@ -23,15 +23,15 @@ MIN_DAYS, KILL_DAYS = 60, 120
 SPIKE_INPUTS = ("spike-quiet", "spike-news")   # bench strategies the swarm also takes as inputs
 
 
-def read_trades(paths: list, names: set) -> dict:
-    """{date: {bot: [net_bps, ...]}} for trades of `names` dated from START on."""
+def read_trades(paths: list, names: set, start: str = START) -> dict:
+    """{date: {bot: [net_bps, ...]}} for trades of `names` dated from `start` on."""
     out = {}
     for path in paths:
         if not os.path.exists(path):
             continue
         with open(path, newline="") as f:
             for r in csv.DictReader(f):
-                if r.get("strategy") in names and r.get("date", "") >= START and r.get("net_bps") not in ("", None):
+                if r.get("strategy") in names and r.get("date", "") >= start and r.get("net_bps") not in ("", None):
                     out.setdefault(r["date"], {}).setdefault(r["strategy"], []).append(float(r["net_bps"]))
     return out
 
@@ -61,10 +61,10 @@ def _is_week_end(d: str, nxt: str | None) -> bool:
     return a != b
 
 
-def books(rets: list, n: int) -> dict:
+def books(rets: list, n: int, start: str = START, test: str = TEST_ID) -> dict:
     """Daily returns of the three books: {"alloc": [...], "equal": [...], "random": [...], "weights": [...]}."""
     alloc = [1 / n] * n
-    rnd = _random_weights(START, n)
+    rnd = _random_weights(start, n, test)
     out = {"alloc": [], "equal": [], "random": [], "dates": [], "weights": alloc}
     for i, (d, r) in enumerate(rets):
         out["dates"].append(d)
@@ -76,13 +76,13 @@ def books(rets: list, n: int) -> dict:
             window = rets[max(0, i + 1 - LOOKBACK):i + 1]
             summed = [sum(day[1][j] for day in window) for j in range(n)]
             alloc = _normalise([w * math.exp(ETA * s) for w, s in zip(alloc, summed)])
-            rnd = _random_weights(nxt, n)
+            rnd = _random_weights(nxt, n, test)
     out["weights"] = alloc
     return out
 
 
-def _random_weights(seed_day: str, n: int) -> list:
-    rng = random.Random(f"swarm-v1-{seed_day}")
+def _random_weights(seed_day: str, n: int, test: str = TEST_ID) -> list:
+    rng = random.Random(f"{test}-{seed_day}")
     g = [rng.gammavariate(1.0, 1.0) for _ in range(n)]
     s = sum(g)
     return [x / s for x in g]
@@ -113,21 +113,22 @@ def verdict(b: dict, bar: float) -> tuple[str, dict]:
     return ("INCONCLUSIVE" if n >= KILL_DAYS else "RUNNING"), facts
 
 
-def report(state_dir: str, bots: list) -> str:
-    """The weekly Telegram text."""
+def report(state_dir: str, bots: list, test: str = TEST_ID, start: str = START,
+           files: tuple = ("swarm_virtual.csv", "swarm_daily.csv", "bench_virtual.csv")) -> str:
+    """The weekly Telegram text, for swarm-v1 or (with test, start and files) another population."""
     names = list(bots)
-    trades = read_trades([os.path.join(state_dir, f) for f in ("swarm_virtual.csv", "swarm_daily.csv", "bench_virtual.csv")],
-                         set(names))
+    trades = read_trades([os.path.join(state_dir, f) for f in files], set(names), start)
     rets = daily_returns(trades, names)
+    label = "swarm" if test == TEST_ID else test
     if not rets:
-        return f"STRATTON swarm ({len(names)} bots): no closed trades yet since {START}."
-    b = books(rets, len(names))
+        return f"STRATTON {label} ({len(names)} bots): no closed trades yet since {start}."
+    b = books(rets, len(names), start, test)
     k = sum(1 for _ in registry.load())
     status, f = verdict(b, registry.bar(k))
     traded = sum(1 for j in range(len(names)) if any(day[1][j] for day in rets))
     top = sorted(zip(b["weights"], names), reverse=True)[:5]
     fmt = lambda x: "n/a" if x is None else f"{x:+.2f}"   # noqa: E731
-    return (f"STRATTON swarm ({len(names)} bots, {traded} with trades), day {f['days']} of {MIN_DAYS}+: {status}\n"
+    return (f"STRATTON {label} ({len(names)} bots, {traded} with trades), day {f['days']} of {MIN_DAYS}+: {status}\n"
             f"Daily mean bps: allocator {sum(b['alloc']) / f['days']:+.2f}, equal {sum(b['equal']) / f['days']:+.2f}, "
             f"random {sum(b['random']) / f['days']:+.2f}\n"
             f"Allocator minus equal: day t {fmt(f['t'])} (bar {f['bar']:.2f}); minus random: day t {fmt(f['t_random'])}\n"

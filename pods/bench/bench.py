@@ -35,6 +35,7 @@ import spike_pod
 import strategies
 import swarm
 import swarm_bots
+import swarm_v2
 from spike_pod import ET, PAPER_URL, fetch_bars, send_telegram
 
 STATE_DIR = spike_pod.STATE_DIR
@@ -336,6 +337,7 @@ def maybe_review(state: dict, lad: dict, strats: list):
                          {s.NAME: ladder.stage_of(lad, s.NAME) for s in strats})
     try:
         sw = swarm.report(STATE_DIR, sorted(swarm_bots.NAMES | daily_swarm.NAMES | set(swarm.SPIKE_INPUTS)))
+        sw += "\n\n" + swarm_v2.report(STATE_DIR)
     except Exception as e:  # the swarm's report must never cost the ladder its message
         sw = f"STRATTON swarm report failed: {str(e)[:200]}"
     send_telegram("STRATTON ladder, weekly:\n" + ("\n".join(lines) or "no strategies") + "\n\n" + case + "\n\n" + sw)
@@ -353,6 +355,7 @@ def main():
     cost = {s.NAME: s.COST_BPS for s in strats}
     bots = list(swarm_bots.ALL)            # swarm-v1 inputs: never in the ladder, never ordering
     write_swarm_manifest()
+    swarm_v2.write_manifest()
     universe = sorted({u for s in strats + bots for u in s.UNIVERSE})
     state = load_state()
     state.setdefault("seen", [])
@@ -360,7 +363,8 @@ def main():
     engine, paper, last_err = Engine(strats + bots, Ctx(), state), Paper(), ["", 0.0]
     send_telegram("STRATTON bench up: " + ", ".join(f"{s.NAME} [{ladder.stage_of(lad, s.NAME)}]"
                                                     for s in strats)
-                  + f"; swarm-v1: {len(bots)} intraday + {len(daily_swarm.ALL)} daily bots [paper, virtual]")
+                  + f"; swarm-v1: {len(bots)} intraday + {len(daily_swarm.ALL)} daily bots"
+                  + f"; swarm-v2: {len(swarm_v2.ALL)} daily bots [paper, virtual]")
     while True:
         try:
             clock = spike_pod.api("GET", "/v2/clock")
@@ -375,6 +379,9 @@ def main():
                 n = daily_swarm.maybe_run(now, append_csv)
                 if n is not None:
                     print(f"swarm daily: {n} positions closed", flush=True)
+                n2 = swarm_v2.maybe_run(now, append_csv)
+                if n2 is not None:
+                    print(f"swarm-v2 daily: {n2} positions closed", flush=True)
                 maybe_review(state, lad, strats)
             else:
                 cutoff = now.replace(second=0, microsecond=0)

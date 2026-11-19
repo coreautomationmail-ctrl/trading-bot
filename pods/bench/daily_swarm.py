@@ -32,10 +32,14 @@ def _sign(x: float) -> int:
 
 
 class DailyBot:
-    """signal(closes) -> +1 / -1 / 0 from closes up to and including today."""
+    """signal(closes) -> +1 / -1 / 0 from closes up to and including today. A bot with CROSS set
+    instead gives signals({sym: closes}) -> {sym: side} for its whole universe at once (rankings).
+    UNIVERSE, when set, limits the symbols it sees (swarm-v2's ETF bots)."""
     NAME = ""
     HOLD = 1
     NIGHT = False
+    CROSS = False
+    UNIVERSE = None
 
     def signal(self, closes: list) -> int:
         return 0
@@ -151,15 +155,13 @@ def step(daily: dict, state: dict, today: str, bots: list = None) -> list:
                        "entry_px": entry, "exit_px": exit_, "gross_bps": round(gross, 2),
                        "net_bps": round(gross - 2 * COST_BPS, 2)})
     held = {(p["strategy"], p["symbol"]) for p in still}
-    for sym, bars in daily.items():
-        if not bars or bars[-1]["d"] != today:
-            continue                      # no bar for today: no new position on stale data
-        closes = [b["c"] for b in bars]
-        for bot in bots:
-            if (bot.NAME, sym) in held:
-                continue
-            side = bot.signal(closes)
-            if side:
+    fresh = {sym: [b["c"] for b in bars] for sym, bars in daily.items()
+             if bars and bars[-1]["d"] == today}          # no bar for today: no new position on stale data
+    for bot in bots:
+        seen = {s: c for s, c in fresh.items() if bot.UNIVERSE is None or s in bot.UNIVERSE}
+        sides = bot.signals(seen) if bot.CROSS else {s: bot.signal(c) for s, c in seen.items()}
+        for sym, side in sides.items():
+            if side and (bot.NAME, sym) not in held:
                 still.append({"strategy": bot.NAME, "symbol": sym, "side": side, "signal_date": today,
                               "hold": bot.HOLD})
     state["open"] = still
@@ -167,10 +169,10 @@ def step(daily: dict, state: dict, today: str, bots: list = None) -> list:
     return closed
 
 
-def fetch_daily(symbols: list, end: datetime) -> dict:
-    """Daily IEX bars for the last HISTORY_DAYS: {sym: [{"d", "o", "c"}, ...]}."""
+def fetch_daily(symbols: list, end: datetime, days: int = HISTORY_DAYS) -> dict:
+    """Daily IEX bars for the last `days` calendar days: {sym: [{"d", "o", "c"}, ...]}."""
     out, token = {}, None
-    start = end - timedelta(days=HISTORY_DAYS)
+    start = end - timedelta(days=days)
     while True:
         params = {"symbols": ",".join(symbols), "timeframe": "1Day", "feed": "iex", "limit": 10000,
                   "start": start.date().isoformat(), "end": end.isoformat(), "sort": "asc"}

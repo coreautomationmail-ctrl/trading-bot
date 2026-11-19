@@ -1365,3 +1365,9 @@ million-bot evolution: the champion lost on an unseen year, the population didn'
 - Only the allocator is judged (registry K 12 -> 13, bar z 2.89): multiplicative weights on the
   bots' live daily returns vs equal weight vs random, from 2026-11-18, >= 60 trading days.
 - No bot is in the ladder or places paper orders. Expected outcome: INCONCLUSIVE or KILL.
+
+## 2026-11-18 STRATTON swarm-v2 registered (owner: "do those things you recommended")
+Three families other quant traders use, filtered for free daily data, paper and retail costs:
+cross-asset trend on 15 ETFs (24 bots), cross-sectional momentum/reversal on the 62 stocks (24),
+and ridge models retrained weekly on past data only (8). 56 daily bots, own allocator and test
+(registry K 13 -> 14, bar ~2.92, from 2026-11-19). v1 untouched. Plan: docs/swarm-plan.md section 8.

@@ -101,3 +101,22 @@ trades.
   large, steady edge, so a real but modest one may take 6+ months or end INCONCLUSIVE.
 - **The likely outcome:** INCONCLUSIVE or KILL. An allocator can't create an edge its bots don't
   have. A PASS would show that switching between styles beats holding all of them.
+
+## 8. swarm-v2 (owner 2026-11-18): three more idea families, a separate test
+
+Picked from what other quant traders do, filtered for free daily data, paper trading and retail
+costs (options flow, order books, HFT, crypto grids, prediction markets and Reddit sentiment were
+ruled out). A separate population and registry entry, `swarm-v2`, so v1 stays as registered.
+Daily bots only (`pods/bench/swarm_v2.py`), run after each close beside v1's daily runner, with
+the same position rules (next open in, close `hold` days later, 2 bps a side) and the same allocator,
+pass bar and kill rule as sections 3 and 4. It starts 2026-11-19, the registry goes to K = 14, and
+the bar rises to about 2.92.
+
+| Family | Rule | Grid |
+|---|---|---|
+| xtrend | each of 15 ETFs (SPY QQQ IWM EFA EEM TLT IEF LQD HYG GLD SLV DBC USO UUP VNQ): long when the L-day return, or the price against its L-day average, is up; short or flat when down | L 63/126/252 x return/average x long-only/both x hold 5/21 = 24 |
+| xsec | rank the 62 stocks by their L-day return; momentum buys the top k and shorts the bottom k, reversal the reverse | momentum L 20/60/120 x k 5/10 x hold 5/20 = 12; reversal L 1/3/5 x k 5/10 x hold 1/3 = 12 |
+| ml | ridge regression of the next h-day return on 7 features (1/3/5/10/20-day returns, 20-day volatility, distance from the 50-day average), trained on the last `window` days whose outcomes are known, retrained weekly; long the top k, short the bottom k | h 1/5 x k 5/10 x window 126/252 = 8 |
+
+56 bots. The ridge model is plain Python: the bench container carries no ML libraries and has a
+160 MB memory limit, so gradient boosting was not used.

@@ -115,6 +115,14 @@
       "instructions": "docs/swarm-plan.md as of 2026-11-17; pods/bench/swarm.py, swarm_bots.py, daily_swarm.py",
       "test": "from 2026-11-18, >= 60 trading days: day t of (allocator - equal-weight) daily bps >= bar(K) AND allocator mean daily bps > 0 AND allocator beats random on day t > 0 AND both halves of (allocator - equal) positive; KILL at >= 120 days if day t < 1 or allocator mean <= 0; else INCONCLUSIVE",
       "inputs": "151 rule bots (98 intraday sw-*, 53 daily sw-d*/sw-night-*) plus spike-quiet and spike-news; bots are reported, never judged one by one"
+    },
+    {
+      "id": "swarm-v2",
+      "registered": "2026-11-18",
+      "kind": "allocator",
+      "instructions": "docs/swarm-plan.md section 8 as of 2026-11-18; pods/bench/swarm_v2.py with swarm.py's allocator",
+      "test": "from 2026-11-19, >= 60 trading days: day t of (allocator - equal-weight) daily bps >= bar(K) AND allocator mean daily bps > 0 AND allocator beats random on day t > 0 AND both halves of (allocator - equal) positive; KILL at >= 120 days if day t < 1 or allocator mean <= 0; else INCONCLUSIVE",
+      "inputs": "56 daily bots: 24 cross-asset trend on 15 ETFs, 24 cross-sectional rank (momentum, reversal) on the 62 SHADOW stocks, 8 ridge models retrained weekly on past data only; bots are reported, never judged one by one"
     }
   ]
 }

@@ -36,6 +36,7 @@ import strategies
 import swarm
 import swarm_bots
 import swarm_v2
+import swarm_v3
 from spike_pod import ET, PAPER_URL, fetch_bars, send_telegram
 
 STATE_DIR = spike_pod.STATE_DIR
@@ -197,9 +198,12 @@ def write_swarm_manifest(path: str = None):
 
 
 def write_trades(rows: list):
-    """Bench strategies to bench_virtual.csv, the swarm's bots to swarm_virtual.csv."""
+    """Bench strategies to bench_virtual.csv, the swarm's bots to swarm_virtual.csv, swarm-v3's
+    economy (re-costed honestly) to swarm_v3_virtual.csv."""
     append_csv(SWARM_CSV, VIRTUAL_FIELDS, [r for r in rows if r["strategy"] in swarm_bots.NAMES])
-    append_csv(VIRTUAL_CSV, VIRTUAL_FIELDS, [r for r in rows if r["strategy"] not in swarm_bots.NAMES])
+    append_csv(swarm_v3.TRADES_CSV, VIRTUAL_FIELDS, swarm_v3.route(rows))
+    append_csv(VIRTUAL_CSV, VIRTUAL_FIELDS, [r for r in rows if r["strategy"] not in swarm_bots.NAMES
+                                             and not swarm_v3.is_v3(r["strategy"])])
 
 
 def append_csv(path: str, fields: list, rows: list):
@@ -338,6 +342,7 @@ def maybe_review(state: dict, lad: dict, strats: list):
     try:
         sw = swarm.report(STATE_DIR, sorted(swarm_bots.NAMES | daily_swarm.NAMES | set(swarm.SPIKE_INPUTS)))
         sw += "\n\n" + swarm_v2.report(STATE_DIR)
+        sw += "\n\n" + swarm_v3.report(STATE_DIR)
     except Exception as e:  # the swarm's report must never cost the ladder its message
         sw = f"STRATTON swarm report failed: {str(e)[:200]}"
     send_telegram("STRATTON ladder, weekly:\n" + ("\n".join(lines) or "no strategies") + "\n\n" + case + "\n\n" + sw)
@@ -353,7 +358,11 @@ def main():
     ladder.save(LADDER_FILE, lad)
     strats = [s for s in strats if ladder.stage_of(lad, s.NAME) != "retired"]
     cost = {s.NAME: s.COST_BPS for s in strats}
-    bots = list(swarm_bots.ALL)            # swarm-v1 inputs: never in the ladder, never ordering
+    v3 = swarm_v3.load()                   # swarm-v3's two economies (seeded on first start)
+    swarm_v3.save(v3)
+    swarm_v3.write_summary(v3)
+    v3_bots = swarm_v3.bots(v3)
+    bots = list(swarm_bots.ALL) + v3_bots  # swarm inputs: never in the ladder, never ordering
     write_swarm_manifest()
     swarm_v2.write_manifest()
     universe = sorted({u for s in strats + bots for u in s.UNIVERSE})
@@ -364,7 +373,8 @@ def main():
     send_telegram("STRATTON bench up: " + ", ".join(f"{s.NAME} [{ladder.stage_of(lad, s.NAME)}]"
                                                     for s in strats)
                   + f"; swarm-v1: {len(bots)} intraday + {len(daily_swarm.ALL)} daily bots"
-                  + f"; swarm-v2: {len(swarm_v2.ALL)} daily bots [paper, virtual]")
+                  + f"; swarm-v2: {len(swarm_v2.ALL)} daily bots"
+                  + f"; swarm-v3: {len(v3['pop']['e'])} eco + {len(v3['pop']['c'])} control bots [paper, virtual]")
     while True:
         try:
             clock = spike_pod.api("GET", "/v2/clock")
@@ -382,6 +392,9 @@ def main():
                 n2 = swarm_v2.maybe_run(now, append_csv)
                 if n2 is not None:
                     print(f"swarm-v2 daily: {n2} positions closed", flush=True)
+                h3 = swarm_v3.maybe_step(now, engine.strats)
+                if h3 is not None:
+                    print(f"swarm-v3 day: {h3}", flush=True)
                 maybe_review(state, lad, strats)
             else:
                 cutoff = now.replace(second=0, microsecond=0)
@@ -395,7 +408,7 @@ def main():
                         if utc(b["t"]) >= cutoff:
                             continue
                         for sig in engine.feed(sym, b):
-                            if sig["strategy"] in swarm_bots.NAMES:
+                            if sig["strategy"] in swarm_bots.NAMES or swarm_v3.is_v3(sig["strategy"]):
                                 continue
                             try:
                                 paper_enter(paper, state, lad, sig, now)

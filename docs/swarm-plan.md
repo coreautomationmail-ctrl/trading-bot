@@ -123,9 +123,17 @@ the bar rises to about 2.92.
 
 ## 9. swarm-v3: an evolving economy (planned 2026-11-18, build late December 2026)
 
-Not built yet. Written now so the design is fixed before any v1 or v2 result is known. Build only
-once v1 has 4-6 weeks and v2 about 4 weeks of live trades: meta-learning, evolution and the
-allocator upgrades below learn from the swarms' own trade history and would idle on less.
+Written so the design is fixed before any v1 or v2 result is known. The plan was to build it
+once v1 had 4-6 weeks of trades. **2026-11-18, owner's call: the core is built and live now**
+(pods/bench/swarm_v3.py, registry `swarm-v3`, from 2026-11-19), because the economy learns only
+from its own forward trades and so loses nothing by starting at generation 0 today; waiting only
+delayed its own 60-day verdict. The core is intraday only: two economies seeded with v1's 98
+intraday genomes (eco, and the random-churn control), capital as life, rent, earned births of
+mutated children (settings and mode), the time-of-day cost, and a frozen book of the seeds. The
+rule grammar, swarm-aware inputs, new senses, hedger and daily bots below are NOT in it; adding
+them would change a registered test, so they come as a separately registered `swarm-v3.1`.
+Constants (exposure 10, rent 0.002, floor 0.6, birth 1.3, stake 0.3, 40 trades, population
+49-196) are in the module docstring and were fixed before any v3 trade.
 
 **Principle: every bit of selection pressure comes from the real market.** No simulated market
 (an artificial-market sim, e.g. ABIDES, breeds champions of the simulator's quirks). Bots trade

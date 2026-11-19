@@ -123,6 +123,14 @@
       "instructions": "docs/swarm-plan.md section 8 as of 2026-11-18; pods/bench/swarm_v2.py with swarm.py's allocator",
       "test": "from 2026-11-19, >= 60 trading days: day t of (allocator - equal-weight) daily bps >= bar(K) AND allocator mean daily bps > 0 AND allocator beats random on day t > 0 AND both halves of (allocator - equal) positive; KILL at >= 120 days if day t < 1 or allocator mean <= 0; else INCONCLUSIVE",
       "inputs": "56 daily bots: 24 cross-asset trend on 15 ETFs, 24 cross-sectional rank (momentum, reversal) on the 62 SHADOW stocks, 8 ridge models retrained weekly on past data only; bots are reported, never judged one by one"
+    },
+    {
+      "id": "swarm-v3",
+      "registered": "2026-11-18",
+      "kind": "economy",
+      "instructions": "docs/swarm-plan.md section 9 (core, as built 2026-11-18); pods/bench/swarm_v3.py",
+      "test": "from 2026-11-19, >= 60 trading days: day t of (eco - frozen) daily bps >= bar(K) AND day t of (eco - random-churn control) >= bar(K) AND eco mean daily bps > 0 AND both halves of both diffs positive; KILL at >= 120 days if either day t < 1 or eco mean <= 0; else INCONCLUSIVE. All three books pay the same time-of-day cost (swarm_v3.side_cost)",
+      "inputs": "two economies seeded with the 98 swarm-v1 intraday genomes: eco (capital is life, rent, deaths under the floor, earned births of mutated children judged forward only) and control (same capital rules, same daily death/birth counts, chosen at random); frozen = the 98 seeds at equal weight from swarm-v1's own trades, re-costed; bots are reported, never judged one by one"
     }
   ]
 }

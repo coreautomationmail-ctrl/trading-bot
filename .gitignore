@@ -11,3 +11,4 @@ scripts/.cache/
 
 # day-trader-skill state files (written in the working dir by the skills)
 trader/
+.replay_data/

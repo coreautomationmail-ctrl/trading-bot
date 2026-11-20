@@ -1,0 +1,28 @@
+{
+  "_doc": "STRATTON historical replays, fixed BEFORE any replay data is fetched (git commit time is the proof). Separate from forward_registry.json on purpose: a replay is not a forward test, so it never changes K or any forward pass bar. A replay result never makes anything live; the forward tests stay the only gate. Never edit an entry after its first run; a change is a new entry.",
+  "replays": [
+    {
+      "id": "swarm-replay-v1",
+      "registered": "2026-11-19",
+      "owner_ok": "2026-11-19 (chat: replay + market-adjusted scoring + futility rule)",
+      "period": "2022-01-03 .. 2026-11-13 (every NYSE session; ends before the forward tests' first day 2026-11-18)",
+      "universe": "spike_pod.SHADOW as of this commit (62 large caps + SPY/QQQ/IWM). Survivorship: all listed through the period, chosen in 2026; noted, not corrected",
+      "data": "Alpaca SIP 1-minute bars (same feed the bench scores with), 09:30-16:00 ET, plus the prior close for gaps",
+      "code": "swarm_bots.py, swarm.py, swarm_v3.py exactly as at this commit, driven by a replay harness that only feeds bars and dates; no parameter, threshold, family or cost may change. If the harness needs a code change in those files, it is a new entry",
+      "costs": "swarm_v3.side_cost for v3 books; swarm-v1's own net_bps for v1 books (as live)",
+      "runs": "ONE run. No reruns after seeing results, except to fix a harness bug that is shown to feed wrong data; any such fix and both results are reported",
+      "tests": {
+        "A_v3_economy": "day t of (eco - random-churn control) >= 2.94 AND day t of (eco - frozen) >= 2.94 AND eco mean daily bps > 0 AND both halves of the period (split at the middle session) show both diffs positive",
+        "B_v1_allocator": "day t of (allocator - equal) >= 2.94 AND day t of (allocator - random weights) >= 2.94 AND allocator mean daily bps > 0 AND both halves positive for both diffs"
+      },
+      "bar_note": "2.94 = the forward bar at K = 15 on the registration day, used so a replay pass is judged no softer than a live one",
+      "reported_not_gating": "per calendar year diffs; the same diffs and means market-adjusted (each book's daily bps minus beta x SPY's open-to-close bps, beta from that book's previous 60 sessions, 0 for the first 60); deaths/births per year; final family mix of eco vs control",
+      "meaning": "FAIL of A or B = decisive: the mechanism does not beat chance even on history it was designed near; recommend the owner stop that forward test early. PASS = 'promising', not proof: the families were designed in 2026 with knowledge of this history; the forward test still decides"
+    }
+  ],
+  "forward_additions": {
+    "registered": "2026-11-19",
+    "market_adjusted": "From now on swarm-v1/v2/v3 reports also show the market-adjusted versions of their diffs and means (definition above). Reported only; the registered forward pass rules are unchanged, so no bar moves",
+    "futility": "Owner-approved early stop, which can only end a test, never pass one: after 20 counted sessions, stop swarm-v3 if day t of (eco - control) <= -1.0, and stop swarm-v1 if day t of (allocator - equal) <= -1.0. Re-checked once at 40 sessions with the same rule"
+  }
+}

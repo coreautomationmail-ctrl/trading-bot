@@ -34,15 +34,19 @@ def _load_env():
 
 
 def _get(params: dict) -> dict:
-    for attempt in range(8):
-        r = requests.get(URL, headers=spike_pod._headers(), params=params, timeout=60)
+    for attempt in range(30):
+        try:
+            r = requests.get(URL, headers=spike_pod._headers(), params=params, timeout=60)
+        except (requests.ConnectionError, requests.Timeout):
+            time.sleep(min(60, 5 * (attempt + 1)))
+            continue
         if r.status_code == 429 or r.status_code >= 500:
-            time.sleep(5 * (attempt + 1))
+            time.sleep(min(60, 5 * (attempt + 1)))
             continue
         r.raise_for_status()
         time.sleep(0.32)                     # 200 requests a minute
         return r.json()
-    r.raise_for_status()
+    raise RuntimeError(f"gave up after 30 attempts: {params.get('start')}")
 
 
 def fetch(symbols, start: str, end: str, timeframe: str) -> dict:
@@ -77,7 +81,7 @@ def main(out_dir: str):
     lock = threading.Lock()
     if not os.path.exists(os.path.join(out_dir, "daily.json")):
         _daily(syms, out_dir)
-    with ThreadPoolExecutor(4) as ex:
+    with ThreadPoolExecutor(2) as ex:
         list(ex.map(lambda ym: _month(ym, syms, out_dir, done, done_path, lock), [ym for ym in months()
                                                                                   if f"{ym[0]}-{ym[1]:02d}" not in done]))
 
@@ -96,7 +100,8 @@ def _month(ym, syms, out_dir, done, done_path, lock):
     if True:
         ny, nm = (y + 1, 1) if m == 12 else (y, m + 1)
         t0 = time.time()
-        bars = fetch(syms, f"{tag}-01T13:00:00Z", f"{ny}-{nm:02d}-01T00:00:00Z", "1Min")
+        end = min(f"{ny}-{nm:02d}-01", "2026-11-14")      # never ask past the period (free plan: no recent SIP)
+        bars = fetch(syms, f"{tag}-01T13:00:00Z", f"{end}T00:00:00Z", "1Min")
         by_day = {}
         for s, bs in bars.items():
             for b in bs:

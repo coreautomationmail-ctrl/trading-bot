@@ -35,6 +35,22 @@
    "reported_not_gating": "exit and migration-down separately; migration-up; per year; 10 bps cost variant; announcement-to-effective drift (from the prior close 5 sessions earlier) as context",
    "runs": "ONE run. No reruns after seeing results except to fix a harness bug shown to feed wrong data; both results reported.",
    "meaning": "FAIL = drop the idea (shift-gears option 4 next or the insider screener). PASS = promising, then a forward paper test on new events with market-on-close / market-on-open orders, registered separately."
+  },
+  {
+   "id": "insider-cluster-v1",
+   "registered": "2026-11-22",
+   "owner_ok": "2026-11-22 (chat: 'Do these': index deletion, then the insider-buying screener, then the AI brain)",
+   "idea": "Company insiders buying their own stock on the open market know more than the market; clusters of several insiders buying the same small/mid company are the documented signal. Informed counterparty, published within 2 business days on Form 4.",
+   "events": "SEC 'Insider Transactions Data Sets' (quarterly, sec.gov), filings 2020Q1 .. 2026Q3. Non-derivative transaction code P (open-market purchase), common stock, by an officer or director (not 10% holders alone). Cluster = >= 2 distinct insiders with P purchases in the same issuer whose transaction dates fall within 10 calendar days, total value >= $100,000. Event time = the FILING date of the Form 4 that completes the cluster. One event per issuer per 60 days.",
+   "trade": "buy at the next session's opening price after the filing date (daily bar open, Alpaca SIP, split-adjusted), hold 20 sessions, sell at that session's close. Issuer must have an Alpaca symbol and a price >= $3 on the entry day. Cost 10 bps a side; 25 bps variant reported.",
+   "benchmark": "IWM over the same 20-session window (primary), SPY reported",
+   "data_check_first": "coverage report: clusters -> resolved symbol -> entry and exit prices present, printed before any return. Stop if < 70% (delisted small caps are expected to be the main loss; reported).",
+   "tests": {
+    "main": "mean net excess vs IWM > 0 AND t >= 2.5 (events overlapping in time: t computed on calendar-month averages of event excess returns) AND both halves (split at the middle event by date) positive"
+   },
+   "reported_not_gating": "by market cap tercile, by cluster size (2, 3, 4+), per year, 25 bps cost, 5- and 60-session holds",
+   "runs": "ONE run, same rules as the other replays.",
+   "meaning": "PASS = a candidate screener for the forward paper desk (registered separately). FAIL = drop insider buying."
   }
  ],
  "forward_additions": {

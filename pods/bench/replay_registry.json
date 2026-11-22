@@ -1,28 +1,45 @@
 {
-  "_doc": "STRATTON historical replays, fixed BEFORE any replay data is fetched (git commit time is the proof). Separate from forward_registry.json on purpose: a replay is not a forward test, so it never changes K or any forward pass bar. A replay result never makes anything live; the forward tests stay the only gate. Never edit an entry after its first run; a change is a new entry.",
-  "replays": [
-    {
-      "id": "swarm-replay-v1",
-      "registered": "2026-11-19",
-      "owner_ok": "2026-11-19 (chat: replay + market-adjusted scoring + futility rule)",
-      "period": "2022-01-03 .. 2026-11-13 (every NYSE session; ends before the forward tests' first day 2026-11-18)",
-      "universe": "spike_pod.SHADOW as of this commit (62 large caps + SPY/QQQ/IWM). Survivorship: all listed through the period, chosen in 2026; noted, not corrected",
-      "data": "Alpaca SIP 1-minute bars (same feed the bench scores with), 09:30-16:00 ET, plus the prior close for gaps",
-      "code": "swarm_bots.py, swarm.py, swarm_v3.py exactly as at this commit, driven by a replay harness that only feeds bars and dates; no parameter, threshold, family or cost may change. If the harness needs a code change in those files, it is a new entry",
-      "costs": "swarm_v3.side_cost for v3 books; swarm-v1's own net_bps for v1 books (as live)",
-      "runs": "ONE run. No reruns after seeing results, except to fix a harness bug that is shown to feed wrong data; any such fix and both results are reported",
-      "tests": {
-        "A_v3_economy": "day t of (eco - random-churn control) >= 2.94 AND day t of (eco - frozen) >= 2.94 AND eco mean daily bps > 0 AND both halves of the period (split at the middle session) show both diffs positive",
-        "B_v1_allocator": "day t of (allocator - equal) >= 2.94 AND day t of (allocator - random weights) >= 2.94 AND allocator mean daily bps > 0 AND both halves positive for both diffs"
-      },
-      "bar_note": "2.94 = the forward bar at K = 15 on the registration day, used so a replay pass is judged no softer than a live one",
-      "reported_not_gating": "per calendar year diffs; the same diffs and means market-adjusted (each book's daily bps minus beta x SPY's open-to-close bps, beta from that book's previous 60 sessions, 0 for the first 60); deaths/births per year; final family mix of eco vs control",
-      "meaning": "FAIL of A or B = decisive: the mechanism does not beat chance even on history it was designed near; recommend the owner stop that forward test early. PASS = 'promising', not proof: the families were designed in 2026 with knowledge of this history; the forward test still decides"
-    }
-  ],
-  "forward_additions": {
-    "registered": "2026-11-19",
-    "market_adjusted": "From now on swarm-v1/v2/v3 reports also show the market-adjusted versions of their diffs and means (definition above). Reported only; the registered forward pass rules are unchanged, so no bar moves",
-    "futility": "Owner-approved early stop, which can only end a test, never pass one: after 20 counted sessions, stop swarm-v3 if day t of (eco - control) <= -1.0, and stop swarm-v1 if day t of (allocator - equal) <= -1.0. Re-checked once at 40 sessions with the same rule"
+ "_doc": "STRATTON historical replays, fixed BEFORE any replay data is fetched (git commit time is the proof). Separate from forward_registry.json on purpose: a replay is not a forward test, so it never changes K or any forward pass bar. A replay result never makes anything live; the forward tests stay the only gate. Never edit an entry after its first run; a change is a new entry.",
+ "replays": [
+  {
+   "id": "swarm-replay-v1",
+   "registered": "2026-11-19",
+   "owner_ok": "2026-11-19 (chat: replay + market-adjusted scoring + futility rule)",
+   "period": "2022-01-03 .. 2026-11-13 (every NYSE session; ends before the forward tests' first day 2026-11-18)",
+   "universe": "spike_pod.SHADOW as of this commit (62 large caps + SPY/QQQ/IWM). Survivorship: all listed through the period, chosen in 2026; noted, not corrected",
+   "data": "Alpaca SIP 1-minute bars (same feed the bench scores with), 09:30-16:00 ET, plus the prior close for gaps",
+   "code": "swarm_bots.py, swarm.py, swarm_v3.py exactly as at this commit, driven by a replay harness that only feeds bars and dates; no parameter, threshold, family or cost may change. If the harness needs a code change in those files, it is a new entry",
+   "costs": "swarm_v3.side_cost for v3 books; swarm-v1's own net_bps for v1 books (as live)",
+   "runs": "ONE run. No reruns after seeing results, except to fix a harness bug that is shown to feed wrong data; any such fix and both results are reported",
+   "tests": {
+    "A_v3_economy": "day t of (eco - random-churn control) >= 2.94 AND day t of (eco - frozen) >= 2.94 AND eco mean daily bps > 0 AND both halves of the period (split at the middle session) show both diffs positive",
+    "B_v1_allocator": "day t of (allocator - equal) >= 2.94 AND day t of (allocator - random weights) >= 2.94 AND allocator mean daily bps > 0 AND both halves positive for both diffs"
+   },
+   "bar_note": "2.94 = the forward bar at K = 15 on the registration day, used so a replay pass is judged no softer than a live one",
+   "reported_not_gating": "per calendar year diffs; the same diffs and means market-adjusted (each book's daily bps minus beta x SPY's open-to-close bps, beta from that book's previous 60 sessions, 0 for the first 60); deaths/births per year; final family mix of eco vs control",
+   "meaning": "FAIL of A or B = decisive: the mechanism does not beat chance even on history it was designed near; recommend the owner stop that forward test early. PASS = 'promising', not proof: the families were designed in 2026 with knowledge of this history; the forward test still decides"
+  },
+  {
+   "id": "index-deletion-auction-v1",
+   "registered": "2026-11-22",
+   "owner_ok": "2026-11-22 (chat: 'Do these' after the shift-gears ranking; swarm tests stopped same night)",
+   "idea": "Index funds must sell deleted names at the closing auction on the effective date; the auction print is pushed down and recovers by the next open (Hendrix/Liu/Roberts, Dimensional 2025: -30 bps into the auction, +63 bps auction->next open, US 2019-2023). Named forced counterparty: index trackers benchmarked to the close.",
+   "events": "Wikipedia change tables of List_of_S&P_400_companies and List_of_S&P_600_companies as fetched on 2026-11-22 (snapshot saved to research/index-deletion/events_raw.csv before any price is fetched). Window: effective dates 2020-01-01 .. 2026-11-13. The S&P 500 page has no change table any more, so S&P 500 deletions enter only as migrations into the 400 (noted, not corrected).",
+   "classes": "exit = removed from the 400 or 600 and not added to another S&P US index that day; migration-down = removed from 400 and added to 600 (or a 500 name added to 400 per the reason text); migration-up = moved to a bigger index. Excluded by reason text before any price is seen: acquisition/merger/acquired, bankruptcy, delisting, spin-off, share-class change, and events whose reason text says the change is effective before the open the same day as announced.",
+   "trade": "buy at the official closing auction print of the last session BEFORE the effective date (the session index funds rebalance at), sell at the official opening auction print of the next session. Data: Alpaca /v2/stocks/auctions, feed=sip. Cost 5 bps a side; a 10 bps a side variant reported.",
+   "benchmark": "the same close-auction -> next open-auction hold on SPY that night, and on 20 seeded random names (seed 20261122) from the same index's other members that night where the list is available, else from the 62-name SHADOW universe",
+   "data_check_first": "coverage report: events -> resolved symbol -> both auction prints present. Printed BEFORE any return is computed. If coverage of the pooled exit+migration-down set < 80%, stop and report, no test.",
+   "tests": {
+    "pooled": "exit + migration-down pooled: mean net bps > 0 AND t >= 2.5 vs SPY AND t >= 2.5 vs random names AND both halves (split at the middle event by date) positive vs SPY"
+   },
+   "reported_not_gating": "exit and migration-down separately; migration-up; per year; 10 bps cost variant; announcement-to-effective drift (from the prior close 5 sessions earlier) as context",
+   "runs": "ONE run. No reruns after seeing results except to fix a harness bug shown to feed wrong data; both results reported.",
+   "meaning": "FAIL = drop the idea (shift-gears option 4 next or the insider screener). PASS = promising, then a forward paper test on new events with market-on-close / market-on-open orders, registered separately."
   }
+ ],
+ "forward_additions": {
+  "registered": "2026-11-19",
+  "market_adjusted": "From now on swarm-v1/v2/v3 reports also show the market-adjusted versions of their diffs and means (definition above). Reported only; the registered forward pass rules are unchanged, so no bar moves",
+  "futility": "Owner-approved early stop, which can only end a test, never pass one: after 20 counted sessions, stop swarm-v3 if day t of (eco - control) <= -1.0, and stop swarm-v1 if day t of (allocator - equal) <= -1.0. Re-checked once at 40 sessions with the same rule"
+ }
 }

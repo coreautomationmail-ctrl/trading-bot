@@ -42,6 +42,9 @@ from spike_pod import ET, PAPER_URL, fetch_bars, send_telegram
 STATE_DIR = spike_pod.STATE_DIR
 STATE_FILE = os.path.join(STATE_DIR, "bench_state.json")
 VIRTUAL_CSV = os.path.join(STATE_DIR, "bench_virtual.csv")
+# Owner 2026-11-22: ALL swarm tests (v1, v2, v3) stopped after swarm-replay-v1 failed (eco = random churn,
+# allocator t 1.32 < 2.94, every book negative after costs). Their files stay in STATE_DIR as a record.
+SWARM_ON = False
 SWARM_CSV = os.path.join(STATE_DIR, "swarm_virtual.csv")   # the swarm's intraday bots (swarm_bots.py)
 PAPER_CSV = os.path.join(STATE_DIR, "bench_paper.csv")
 LADDER_FILE = os.path.join(STATE_DIR, "ladder.json")
@@ -340,9 +343,12 @@ def maybe_review(state: dict, lad: dict, strats: list):
     case = golive.report(SPIKE_DIR, STATE_DIR, strats, spike_pod.UNIVERSE,
                          {s.NAME: ladder.stage_of(lad, s.NAME) for s in strats})
     try:
-        sw = swarm.report(STATE_DIR, sorted(swarm_bots.NAMES | daily_swarm.NAMES | set(swarm.SPIKE_INPUTS)))
-        sw += "\n\n" + swarm_v2.report(STATE_DIR)
-        sw += "\n\n" + swarm_v3.report(STATE_DIR)
+        if not SWARM_ON:
+            sw = "Swarm tests (v1, v2, v3): stopped by the owner 2026-11-22 after swarm-replay-v1 failed."
+        else:
+            sw = swarm.report(STATE_DIR, sorted(swarm_bots.NAMES | daily_swarm.NAMES | set(swarm.SPIKE_INPUTS)))
+            sw += "\n\n" + swarm_v2.report(STATE_DIR)
+            sw += "\n\n" + swarm_v3.report(STATE_DIR)
     except Exception as e:  # the swarm's report must never cost the ladder its message
         sw = f"STRATTON swarm report failed: {str(e)[:200]}"
     send_telegram("STRATTON ladder, weekly:\n" + ("\n".join(lines) or "no strategies") + "\n\n" + case + "\n\n" + sw)
@@ -358,13 +364,14 @@ def main():
     ladder.save(LADDER_FILE, lad)
     strats = [s for s in strats if ladder.stage_of(lad, s.NAME) != "retired"]
     cost = {s.NAME: s.COST_BPS for s in strats}
-    v3 = swarm_v3.load()                   # swarm-v3's two economies (seeded on first start)
-    swarm_v3.save(v3)
-    swarm_v3.write_summary(v3)
-    v3_bots = swarm_v3.bots(v3)
-    bots = list(swarm_bots.ALL) + v3_bots  # swarm inputs: never in the ladder, never ordering
-    write_swarm_manifest()
-    swarm_v2.write_manifest()
+    v3, bots = None, []
+    if SWARM_ON:
+        v3 = swarm_v3.load()                   # swarm-v3's two economies (seeded on first start)
+        swarm_v3.save(v3)
+        swarm_v3.write_summary(v3)
+        bots = list(swarm_bots.ALL) + swarm_v3.bots(v3)  # swarm inputs: never in the ladder, never ordering
+        write_swarm_manifest()
+        swarm_v2.write_manifest()
     universe = sorted({u for s in strats + bots for u in s.UNIVERSE})
     state = load_state()
     state.setdefault("seen", [])
@@ -372,9 +379,10 @@ def main():
     engine, paper, last_err = Engine(strats + bots, Ctx(), state), Paper(), ["", 0.0]
     send_telegram("STRATTON bench up: " + ", ".join(f"{s.NAME} [{ladder.stage_of(lad, s.NAME)}]"
                                                     for s in strats)
-                  + f"; swarm-v1: {len(swarm_bots.ALL)} intraday + {len(daily_swarm.ALL)} daily bots"
-                  + f"; swarm-v2: {len(swarm_v2.ALL)} daily bots"
-                  + f"; swarm-v3: {len(v3['pop']['e'])} eco + {len(v3['pop']['c'])} control bots [paper, virtual]")
+                  + ((f"; swarm-v1: {len(swarm_bots.ALL)} intraday + {len(daily_swarm.ALL)} daily bots"
+                      + f"; swarm-v2: {len(swarm_v2.ALL)} daily bots"
+                      + f"; swarm-v3: {len(v3['pop']['e'])} eco + {len(v3['pop']['c'])} control bots [paper, virtual]")
+                     if SWARM_ON else "; swarm tests stopped (owner 2026-11-22)"))
     while True:
         try:
             clock = spike_pod.api("GET", "/v2/clock")
@@ -386,15 +394,16 @@ def main():
                             engine.feed(sym, b)
                     write_trades(engine.settle(final=True))
                     engine.day = None
-                n = daily_swarm.maybe_run(now, append_csv)
-                if n is not None:
-                    print(f"swarm daily: {n} positions closed", flush=True)
-                n2 = swarm_v2.maybe_run(now, append_csv)
-                if n2 is not None:
-                    print(f"swarm-v2 daily: {n2} positions closed", flush=True)
-                h3 = swarm_v3.maybe_step(now, engine.strats)
-                if h3 is not None:
-                    print(f"swarm-v3 day: {h3}", flush=True)
+                if SWARM_ON:
+                    n = daily_swarm.maybe_run(now, append_csv)
+                    if n is not None:
+                        print(f"swarm daily: {n} positions closed", flush=True)
+                    n2 = swarm_v2.maybe_run(now, append_csv)
+                    if n2 is not None:
+                        print(f"swarm-v2 daily: {n2} positions closed", flush=True)
+                    h3 = swarm_v3.maybe_step(now, engine.strats)
+                    if h3 is not None:
+                        print(f"swarm-v3 day: {h3}", flush=True)
                 maybe_review(state, lad, strats)
             else:
                 cutoff = now.replace(second=0, microsecond=0)

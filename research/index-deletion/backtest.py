@@ -40,6 +40,8 @@ def get(symbols, start, end):
             if r.status_code in (429,) or r.status_code >= 500:
                 time.sleep(5 * (attempt + 1))
                 continue
+            if r.status_code in (400, 404, 422):  # unknown/odd symbol: no data (counted as missing in coverage)
+                return out
             r.raise_for_status()
             break
         body = r.json()
@@ -91,10 +93,11 @@ def main():
             continue
         d0 = before[-1]
         d1 = next((d for d in sessions if d > d0), None)
-        a = prices(get([e.symbol], d0, d1).get(e.symbol, []))
+        sym = str(e.symbol).split("/")[0].strip().replace(".", "")   # "UAA/UA" -> UAA; "BF.B" style -> BFB
+        a = prices(get([sym], d0, d1).get(sym, []))
         c0 = a.get(d0, (None, None))[1]
         o1 = a.get(d1, (None, None))[0] if d1 else None
-        rows.append({"effective": e.effective, "symbol": e.symbol, "cls": e.cls, "index": e.index,
+        rows.append({"effective": e.effective, "symbol": sym, "cls": e.cls, "index": e.index,
                      "d0": d0, "d1": d1, "close_auction": c0, "next_open_auction": o1})
     df = pd.DataFrame(rows)
     df["ok"] = df.close_auction.notna() & df.next_open_auction.notna()

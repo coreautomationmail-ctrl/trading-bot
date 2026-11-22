@@ -93,7 +93,7 @@ def main():
             continue
         d0 = before[-1]
         d1 = next((d for d in sessions if d > d0), None)
-        sym = str(e.symbol).split("/")[0].strip().replace(".", "")   # "UAA/UA" -> UAA; "BF.B" style -> BFB
+        sym = str(e.symbol).split("/")[0].strip()   # "UAA/UA" -> UAA (Alpaca keeps dots: BF.B)
         a = prices(get([sym], d0, d1).get(sym, []))
         c0 = a.get(d0, (None, None))[1]
         o1 = a.get(d1, (None, None))[0] if d1 else None
